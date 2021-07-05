@@ -10,7 +10,7 @@ function readNifti(imagePath) {
     const imgDataUntyped = niftiReader.readImage(imgHeader, niftiData);
     const imgData = new Int16Array(imgDataUntyped);
 
-    return imgData;
+    return [imgHeader, imgData];
 }
 
 exports.readNifti = readNifti;

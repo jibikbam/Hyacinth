@@ -1,8 +1,9 @@
 import React from 'react';
+import {VolumeSlice} from './VolumeSlice';
 
 function App() {
     return (
-        <h1>Hello World! React works!</h1>
+        <VolumeSlice imagePath="data/datasets/dataset1/img1.nii.gz" sliceIndex={100} />
     )
 }
 
