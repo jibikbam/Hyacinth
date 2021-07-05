@@ -6,6 +6,8 @@
   "main": "./src/main.js",
   "scripts": {
     "start": "electron .",
+    "buildcss": "npx tailwindcss -i ./css/tailwind.css -o ./dist/css/style.css",
+    "watchcss": "npx tailwindcss -i ./css/tailwind.css -o ./dist/css/style.css --watch",
     "buildjs": "rollup -c",
     "watchjs": "rollup -c -w",
     "elrebuild": "electron-rebuild"
