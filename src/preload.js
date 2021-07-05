@@ -1,3 +1,7 @@
-window.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('preload-div').innerText = 'Preload script is working';
+const {contextBridge} = require('electron');
+const dbapi = require('./dbapi');
+
+contextBridge.exposeInMainWorld('dbapi', {
+    connect: dbapi.connect,
+    createTables: dbapi.createTables
 });
