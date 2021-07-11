@@ -5,7 +5,8 @@ const volumeapi = require('./volumeapi');
 
 contextBridge.exposeInMainWorld('dbapi', {
     connect: dbapi.connect,
-    createTables: dbapi.createTables
+    createTables: dbapi.createTables,
+    insertDataset: dbapi.insertDataset,
 });
 
 contextBridge.exposeInMainWorld('fileapi', {
