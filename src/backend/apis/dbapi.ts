@@ -19,7 +19,7 @@ function createTables() {
             CREATE TABLE IF NOT EXISTS datasets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT UNIQUE,
-                root_path TEXT UNIQUE
+                root_path TEXT
             );
         `).run();
 

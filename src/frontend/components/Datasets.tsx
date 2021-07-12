@@ -12,12 +12,12 @@ function Datasets() {
         <main className="mt-32 mx-auto max-w-screen-sm">
             <div className="flex justify-between items-end">
                 <div className="text-3xl">Datasets</div>
-                <Link className="px-4 py-1.5 bg-pink-200 rounded text-black font-medium focus:outline-none focus:ring-4 ring-pink-200 ring-opacity-50">New</Link>
+                <Link to="/create-dataset/choose-directory" className="px-4 py-1.5 bg-pink-200 rounded text-black font-medium focus:outline-none focus:ring-4 ring-pink-200 ring-opacity-50">New</Link>
             </div>
-            <div className="mt-2 space-y-4">
+            <div className="mt-2 space-y-3">
                 {datasets.map(d => {
                     return (
-                        <Link>
+                        <Link className="block">
                             <div className="px-3 py-2 bg-gray-700 rounded">
                                 <div>
                                     <div className="text-2xl">{d.name}</div>

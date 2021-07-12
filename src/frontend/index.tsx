@@ -8,10 +8,9 @@ const fileapi = (window as any).fileapi;
 dbapi.connect();
 dbapi.createTables();
 
-const datasetName = 'dataset1';
-dbapi.insertDataset(datasetName, 'data/datasets/' + datasetName, fileapi.getDatasetImages(datasetName));
-
-dbapi.selectDatasets();
+const datasetName = 'Dataset 1';
+const datasetPath = 'data/datasets/dataset1';
+dbapi.insertDataset(datasetName, datasetPath, fileapi.getDatasetImages(datasetPath));
 
 ReactDOM.render(
     <App />,
