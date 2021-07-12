@@ -16,6 +16,6 @@ export default {
             'process.env.NODE_ENV': JSON.stringify('production'),
             preventAssignment: true
         }),
-        typescript(),
+        typescript({tsconfig: 'tsconfig.frontend.json'}),
     ]
 }
