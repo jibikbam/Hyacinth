@@ -26,6 +26,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
+    "@heroicons/react": "^1.0.2",
     "better-sqlite3": "^7.4.1",
     "nifti-reader-js": "^0.5.4",
     "react": "^17.0.2",
