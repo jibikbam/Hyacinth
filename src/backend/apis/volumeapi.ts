@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-const niftiReader = require('nifti-reader-js');
+import * as niftiReader from 'nifti-reader-js';
 
 function readNifti(imagePath) {
     const fileData = fs.readFileSync(imagePath);

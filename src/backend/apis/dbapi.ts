@@ -1,4 +1,4 @@
-const Database = require('better-sqlite3');
+import * as Database from 'better-sqlite3';
 
 const DATABASE_PATH = 'data/db/hyacinth.db';
 let dbConn;
