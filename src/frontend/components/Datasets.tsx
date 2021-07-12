@@ -17,7 +17,7 @@ function Datasets() {
             <div className="mt-2 space-y-3">
                 {datasets.map(d => {
                     return (
-                        <Link className="block">
+                        <Link className="block" to={`/dataset/${d.id}`}>
                             <div className="px-3 py-2 bg-gray-700 rounded">
                                 <div>
                                     <div className="text-2xl">{d.name}</div>

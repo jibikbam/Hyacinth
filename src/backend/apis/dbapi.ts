@@ -66,4 +66,13 @@ function selectDatasets() {
     return datasetRows;
 }
 
-export {connect, createTables, insertDataset, selectDatasets};
+function selectDataset(datasetId: number) {
+    const datasetRow = dbConn.prepare(`
+        SELECT id, name, root_path FROM datasets
+        WHERE id = :datasetId;
+    `).get({datasetId});
+    console.log(JSON.stringify(datasetRow));
+    return datasetRow;
+}
+
+export {connect, createTables, insertDataset, selectDatasets, selectDataset};

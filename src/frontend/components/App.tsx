@@ -4,6 +4,7 @@ import {BrowserRouter as Router, Link, Switch, Route} from 'react-router-dom';
 import {VolumeSlice} from './VolumeSlice';
 import {Datasets} from './Datasets';
 import {CreateDataset} from './CreateDataset';
+import {DatasetOverview} from './DatasetOverview';
 
 function App() {
     return (
@@ -11,6 +12,9 @@ function App() {
             <Switch>
                 <Route path="/create-dataset">
                     <CreateDataset />
+                </Route>
+                <Route path="/dataset/:datasetId">
+                    <DatasetOverview />
                 </Route>
                 <Route path="/">
                     <Datasets />
