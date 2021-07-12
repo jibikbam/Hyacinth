@@ -3,7 +3,7 @@
   "description": "hyacinth electron app",
   "version": "1.0.0",
   "private": true,
-  "main": "./src/main.js",
+  "main": "./dist/js/backend/main.js",
   "scripts": {
     "start": "electron .",
     "buildcss": "npx tailwindcss -i ./css/tailwind.css -o ./dist/css/style.css",
