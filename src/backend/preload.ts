@@ -1,4 +1,4 @@
-const {contextBridge} = require('electron');
+import {contextBridge} from 'electron';
 const dbapi = require('./dbapi');
 const fileapi = require('./fileapi');
 const volumeapi = require('./volumeapi');
