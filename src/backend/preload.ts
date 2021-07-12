@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('dbapi', {
     connect: dbapi.connect,
     createTables: dbapi.createTables,
     insertDataset: dbapi.insertDataset,
+    selectDatasets: dbapi.selectDatasets,
 });
 
 contextBridge.exposeInMainWorld('fileapi', {

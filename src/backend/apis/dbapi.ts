@@ -56,4 +56,14 @@ function insertDataset(datasetName, rootPath, imageRelPaths) {
     console.log(`Inserted dataset ${datasetName}`);
 }
 
-export {connect, createTables, insertDataset};
+function selectDatasets() {
+    const datasetRows = dbConn.prepare(`
+        SELECT datasets.id, datasets.name, datasets.root_path, count(di.id) AS image_count FROM datasets
+            INNER JOIN dataset_images di on datasets.id = di.dataset_id
+        GROUP BY datasets.id;
+    `).all();
+    console.log(JSON.stringify(datasetRows));
+    return datasetRows;
+}
+
+export {connect, createTables, insertDataset, selectDatasets};
