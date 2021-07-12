@@ -13,4 +13,4 @@ function readNifti(imagePath) {
     return [imgHeader, imgData];
 }
 
-exports.readNifti = readNifti;
+export {readNifti};

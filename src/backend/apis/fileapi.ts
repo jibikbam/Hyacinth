@@ -13,4 +13,4 @@ function getDatasetImages(datasetDirName) {
     return datasetImagePaths;
 }
 
-exports.getDatasetImages = getDatasetImages;
+export {getDatasetImages};

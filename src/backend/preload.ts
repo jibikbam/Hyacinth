@@ -1,7 +1,7 @@
 import {contextBridge} from 'electron';
-const dbapi = require('./dbapi');
-const fileapi = require('./fileapi');
-const volumeapi = require('./volumeapi');
+import * as dbapi from './apis/dbapi';
+import * as fileapi from './apis/fileapi';
+import * as volumeapi from './apis/volumeapi';
 
 contextBridge.exposeInMainWorld('dbapi', {
     connect: dbapi.connect,

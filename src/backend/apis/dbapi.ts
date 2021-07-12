@@ -56,6 +56,4 @@ function insertDataset(datasetName, rootPath, imageRelPaths) {
     console.log(`Inserted dataset ${datasetName}`);
 }
 
-exports.connect = connect;
-exports.createTables = createTables;
-exports.insertDataset = insertDataset;
+export {connect, createTables, insertDataset};
