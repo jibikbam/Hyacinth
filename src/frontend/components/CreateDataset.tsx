@@ -147,7 +147,7 @@ function CreateDataset() {
                             <StepNavigation cancelTo="/" backTo="/create-dataset/choose-directory" nextTo="/create-dataset/choose-name" />
                         </Route>
                         <Route path="/create-dataset/choose-name">
-                            <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} altNextText="Create" altNextClicked={createDataset} altNextEnabled={datasetName && datasetName.length > 0} />
+                            <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} finishText="Create" finishClicked={createDataset} finishDisabled={!datasetName || datasetName.length === 0} />
                         </Route>
                     </Switch>
                 </div>
