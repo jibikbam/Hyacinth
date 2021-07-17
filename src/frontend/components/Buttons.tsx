@@ -13,7 +13,17 @@ const COLOR_CLASSES = {
 const BUTTON_CLASSES = 'rounded shadow focus:outline-none focus:ring-4 ring-opacity-50';
 const DISABLED_CLASSES = 'rounded bg-gray-600 text-gray-400';
 
-function Button({onClick = null, size = 'md', color = 'gray', disabled = false, children = null}) {
+interface CommonButtonProps {
+    size?: 'md';
+    color?: 'gray' | 'pink';
+    disabled?: boolean;
+    children?: any;
+}
+
+interface ButtonProps extends CommonButtonProps {onClick?: Function}
+interface LinkButtonProps extends CommonButtonProps {to?: string}
+
+function Button({onClick, size = 'md', color = 'gray', disabled = false, children}: ButtonProps) {
     if (disabled) {
         const classes = [DISABLED_CLASSES, SIZE_CLASSES[size]];
         return <button className={classes.join(' ')} disabled={disabled}>{children}</button>
@@ -23,7 +33,7 @@ function Button({onClick = null, size = 'md', color = 'gray', disabled = false, 
     return <button onClick={onClick} className={classes.join(' ')}>{children}</button>
 }
 
-function LinkButton({to = null, size = 'md', color = 'gray', disabled = false, children = null}) {
+function LinkButton({to, size = 'md', color = 'gray', disabled = false, children}: LinkButtonProps) {
     if (disabled) {
         const classes = ['inline-block', DISABLED_CLASSES, SIZE_CLASSES[size]];
         return <div className={classes.join(' ')}>{children}</div>
