@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Switch, Route, useHistory} from 'react-router-dom';
-import {Steps} from './Steps';
+import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
 import {CheckCircleIcon, FolderOpenIcon} from '@heroicons/react/solid';
 
@@ -109,48 +109,29 @@ function CreateDataset() {
     return (
         <main className="mx-auto max-w-screen-md">
             <div className="mt-32 p-4 pt-3 h-144 bg-gray-700 rounded flex flex-col justify-between">
-                <div>
-                    <div className="flex justify-between">
-                        <div className="text-3xl">Create Dataset</div>
-                        <Switch>
-                            <Route path="/create-dataset/choose-directory">
-                                <Steps title="Choose Directory" numSteps={3} curStep={0} />
-                            </Route>
-                            <Route path="/create-dataset/file-preview">
-                                <Steps title="Review Files" numSteps={3} curStep={1} />
-                            </Route>
-                            <Route path="/create-dataset/choose-name">
-                                <Steps title="Name Dataset" numSteps={3} curStep={2} />
-                            </Route>
-                        </Switch>
-                    </div>
-                    <div>
-                        <Switch>
-                            <Route path="/create-dataset/choose-directory">
-                                <ChooseDirectoryStep datasetRoot={datasetRoot} handleDatasetRoot={handleDatasetRoot} />
-                            </Route>
-                            <Route path="/create-dataset/file-preview">
-                                <FilePreviewStep datasetRoot={datasetRoot} filePaths={filePaths} />
-                            </Route>
-                            <Route path="/create-dataset/choose-name">
-                                <ChooseNameStep datasetName={datasetName} setDatasetName={setDatasetName} datasetRoot={datasetRoot} numFiles={filePaths.length} />
-                            </Route>
-                        </Switch>
-                    </div>
-                </div>
-                <div>
-                    <Switch>
-                        <Route path="/create-dataset/choose-directory">
-                            <StepNavigation cancelTo="/" backTo={null} nextTo={datasetRoot ? '/create-dataset/file-preview' : null} />
-                        </Route>
-                        <Route path="/create-dataset/file-preview">
-                            <StepNavigation cancelTo="/" backTo="/create-dataset/choose-directory" nextTo="/create-dataset/choose-name" />
-                        </Route>
-                        <Route path="/create-dataset/choose-name">
-                            <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} finishText="Create" finishClicked={createDataset} finishDisabled={!datasetName || datasetName.length === 0} />
-                        </Route>
-                    </Switch>
-                </div>
+                <Switch>
+                    <Route path="/create-dataset/choose-directory">
+                        <div>
+                            <StepHeader title="Create Dataset" stepDescription="Choose Directory" curStep={0} stepCount={3} />
+                            <ChooseDirectoryStep datasetRoot={datasetRoot} handleDatasetRoot={handleDatasetRoot} />
+                        </div>
+                        <StepNavigation cancelTo="/" backTo={null} nextTo={datasetRoot ? '/create-dataset/file-preview' : null} />
+                    </Route>
+                    <Route path="/create-dataset/file-preview">
+                        <div>
+                            <StepHeader title="Create Dataset" stepDescription="Review Files" curStep={1} stepCount={3} />
+                            <FilePreviewStep datasetRoot={datasetRoot} filePaths={filePaths} />
+                        </div>
+                        <StepNavigation cancelTo="/" backTo="/create-dataset/choose-directory" nextTo="/create-dataset/choose-name" />
+                    </Route>
+                    <Route path="/create-dataset/choose-name">
+                        <div>
+                            <StepHeader title="Create Dataset" stepDescription="Choose Name" curStep={2} stepCount={3} />
+                            <ChooseNameStep datasetName={datasetName} setDatasetName={setDatasetName} datasetRoot={datasetRoot} numFiles={filePaths.length} />
+                        </div>
+                        <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} finishText="Create" finishClicked={createDataset} finishDisabled={!datasetName || datasetName.length === 0} />
+                    </Route>
+                </Switch>
             </div>
         </main>
     )
