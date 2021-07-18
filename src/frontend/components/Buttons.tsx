@@ -10,8 +10,8 @@ const COLOR_CLASSES = {
     pink: 'bg-pink-200 ring-pink-200 text-black',
 }
 
-const BUTTON_CLASSES = 'rounded shadow focus:outline-none focus:ring-4 ring-opacity-50';
-const DISABLED_CLASSES = 'rounded bg-gray-600 text-gray-400';
+const BUTTON_CLASSES = 'flex rounded shadow focus:outline-none focus:ring-4 ring-opacity-50';
+const DISABLED_CLASSES = 'flex rounded bg-gray-600 text-gray-400';
 
 interface CommonButtonProps {
     size?: 'md';
@@ -35,11 +35,11 @@ function Button({onClick, size = 'md', color = 'gray', disabled = false, childre
 
 function LinkButton({to, size = 'md', color = 'gray', disabled = false, children}: LinkButtonProps) {
     if (disabled) {
-        const classes = ['inline-block', DISABLED_CLASSES, SIZE_CLASSES[size]];
+        const classes = [DISABLED_CLASSES, SIZE_CLASSES[size]];
         return <div className={classes.join(' ')}>{children}</div>
     }
 
-    const classes = ['inline-block', BUTTON_CLASSES, SIZE_CLASSES[size], COLOR_CLASSES[color]];
+    const classes = [BUTTON_CLASSES, SIZE_CLASSES[size], COLOR_CLASSES[color]];
     return <Link to={to} className={classes.join(' ')}>{children}</Link>
 }
 

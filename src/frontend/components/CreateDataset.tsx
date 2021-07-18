@@ -1,34 +1,35 @@
 import React, {useEffect, useState} from 'react';
 import {Switch, Route, useHistory} from 'react-router-dom';
+import {Button} from './Buttons';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
 import {CheckCircleIcon, FolderOpenIcon} from '@heroicons/react/solid';
 
-function ChooseDirectoryStep({datasetRoot, handleDatasetRoot}) {
-    let content;
-    if (datasetRoot) {
-        content = (
-            <div className="w-96 flex items-center">
-                <div className="flex-1 px-3 py-1.5 bg-gray-600 rounded-l text-gray-400">{datasetRoot}</div>
-                <button className="px-3 py-1.5 bg-pink-200 rounded-r text-black focus:outline-none focus:ring-4 ring-pink-200 ring-opacity-50">Edit</button>
-            </div>
-        )
-    }
-    else {
-        content = (
-            <button
-                onClick={() => handleDatasetRoot()}
-                className="px-4 py-1.5 bg-pink-200 rounded flex items-center focus:outline-none focus:ring-4 ring-pink-200 ring-opacity-50"
-            >
-                <FolderOpenIcon className="text-black w-6 h-6" />
-                <span className="ml-2 text-lg text-black font-medium">Choose Directory</span>
-            </button>
-        )
-    }
+function ChooseDirectoryButton({onClick}: {onClick: Function}) {
+    return (
+        <Button onClick={onClick} color="pink">
+            <FolderOpenIcon className="w-6 h-6" />
+            <span className="ml-2 text-lg font-medium">Choose Directory</span>
+        </Button>
+    )
+}
 
+function DirectoryStatus({datasetRoot}: {datasetRoot: string}) {
+    return (
+        <div className="w-96 flex items-center">
+            <div className="flex-1 px-3 py-1.5 bg-gray-600 rounded-l text-gray-400">{datasetRoot}</div>
+            <button className="px-3 py-1.5 bg-pink-200 rounded-r text-black focus:outline-none focus:ring-4 ring-pink-200 ring-opacity-50">Edit</button>
+        </div>
+    )
+}
+
+function ChooseDirectoryStep({datasetRoot, handleDatasetRoot}) {
     return (
         <div className="mt-32 flex flex-col items-center">
-            {content}
+            {!datasetRoot
+                ? <ChooseDirectoryButton onClick={handleDatasetRoot} />
+                : <DirectoryStatus datasetRoot={datasetRoot} />
+            }
             <div className="mt-4 w-96 text-sm text-gray-400 text-center">
                 <div>The chosen directory will be scanned for nifti files to be added to this dataset. Any collaborators will have to use the same directory structure.</div>
             </div>
