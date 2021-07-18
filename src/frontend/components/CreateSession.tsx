@@ -4,6 +4,7 @@ import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
 import {CheckCircleIcon, CollectionIcon, ScaleIcon} from '@heroicons/react/outline';
+import {InputText} from './Inputs';
 
 type SessionType = 'classification' | 'comparison';
 
@@ -38,11 +39,45 @@ function ChooseTypeStep({sessionType, setSessionType}: {sessionType: SessionType
     )
 }
 
+interface SessionInfoStepProps {
+    sessionName: string;
+    setSessionName: Function;
+    prompt: string;
+    setPrompt: Function;
+    labelOptions: string;
+    setLabelOptions: Function;
+    sessionType: SessionType;
+}
+
+function SessionInfoStep({sessionName, setSessionName, prompt, setPrompt, labelOptions, setLabelOptions, sessionType}: SessionInfoStepProps) {
+    return (
+        <div className="mx-auto mt-10 w-2/3 flex flex-col space-y-8">
+            <div>
+                <InputText id="session-name" label="Session Name" placeholder="My Session" value={sessionName} setValue={setSessionName} />
+                <div className="mt-2 text-xs text-gray-400">Choose a name for this labeling session. Session names must be unique per dataset.</div>
+            </div>
+            <div>
+                <InputText id="prompt" label="Session Prompt" placeholder="My Prompt" value={prompt} setValue={setPrompt} />
+                <div className="mt-2 text-xs text-gray-400">The session prompt tells the labeler what criteria to use when choosing a label.</div>
+            </div>
+            <div>
+                <InputText id="label-options" label="Labels" placeholder="My Labels" value={labelOptions} setValue={setLabelOptions} />
+                <div className="mt-2 text-xs text-gray-400">Comma-separated list of labels for this labeling session.</div>
+            </div>
+        </div>
+    )
+}
+
 function CreateSession() {
     const {datasetId} = useParams();
     const [dataset, setDataset] = useState(null);
 
     const [sessionType, setSessionType] = useState<SessionType | null>(null);
+    const [sessionName, setSessionName] = useState<string>('');
+    const [prompt, setPrompt] = useState<string>('');
+    const [labelOptions, setLabelOptions] = useState<string>('');
+
+    const infoValid = sessionName.length > 0; // TODO: Validate inputs
 
     useEffect(() => {
         setDataset((window as any).dbapi.selectDataset(datasetId));
@@ -56,7 +91,22 @@ function CreateSession() {
                         <StepHeader title="Create Labeling Session" stepDescription="Choose Session Type" curStep={0} stepCount={3} />
                         <ChooseTypeStep sessionType={sessionType} setSessionType={setSessionType} />
                     </div>
-                    <StepNavigation cancelTo="/" backTo={null} nextTo={null} />
+                    <StepNavigation cancelTo="/" backTo={null} nextTo={sessionType && `/create-session/${datasetId}/session-info`} />
+                </Route>
+                <Route path="/create-session/:datasetId/session-info">
+                    <div>
+                        <StepHeader title="Create Labeling Session" stepDescription="Session Info" curStep={0} stepCount={3} />
+                        <SessionInfoStep
+                            sessionName={sessionName}
+                            setSessionName={setSessionName}
+                            prompt={prompt}
+                            setPrompt={setPrompt}
+                            labelOptions={labelOptions}
+                            setLabelOptions={setLabelOptions}
+                            sessionType={sessionType}
+                        />
+                    </div>
+                    <StepNavigation cancelTo="/" backTo={`/create-session/${datasetId}/choose-type`} nextTo={null} />
                 </Route>
             </Switch>
         </StepContainer>
