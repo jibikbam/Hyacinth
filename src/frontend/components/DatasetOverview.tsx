@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
+import {LinkButton} from './Buttons';
 import {ArrowLeftIcon, CogIcon} from '@heroicons/react/solid';
 import {PlusIcon} from '@heroicons/react/outline';
 
@@ -25,10 +26,12 @@ function DatasetOverview() {
                             <CogIcon className="w-6 h-6 text-gray-500" />
                         </Link>
                     </div>
-                    <Link className="mt-3 py-1.5 bg-pink-200 rounded shadow text-black flex justify-center items-center focus:outline-none focus:ring-4 ring-pink-200 ring-opacity-50">
-                        <PlusIcon className="w-5 h-5" />
-                        <span className="ml-1.5 text-lg font-medium">New Session</span>
-                    </Link>
+                    <div className="mt-3">
+                        <LinkButton to={`/create-session/${datasetId}/choose-type`} color="pink">
+                            <PlusIcon className="w-5 h-5" />
+                            <span className="ml-1.5 text-lg font-medium">New Session</span>
+                        </LinkButton>
+                    </div>
                 </div>
             </div>
             <div>

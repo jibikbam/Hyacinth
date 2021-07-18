@@ -10,8 +10,9 @@ const COLOR_CLASSES = {
     pink: 'bg-pink-200 ring-pink-200 text-black',
 }
 
-const BUTTON_CLASSES = 'flex rounded shadow focus:outline-none focus:ring-4 ring-opacity-50';
-const DISABLED_CLASSES = 'flex rounded bg-gray-600 text-gray-400';
+const FLEX_CLASSES = 'flex justify-center items-center';
+const BUTTON_CLASSES = FLEX_CLASSES + ' rounded shadow focus:outline-none focus:ring-4 ring-opacity-50';
+const DISABLED_CLASSES = FLEX_CLASSES + ' rounded bg-gray-600 text-gray-400';
 
 interface CommonButtonProps {
     size?: 'md';
