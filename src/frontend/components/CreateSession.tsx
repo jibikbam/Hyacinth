@@ -3,10 +3,13 @@ import {Switch, Route, useParams} from 'react-router-dom';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
+import {InputNumber, InputText, Select} from './Inputs';
 import {CheckCircleIcon, CollectionIcon, ScaleIcon} from '@heroicons/react/outline';
-import {InputText} from './Inputs';
+import {ChartBarIcon, ChartPieIcon} from '@heroicons/react/solid';
 
 type SessionType = 'classification' | 'comparison';
+type Orientation = 'Sagittal';
+type SamplingType = 'random' | 'sort';
 
 function TypeOption({text, highlight, onClick, children}: {text: string, highlight: boolean, onClick: Function, children?: any}) {
     const borderColor = highlight ? 'border-gray-300' : 'border-gray-500';
@@ -68,6 +71,83 @@ function SessionInfoStep({sessionName, setSessionName, prompt, setPrompt, labelO
     )
 }
 
+function SamplingButtonGroup({sampling, setSampling}: {sampling: SamplingType, setSampling: Function}) {
+    return (
+        <div className="flex items-center">
+            <button
+                className={'px-3 py-1.5 rounded-l border border-gray-400 text-xl flex items-center ' + (sampling === 'random' ? 'bg-gray-400 text-black' : 'text-gray-400')}
+                onClick={() => setSampling('random')}
+            >
+                <ChartPieIcon className="w-5 h-5" />
+                <span className="ml-1">Random</span>
+            </button>
+            <button
+                className={'px-3 py-1.5 rounded-r border border-gray-400 text-xl flex items-center ' + (sampling === 'sort' ? 'bg-gray-400 text-black' : 'text-gray-400')}
+                onClick={() => setSampling('sort')}
+            >
+                <ChartBarIcon className="w-5 h-5" />
+                <span className="ml-1">Sort</span>
+            </button>
+        </div>
+    )
+}
+
+interface SamplingOptionsStepProps {
+    sessionType: SessionType;
+    slicesFrom: string;
+    setSlicesFrom: Function;
+    imageCount: number;
+    setImageCount: Function;
+    sliceCount: number;
+    setSliceCount: Function;
+    orientation: Orientation;
+    setOrientation: Function;
+    sliceMinPct: number;
+    setSliceMinPct: Function;
+    sliceMaxPct: number;
+    setSliceMaxPct: Function;
+    sampling: SamplingType;
+    setSampling: Function;
+    comparisonCount: number;
+    setComparisonCount: Function;
+}
+
+function SamplingOptionsStep(props: SamplingOptionsStepProps) {
+    return (
+        <div className="mt-4 flex items-start space-x-12">
+            <div className="w-64">
+                <div>
+                    <Select id="slices-from" label="Slices From" options={['Create New']} value={props.slicesFrom} setValue={props.setSlicesFrom} />
+                </div>
+                <div className="mt-3 flex space-x-4">
+                    <InputNumber id="image-count" label="Images" value={props.imageCount} setValue={props.setImageCount} />
+                    <InputNumber id="slice-count" label="Slices" value={props.sliceCount} setValue={props.setSliceCount} />
+                </div>
+                <div className="mt-3">
+                    <Select id="orientation" label="Orientation" options={['Sagittal']} value={props.orientation} setValue={props.setOrientation} />
+                </div>
+                <div className="mt-3 flex space-x-4">
+                    <InputNumber id="slice-min-pct" label="Slice Min (%)" value={props.sliceMinPct} setValue={props.setSliceMinPct} />
+                    <InputNumber id="slice-max-pct" label="Slice Max (%)" value={props.sliceMaxPct} setValue={props.setSliceMaxPct} />
+                </div>
+            </div>
+            {props.sessionType === 'comparison' && (
+                <div className="w-64">
+                    <div>
+                        <div className="text-sm text-gray-400 font-medium">Comparison Sampling</div>
+                        <div className="mt-1">
+                            <SamplingButtonGroup sampling={props.sampling} setSampling={props.setSampling} />
+                        </div>
+                    </div>
+                    <div className="mt-3 w-1/2 pr-2">
+                        <InputNumber id="comparison-count" label="Comparisons" value={props.comparisonCount} setValue={props.setComparisonCount} />
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
 function CreateSession() {
     const {datasetId} = useParams();
     const [dataset, setDataset] = useState(null);
@@ -78,6 +158,16 @@ function CreateSession() {
     const [labelOptions, setLabelOptions] = useState<string>('');
 
     const infoValid = sessionName.length > 0; // TODO: Validate inputs
+
+    const [slicesFrom, setSlicesFrom] = useState<string>('Create New');
+    const [imageCount, setImageCount] = useState<number>(0);
+    const [sliceCount, setSliceCount] = useState<number>(0);
+    const [orientation, setOrientation] = useState<Orientation>('Sagittal');
+    const [sliceMinPct, setSliceMinPct] = useState<number>(20);
+    const [sliceMaxPct, setSliceMaxPct] = useState<number>(80);
+
+    const [sampling, setSampling] = useState<SamplingType>('random');
+    const [comparisonCount, setComparisonCount] = useState<number>(0);
 
     useEffect(() => {
         setDataset((window as any).dbapi.selectDataset(datasetId));
@@ -95,7 +185,7 @@ function CreateSession() {
                 </Route>
                 <Route path="/create-session/:datasetId/session-info">
                     <div>
-                        <StepHeader title="Create Labeling Session" stepDescription="Session Info" curStep={0} stepCount={3} />
+                        <StepHeader title="Create Labeling Session" stepDescription="Session Info" curStep={1} stepCount={3} />
                         <SessionInfoStep
                             sessionName={sessionName}
                             setSessionName={setSessionName}
@@ -106,7 +196,32 @@ function CreateSession() {
                             sessionType={sessionType}
                         />
                     </div>
-                    <StepNavigation cancelTo="/" backTo={`/create-session/${datasetId}/choose-type`} nextTo={null} />
+                    <StepNavigation cancelTo="/" backTo={`/create-session/${datasetId}/choose-type`} nextTo={`/create-session/${datasetId}/sampling-options`} />
+                </Route>
+                <Route path="/create-session/:datasetId/sampling-options">
+                    <div>
+                        <StepHeader title="Create Labeling Session" stepDescription="Sampling Options" curStep={2} stepCount={3} />
+                        <SamplingOptionsStep
+                            sessionType={sessionType}
+                            slicesFrom={slicesFrom}
+                            setSlicesFrom={setSlicesFrom}
+                            imageCount={imageCount}
+                            setImageCount={setImageCount}
+                            sliceCount={sliceCount}
+                            setSliceCount={setSliceCount}
+                            orientation={orientation}
+                            setOrientation={setOrientation}
+                            sliceMinPct={sliceMinPct}
+                            setSliceMinPct={setSliceMinPct}
+                            sliceMaxPct={sliceMaxPct}
+                            setSliceMaxPct={setSliceMaxPct}
+                            sampling={sampling}
+                            setSampling={setSampling}
+                            comparisonCount={comparisonCount}
+                            setComparisonCount={setComparisonCount}
+                        />
+                    </div>
+                    <StepNavigation cancelTo="/" backTo={`/create-session/${datasetId}/session-info`} nextTo={null} />
                 </Route>
             </Switch>
         </StepContainer>
