@@ -23,7 +23,7 @@ function DirectoryStatus({datasetRoot}: {datasetRoot: string}) {
     )
 }
 
-function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}) {
+function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}: {datasetRoot: string, chooseDatasetRoot: Function}) {
     return (
         <div className="mt-32 flex flex-col items-center">
             {!datasetRoot
@@ -37,7 +37,7 @@ function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}) {
     )
 }
 
-function FilePreviewStep({datasetRoot, filePaths}) {
+function FilePreviewStep({datasetRoot, filePaths}: {datasetRoot: string, filePaths: string[]}) {
     return (
         <div className="mt-6">
             <div className="text-lg text-gray-400">
@@ -53,7 +53,14 @@ function FilePreviewStep({datasetRoot, filePaths}) {
     )
 }
 
-function ChooseNameStep({datasetName, setDatasetName, datasetRoot, numFiles}) {
+interface ChooseNameStepProps {
+    datasetName: string;
+    setDatasetName: Function;
+    datasetRoot: string;
+    numFiles: number;
+}
+
+function ChooseNameStep({datasetName, setDatasetName, datasetRoot, numFiles}: ChooseNameStepProps) {
     return (
         <div className="mt-32">
             <div className="flex flex-col items-center">
@@ -63,7 +70,7 @@ function ChooseNameStep({datasetName, setDatasetName, datasetRoot, numFiles}) {
                         className="mt-0.5 px-3 py-1 w-96 bg-gray-400 rounded text-lg text-black placeholder-gray-600 focus:outline-none focus:ring-2 ring-gray-300"
                         type="text"
                         placeholder="My Dataset"
-                        value={datasetName || ''}
+                        value={datasetName}
                         onInput={ev => setDatasetName(ev.target.value)}
                     />
                 </div>
@@ -85,9 +92,9 @@ function ChooseNameStep({datasetName, setDatasetName, datasetRoot, numFiles}) {
 }
 
 function CreateDataset() {
-    const [datasetRoot, setDatasetRoot] = useState(null);
-    const [datasetName, setDatasetName] = useState(null);
-    const [filePaths, setFilePaths] = useState([]);
+    const [datasetRoot, setDatasetRoot] = useState<string | null>(null);
+    const [datasetName, setDatasetName] = useState<string>('');
+    const [filePaths, setFilePaths] = useState<string[]>([]);
 
     const history = useHistory();
 
@@ -130,7 +137,7 @@ function CreateDataset() {
                             <StepHeader title="Create Dataset" stepDescription="Choose Name" curStep={2} stepCount={3} />
                             <ChooseNameStep datasetName={datasetName} setDatasetName={setDatasetName} datasetRoot={datasetRoot} numFiles={filePaths.length} />
                         </div>
-                        <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} finishText="Create" finishClicked={createDataset} finishDisabled={!datasetName || datasetName.length === 0} />
+                        <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} finishText="Create" finishClicked={createDataset} finishDisabled={datasetName.length === 0} />
                     </Route>
                 </Switch>
             </div>
