@@ -23,11 +23,11 @@ function DirectoryStatus({datasetRoot}: {datasetRoot: string}) {
     )
 }
 
-function ChooseDirectoryStep({datasetRoot, handleDatasetRoot}) {
+function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}) {
     return (
         <div className="mt-32 flex flex-col items-center">
             {!datasetRoot
-                ? <ChooseDirectoryButton onClick={handleDatasetRoot} />
+                ? <ChooseDirectoryButton onClick={chooseDatasetRoot} />
                 : <DirectoryStatus datasetRoot={datasetRoot} />
             }
             <div className="mt-4 w-96 text-sm text-gray-400 text-center">
@@ -97,7 +97,7 @@ function CreateDataset() {
         }
     }, [datasetRoot]);
 
-    function handleDatasetRoot() {
+    function chooseDatasetRoot() {
         //TODO: actually set
         setDatasetRoot('data/datasets/dataset1');
     }
@@ -114,7 +114,7 @@ function CreateDataset() {
                     <Route path="/create-dataset/choose-directory">
                         <div>
                             <StepHeader title="Create Dataset" stepDescription="Choose Directory" curStep={0} stepCount={3} />
-                            <ChooseDirectoryStep datasetRoot={datasetRoot} handleDatasetRoot={handleDatasetRoot} />
+                            <ChooseDirectoryStep datasetRoot={datasetRoot} chooseDatasetRoot={chooseDatasetRoot} />
                         </div>
                         <StepNavigation cancelTo="/" backTo={null} nextTo={datasetRoot ? '/create-dataset/file-preview' : null} />
                     </Route>
