@@ -1,4 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
+import * as React from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceIndex) {
     const rows = imageHeader.dims[1];

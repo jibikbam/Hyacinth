@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import * as React from 'react';
+import {useEffect, useState} from 'react';
 import {Switch, Route, useHistory} from 'react-router-dom';
 import {Button} from './Buttons';
 import {StepHeader} from './StepHeader';

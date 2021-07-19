@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import * as React from 'react';
+import {useState} from 'react';
 import {BrowserRouter as Router, Link, Switch, Route} from 'react-router-dom';
 
 import {VolumeSlice} from './VolumeSlice';
