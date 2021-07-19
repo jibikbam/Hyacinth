@@ -18,6 +18,9 @@ function App() {
                 <Route path="/create-session/:datasetId">
                     <CreateSession />
                 </Route>
+                <Route path="/dataset/:datasetId/session/:sessionId">
+                    <DatasetOverview />
+                </Route>
                 <Route path="/dataset/:datasetId">
                     <DatasetOverview />
                 </Route>

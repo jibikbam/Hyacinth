@@ -11,6 +11,9 @@ contextBridge.exposeInMainWorld('dbapi', {
     selectAllDatasets: dbapi.selectAllDatasets,
     selectDataset: dbapi.selectDataset,
     selectDatasetImages: dbapi.selectDatasetImages,
+    selectDatasetSessions: dbapi.selectDatasetSessions,
+    selectLabelingSession: dbapi.selectLabelingSession,
+    selectSessionSlices: dbapi.selectSessionSlices,
 });
 
 contextBridge.exposeInMainWorld('fileapi', {

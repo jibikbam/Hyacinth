@@ -1,17 +1,20 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
-import {Dataset, dbapi} from '../backend';
+import {Dataset, LabelingSession, dbapi} from '../backend';
 import {LinkButton} from './Buttons';
 import {ArrowLeftIcon, CogIcon} from '@heroicons/react/solid';
 import {PlusIcon} from '@heroicons/react/outline';
+import {SessionOverview} from './SessionOverview';
 
 function DatasetOverview() {
-    const {datasetId} = useParams();
+    const {datasetId, sessionId} = useParams();
     const [dataset, setDataset] = useState<Dataset | null>(null);
+    const [sessions, setSessions] = useState<LabelingSession[] | null>(null);
 
     useEffect(() => {
         setDataset(dbapi.selectDataset(datasetId));
+        setSessions(dbapi.selectDatasetSessions(datasetId));
     }, [datasetId]);
 
     return (
@@ -35,8 +38,15 @@ function DatasetOverview() {
                         </LinkButton>
                     </div>
                 </div>
+                <div className="mt-6">
+                    <h2 className="text-sm text-gray-400 font-medium">Labeling Sessions</h2>
+                    <div className="mt-2 space-y-2">
+                        {sessions && sessions.map(s => <Link to={`/dataset/${datasetId}/session/${s.id}`} className="text-lg text-gray-400 font-medium">{s.sessionName}</Link>)}
+                    </div>
+                </div>
             </div>
-            <div>
+            <div className="flex-1">
+                {sessionId && <SessionOverview sessionId={sessionId} />}
             </div>
         </main>
     )

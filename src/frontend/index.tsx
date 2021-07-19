@@ -6,10 +6,6 @@ import {App} from './components/App';
 dbapi.connect();
 dbapi.createTables();
 
-const datasetName = 'Dataset 1';
-const datasetPath = 'data/datasets/dataset1';
-dbapi.insertDataset(datasetName, datasetPath, fileapi.getDatasetImages(datasetPath));
-
 ReactDOM.render(
     <App />,
     document.getElementById('react-root')

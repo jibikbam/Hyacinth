@@ -12,10 +12,10 @@ function connect() {
 function createTables() {
     const createTablesTransaction = dbConn.transaction(() => {
         // For development
-        dbConn.prepare(`DROP TABLE IF EXISTS session_elements;`).run();
-        dbConn.prepare(`DROP TABLE IF EXISTS labeling_sessions;`).run();
-        dbConn.prepare(`DROP TABLE IF EXISTS dataset_images;`).run();
-        dbConn.prepare(`DROP TABLE IF EXISTS datasets;`).run();
+        // dbConn.prepare(`DROP TABLE IF EXISTS session_elements;`).run();
+        // dbConn.prepare(`DROP TABLE IF EXISTS labeling_sessions;`).run();
+        // dbConn.prepare(`DROP TABLE IF EXISTS dataset_images;`).run();
+        // dbConn.prepare(`DROP TABLE IF EXISTS datasets;`).run();
 
         dbConn.prepare(`
             CREATE TABLE IF NOT EXISTS datasets (
@@ -148,4 +148,36 @@ function selectDatasetImages(datasetId: number) {
     return imageRows;
 }
 
-export {connect, createTables, insertDataset, insertLabelingSession, selectAllDatasets, selectDataset, selectDatasetImages};
+function selectDatasetSessions(datasetId: number) {
+    const sessionRows = dbConn.prepare(`
+        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson FROM labeling_sessions;
+    `).all({datasetId});
+    console.log(`Selected ${sessionRows.length} sessions for dataset ${datasetId}`);
+    console.log(JSON.stringify(sessionRows));
+    return sessionRows;
+}
+
+function selectLabelingSession(sessionId: number) {
+    const sessionRow = dbConn.prepare(`
+        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson FROM labeling_sessions
+        WHERE id = :sessionId;
+    `).get({sessionId});
+    console.log(`Selected session: ${JSON.stringify(sessionRow)}`);
+    return sessionRow;
+}
+
+function selectSessionSlices(sessionId: number) {
+    const sliceRows = dbConn.prepare(`
+        SELECT se.id, se.sessionId, se.imageId1 as imageId, se.sliceIndex1 as sliceIndex, se.orientation1 as orientation,
+               d.rootPath as datasetRootPath, di.relPath as imageRelPath
+        FROM session_elements se
+        INNER JOIN dataset_images di on se.imageId1 = di.id
+        INNER JOIN datasets d on di.datasetId = d.id
+        WHERE se.sessionId = :sessionId AND se.elementType = 'slice';
+    `).all({sessionId});
+    console.log(`Selected ${sliceRows.length} slices for session ${sessionId}`);
+    console.log(JSON.stringify(sliceRows));
+    return sliceRows;
+}
+
+export {connect, createTables, insertDataset, insertLabelingSession, selectAllDatasets, selectDataset, selectDatasetImages, selectDatasetSessions, selectLabelingSession, selectSessionSlices};

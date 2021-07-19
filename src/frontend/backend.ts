@@ -16,6 +16,26 @@ interface DatasetImage {
     datasetRootPath?: string;
 }
 
+interface LabelingSession {
+    id: number;
+    datasetId: number;
+    sessionType: SessionType;
+    sessionName: string;
+    prompt: string;
+    labelOptions: string;
+    metadataJson: string;
+}
+
+interface Slice {
+    id: number;
+    sessionId: number;
+    imageId: number;
+    sliceIndex: number
+    orientation: Orientation;
+    datasetRootPath: string;
+    imageRelPath: string;
+}
+
 interface SliceAttributes {
     imageId: number;
     sliceIndex: number;
@@ -32,6 +52,9 @@ interface DBApiType {
     selectAllDatasets: () => Dataset[];
     selectDataset: (datasetId: number) => Dataset;
     selectDatasetImages: (datasetId: number) => DatasetImage[];
+    selectDatasetSessions: (datasetId: number) => LabelingSession[];
+    selectLabelingSession: (sessionId: number) => LabelingSession;
+    selectSessionSlices: (sessionId: number) => Slice[];
 }
 
 interface FileApiType {
@@ -47,4 +70,4 @@ const dbapi = (window as any).dbapi as DBApiType;
 const fileapi = (window as any).fileapi as FileApiType;
 const volumeapi = (window as any).volumeapi as VolumeApiType;
 
-export {SessionType, Orientation, SamplingType, Dataset, DatasetImage, SliceAttributes, dbapi, fileapi, volumeapi};
+export {SessionType, Orientation, SamplingType, Dataset, DatasetImage, LabelingSession, Slice, SliceAttributes, dbapi, fileapi, volumeapi};
