@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Switch, Route, useParams} from 'react-router-dom';
+import {Switch, Route, useParams, useHistory} from 'react-router-dom';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
@@ -150,6 +150,7 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
 
 function CreateSession() {
     const {datasetId} = useParams();
+    const history = useHistory();
     const [dataset, setDataset] = useState(null);
 
     const [sessionType, setSessionType] = useState<SessionType | null>(null);
@@ -172,6 +173,11 @@ function CreateSession() {
     useEffect(() => {
         setDataset((window as any).dbapi.selectDataset(datasetId));
     }, [datasetId])
+
+    function createSession() {
+        (window as any).dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, '');
+        history.push(`/dataset/${datasetId}`);
+    }
 
     return (
         <StepContainer>
@@ -221,7 +227,7 @@ function CreateSession() {
                             setComparisonCount={setComparisonCount}
                         />
                     </div>
-                    <StepNavigation cancelTo="/" backTo={`/create-session/${datasetId}/session-info`} nextTo={null} />
+                    <StepNavigation cancelTo="/" backTo={`/create-session/${datasetId}/session-info`} nextTo={null} finishText="Create" finishClicked={createSession} finishDisabled={false} />
                 </Route>
             </Switch>
         </StepContainer>

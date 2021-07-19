@@ -12,6 +12,7 @@ function connect() {
 function createTables() {
     const createTablesTransaction = dbConn.transaction(() => {
         // For development
+        dbConn.prepare(`DROP TABLE IF EXISTS labeling_sessions;`)
         dbConn.prepare(`DROP TABLE IF EXISTS dataset_images;`).run();
         dbConn.prepare(`DROP TABLE IF EXISTS datasets;`).run();
 
@@ -31,6 +32,19 @@ function createTables() {
                 FOREIGN KEY (dataset_id) REFERENCES datasets (id),
                 UNIQUE (dataset_id, rel_path)
             );
+        `).run();
+
+        dbConn.prepare(`
+            CREATE TABLE IF NOT EXISTS labeling_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                dataset_id INTEGER NOT NULL,
+                session_type TEXT NOT NULL,
+                name TEXT UNIQUE NOT NULL,
+                prompt TEXT UNIQUE NOT NULL,
+                label_options TEXT UNIQUE NOT NULL,
+                metadata_json TEXT UNIQUE NOT NULL,
+                FOREIGN KEY (dataset_id) REFERENCES datasets (id)
+            )
         `).run();
     });
 
@@ -56,6 +70,21 @@ function insertDataset(datasetName, rootPath, imageRelPaths) {
     console.log(`Inserted dataset ${datasetName}`);
 }
 
+function insertLabelingSession(datasetId: number, sessionType: string, name: string,
+                               prompt: string, labelOptions: string, metadataJson: string) {
+    const insertTransaction = dbConn.transaction(() => {
+        const sessionInsertInfo = dbConn.prepare(`
+            INSERT INTO labeling_sessions (dataset_id, session_type, name, prompt, label_options, metadata_json)
+                VALUES (:datasetId, :sessionType, :name, :prompt, :labelOptions, :metadataJson);
+        `).run({datasetId, sessionType, name, prompt, labelOptions, metadataJson});
+
+        const sessionId = sessionInsertInfo.lastInsertRowId;
+    });
+
+    insertTransaction();
+    console.log(`Inserted labeling session ${name}`);
+}
+
 function selectDatasets() {
     const datasetRows = dbConn.prepare(`
         SELECT datasets.id, datasets.name, datasets.root_path, count(di.id) AS image_count FROM datasets
@@ -75,4 +104,4 @@ function selectDataset(datasetId: number) {
     return datasetRow;
 }
 
-export {connect, createTables, insertDataset, selectDatasets, selectDataset};
+export {connect, createTables, insertDataset, insertLabelingSession, selectDatasets, selectDataset};
