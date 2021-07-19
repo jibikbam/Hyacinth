@@ -19,31 +19,31 @@ function createTables() {
         dbConn.prepare(`
             CREATE TABLE IF NOT EXISTS datasets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE,
-                root_path TEXT
+                datasetName TEXT UNIQUE,
+                rootPath TEXT
             );
         `).run();
 
         dbConn.prepare(`
             CREATE TABLE IF NOT EXISTS dataset_images (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                dataset_id INTEGER,
-                rel_path TEXT,
-                FOREIGN KEY (dataset_id) REFERENCES datasets (id),
-                UNIQUE (dataset_id, rel_path)
+                datasetId INTEGER,
+                relPath TEXT,
+                FOREIGN KEY (datasetId) REFERENCES datasets (id),
+                UNIQUE (datasetId, relPath)
             );
         `).run();
 
         dbConn.prepare(`
             CREATE TABLE IF NOT EXISTS labeling_sessions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                dataset_id INTEGER NOT NULL,
-                session_type TEXT NOT NULL,
-                name TEXT UNIQUE NOT NULL,
+                datasetId INTEGER NOT NULL,
+                sessionType TEXT NOT NULL,
+                sessionName TEXT UNIQUE NOT NULL,
                 prompt TEXT UNIQUE NOT NULL,
-                label_options TEXT UNIQUE NOT NULL,
-                metadata_json TEXT UNIQUE NOT NULL,
-                FOREIGN KEY (dataset_id) REFERENCES datasets (id)
+                labelOptions TEXT UNIQUE NOT NULL,
+                metadataJson TEXT UNIQUE NOT NULL,
+                FOREIGN KEY (datasetId) REFERENCES datasets (id)
             )
         `).run();
     });
@@ -55,13 +55,13 @@ function createTables() {
 function insertDataset(datasetName, rootPath, imageRelPaths) {
     const insertDatasetTransaction = dbConn.transaction(() => {
         const datasetInsertInfo = dbConn.prepare(`
-            INSERT INTO datasets (name, root_path) VALUES (:datasetName, :rootPath);
+            INSERT INTO datasets (datasetName, rootPath) VALUES (:datasetName, :rootPath);
         `).run({datasetName, rootPath});
 
         const datasetId = datasetInsertInfo.lastInsertRowid;
 
         const insertImage = dbConn.prepare(`
-            INSERT INTO dataset_images (dataset_id, rel_path) VALUES (:datasetId, :relPath);
+            INSERT INTO dataset_images (datasetId, relPath) VALUES (:datasetId, :relPath);
         `);
         for (const relPath of imageRelPaths) insertImage.run({datasetId, relPath});
     });
@@ -74,7 +74,7 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
                                prompt: string, labelOptions: string, metadataJson: string) {
     const insertTransaction = dbConn.transaction(() => {
         const sessionInsertInfo = dbConn.prepare(`
-            INSERT INTO labeling_sessions (dataset_id, session_type, name, prompt, label_options, metadata_json)
+            INSERT INTO labeling_sessions (datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson)
                 VALUES (:datasetId, :sessionType, :name, :prompt, :labelOptions, :metadataJson);
         `).run({datasetId, sessionType, name, prompt, labelOptions, metadataJson});
 
@@ -87,8 +87,8 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
 
 function selectDatasets() {
     const datasetRows = dbConn.prepare(`
-        SELECT datasets.id, datasets.name, datasets.root_path, count(di.id) AS image_count FROM datasets
-            INNER JOIN dataset_images di on datasets.id = di.dataset_id
+        SELECT datasets.id, datasets.datasetName, datasets.rootPath, count(di.id) AS image_count FROM datasets
+            INNER JOIN dataset_images di on datasets.id = di.datasetId
         GROUP BY datasets.id;
     `).all();
     console.log(JSON.stringify(datasetRows));
@@ -97,7 +97,7 @@ function selectDatasets() {
 
 function selectDataset(datasetId: number) {
     const datasetRow = dbConn.prepare(`
-        SELECT id, name, root_path FROM datasets
+        SELECT id, datasetName, rootPath FROM datasets
         WHERE id = :datasetId;
     `).get({datasetId});
     console.log(JSON.stringify(datasetRow));
