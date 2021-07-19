@@ -72,7 +72,7 @@ function ChooseNameStep({datasetName, setDatasetName, datasetRoot, numFiles}: Ch
                         type="text"
                         placeholder="My Dataset"
                         value={datasetName}
-                        onInput={ev => setDatasetName(ev.target.value)}
+                        onInput={ev => setDatasetName(ev.currentTarget.value)}
                     />
                 </div>
                 <div className="mt-2 text-sm text-gray-400">Choose a name for this dataset. Dataset names must be unique.</div>

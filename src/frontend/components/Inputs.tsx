@@ -18,7 +18,7 @@ function InputText({id, label, placeholder, value, setValue}: InputTextProps) {
                 type="text"
                 placeholder={placeholder}
                 value={value}
-                onInput={ev => setValue(ev.target.value)}
+                onInput={ev => setValue(ev.currentTarget.value)}
             />
         </div>
     )
@@ -40,7 +40,7 @@ function InputNumber({id, label, value, setValue}: InputNumberProps) {
                 id={id}
                 type="number"
                 value={value}
-                onInput={ev => setValue(ev.target.value)}
+                onInput={ev => setValue(ev.currentTarget.value)}
             />
         </div>
     )
@@ -62,7 +62,7 @@ function Select({id, label, options, value, setValue}: SelectProps) {
                 className="appearance-none mt-0.5 px-3 py-1 w-full bg-gray-400 rounded text-black font-medium focus:outline-none focus:ring-2 ring-gray-300"
                 id={id}
                 value={value}
-                onInput={ev => setValue(ev.target.value)}
+                onInput={ev => setValue(ev.currentTarget.value)}
             >
                 {options.map(o => <option key={o} value={o}>{o}</option>)}
             </select>

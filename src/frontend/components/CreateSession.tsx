@@ -19,7 +19,7 @@ function TypeOption({text, highlight, onClick, children}: {text: string, highlig
 
     return (
         <div className="flex flex-col items-center">
-            <button onClick={onClick} className={`pt-2 w-48 h-48 border-2 ${borderColor} rounded flex flex-col justify-center items-center`}>
+            <button onClick={() => onClick} className={`pt-2 w-48 h-48 border-2 ${borderColor} rounded flex flex-col justify-center items-center`}>
                 <span className={`w-20 h-20 ${circleColor} rounded-full flex justify-center items-center`}>
                     {children}
                 </span>
