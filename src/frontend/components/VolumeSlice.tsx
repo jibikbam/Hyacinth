@@ -36,7 +36,7 @@ function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceIndex
     context.putImageData(canvasImageData, 0, 0);
 }
 
-function VolumeSlice({imagePath, sliceIndex}) {
+function VolumeSlice({imagePath, sliceIndex}: {imagePath: string, sliceIndex: number}) {
     const [image, setImage] = useState(null);
     const canvasRef = useRef(null);
 
@@ -54,7 +54,7 @@ function VolumeSlice({imagePath, sliceIndex}) {
         }
     }, [image, sliceIndex]);
 
-    return <canvas ref={canvasRef} width={image ? image.header.dims[1] : 100} height={image ? image.header.dims[2] : 100} />
+    return <canvas style={{height: '80vh'}} ref={canvasRef} width={image ? image.header.dims[1] : 100} height={image ? image.header.dims[2] : 100} />
 }
 
 export {VolumeSlice};

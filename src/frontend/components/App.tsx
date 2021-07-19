@@ -7,6 +7,7 @@ import {Datasets} from './Datasets';
 import {CreateDataset} from './CreateDataset';
 import {DatasetOverview} from './DatasetOverview';
 import {CreateSession} from './CreateSession';
+import {LabelView} from './LabelView';
 
 function App() {
     return (
@@ -23,6 +24,9 @@ function App() {
                 </Route>
                 <Route path="/dataset/:datasetId">
                     <DatasetOverview />
+                </Route>
+                <Route path="/label/:sessionId/:elementIndex">
+                    <LabelView />
                 </Route>
                 <Route path="/">
                     <Datasets />

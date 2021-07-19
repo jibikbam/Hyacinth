@@ -1,8 +1,8 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {dbapi, LabelingSession, Slice} from '../backend';
+import {LinkButton} from './Buttons';
 import {ChevronDownIcon, CogIcon, PlayIcon, TagIcon} from '@heroicons/react/solid';
-import {Button} from './Buttons';
 
 function ManageDropdown() {
     return (
@@ -80,11 +80,11 @@ function SessionOverview({sessionId}: {sessionId: number}) {
                     <ManageDropdown />
                 </div>
             </div>
-            <div className="mt-6">
-                <Button color="pink">
+            <div className="mt-6 inline-block">
+                <LinkButton to={`/label/${sessionId}/0`} color="pink">
                     <PlayIcon className="w-5 h-5" />
                     <span className="ml-1 font-medium">Start Labeling</span>
-                </Button>
+                </LinkButton>
             </div>
             <div className="mt-4">
                 <div>
