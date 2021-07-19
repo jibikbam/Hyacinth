@@ -19,6 +19,8 @@
     "@rollup/plugin-node-resolve": "^13.0.0",
     "@rollup/plugin-replace": "^2.4.2",
     "@rollup/plugin-typescript": "^8.2.1",
+    "@types/react": "^17.0.14",
+    "@types/react-router": "^5.1.16",
     "electron": "^13.1.5",
     "electron-rebuild": "^2.3.5",
     "rollup": "^2.52.7",
