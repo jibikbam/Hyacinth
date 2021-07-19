@@ -1,8 +1,19 @@
+type SessionType = 'classification' | 'comparison';
+type Orientation = 'Sagittal';
+type SamplingType = 'random' | 'sort';
+
 interface Dataset {
     id: number;
     datasetName: string;
     rootPath: string;
     imageCount?: number;
+}
+
+interface DatasetImage {
+    id: number;
+    datasetId: number;
+    relPath: string;
+    datasetRootPath?: string;
 }
 
 interface DBApiType {
@@ -13,6 +24,7 @@ interface DBApiType {
                             prompt: string, labelOptions: string, metadataJson: string) => void;
     selectAllDatasets: () => Dataset[];
     selectDataset: (datasetId: number) => Dataset;
+    selectDatasetImages: (datasetId: number) => DatasetImage[];
 }
 
 interface FileApiType {
@@ -20,6 +32,7 @@ interface FileApiType {
 }
 
 interface VolumeApiType {
+    readNiftiHeader: (imagePath: string) => any;
     readNifti: (imagePath: string) => any;
 }
 
@@ -27,4 +40,4 @@ const dbapi = (window as any).dbapi as DBApiType;
 const fileapi = (window as any).fileapi as FileApiType;
 const volumeapi = (window as any).volumeapi as VolumeApiType;
 
-export {Dataset, dbapi, fileapi, volumeapi};
+export {SessionType, Orientation, SamplingType, Dataset, DatasetImage, dbapi, fileapi, volumeapi};

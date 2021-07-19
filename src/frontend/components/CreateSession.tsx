@@ -1,17 +1,14 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {Switch, Route, useParams, useHistory} from 'react-router-dom';
-import {dbapi} from '../backend';
+import {SessionType, Orientation, SamplingType, dbapi, DatasetImage} from '../backend';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
 import {InputNumber, InputText, Select} from './Inputs';
 import {CheckCircleIcon, CollectionIcon, ScaleIcon} from '@heroicons/react/outline';
 import {ChartBarIcon, ChartPieIcon} from '@heroicons/react/solid';
-
-type SessionType = 'classification' | 'comparison';
-type Orientation = 'Sagittal';
-type SamplingType = 'random' | 'sort';
+import {sampleSlices} from '../sampling';
 
 function TypeOption({text, highlight, onClick, children}: {text: string, highlight: boolean, onClick: Function, children?: any}) {
     const borderColor = highlight ? 'border-gray-300' : 'border-gray-500';
@@ -154,6 +151,7 @@ function CreateSession() {
     const {datasetId} = useParams();
     const history = useHistory();
     const [dataset, setDataset] = useState(null);
+    const [datasetImages, setDatasetImages] = useState<DatasetImage[] | null>(null);
 
     const [sessionType, setSessionType] = useState<SessionType | null>(null);
     const [sessionName, setSessionName] = useState<string>('');
@@ -174,9 +172,11 @@ function CreateSession() {
 
     useEffect(() => {
         setDataset(dbapi.selectDataset(datasetId));
+        setDatasetImages(dbapi.selectDatasetImages(datasetId));
     }, [datasetId]);
 
     function createSession() {
+        const slices = sampleSlices(datasetImages, imageCount, sliceCount, orientation, sliceMinPct, sliceMaxPct);
         dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, '');
         history.push(`/dataset/${datasetId}`);
     }

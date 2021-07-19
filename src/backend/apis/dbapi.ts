@@ -12,7 +12,7 @@ function connect() {
 function createTables() {
     const createTablesTransaction = dbConn.transaction(() => {
         // For development
-        dbConn.prepare(`DROP TABLE IF EXISTS labeling_sessions;`)
+        dbConn.prepare(`DROP TABLE IF EXISTS labeling_sessions;`).run();
         dbConn.prepare(`DROP TABLE IF EXISTS dataset_images;`).run();
         dbConn.prepare(`DROP TABLE IF EXISTS datasets;`).run();
 
@@ -104,4 +104,15 @@ function selectDataset(datasetId: number) {
     return datasetRow;
 }
 
-export {connect, createTables, insertDataset, insertLabelingSession, selectAllDatasets, selectDataset};
+function selectDatasetImages(datasetId: number) {
+    const imageRows = dbConn.prepare(`
+        SELECT di.id, di.datasetId, di.relPath, d.rootPath as datasetRootPath FROM dataset_images di
+        INNER JOIN datasets d on di.datasetId = d.id
+        WHERE di.datasetId = :datasetId;
+    `).all({datasetId});
+    console.log(`Selected ${imageRows.length} images for dataset ${datasetId}`);
+    console.log(JSON.stringify(imageRows));
+    return imageRows;
+}
+
+export {connect, createTables, insertDataset, insertLabelingSession, selectAllDatasets, selectDataset, selectDatasetImages};

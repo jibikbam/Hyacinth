@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('dbapi', {
     insertLabelingSession: dbapi.insertLabelingSession,
     selectAllDatasets: dbapi.selectAllDatasets,
     selectDataset: dbapi.selectDataset,
+    selectDatasetImages: dbapi.selectDatasetImages,
 });
 
 contextBridge.exposeInMainWorld('fileapi', {
@@ -17,5 +18,6 @@ contextBridge.exposeInMainWorld('fileapi', {
 });
 
 contextBridge.exposeInMainWorld('volumeapi', {
+    readNiftiHeader: volumeapi.readNiftiHeader,
     readNifti: volumeapi.readNifti,
 });
