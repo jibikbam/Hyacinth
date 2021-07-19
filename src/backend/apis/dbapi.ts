@@ -85,9 +85,9 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
     console.log(`Inserted labeling session ${name}`);
 }
 
-function selectDatasets() {
+function selectAllDatasets() {
     const datasetRows = dbConn.prepare(`
-        SELECT datasets.id, datasets.datasetName, datasets.rootPath, count(di.id) AS image_count FROM datasets
+        SELECT datasets.id, datasets.datasetName, datasets.rootPath, count(di.id) AS imageCount FROM datasets
             INNER JOIN dataset_images di on datasets.id = di.datasetId
         GROUP BY datasets.id;
     `).all();
@@ -104,4 +104,4 @@ function selectDataset(datasetId: number) {
     return datasetRow;
 }
 
-export {connect, createTables, insertDataset, insertLabelingSession, selectDatasets, selectDataset};
+export {connect, createTables, insertDataset, insertLabelingSession, selectAllDatasets, selectDataset};

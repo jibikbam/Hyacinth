@@ -8,7 +8,7 @@ contextBridge.exposeInMainWorld('dbapi', {
     createTables: dbapi.createTables,
     insertDataset: dbapi.insertDataset,
     insertLabelingSession: dbapi.insertLabelingSession,
-    selectDatasets: dbapi.selectDatasets,
+    selectAllDatasets: dbapi.selectAllDatasets,
     selectDataset: dbapi.selectDataset,
 });
 

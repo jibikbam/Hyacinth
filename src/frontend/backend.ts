@@ -4,7 +4,7 @@ interface DBApiType {
     insertDataset: (datasetName: string, rootPath: string, imageRelPaths: string) => void;
     insertLabelingSession: (datasetId: number, sessionType: string, name: string,
                             prompt: string, labelOptions: string, metadataJson: string) => void;
-    selectDatasets: () => any;
+    selectAllDatasets: () => any;
     selectDataset: () => any;
 }
 
