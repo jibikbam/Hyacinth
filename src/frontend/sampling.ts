@@ -1,4 +1,4 @@
-import {DatasetImage, Orientation, volumeapi} from './backend';
+import {DatasetImage, Orientation, SliceAttributes, volumeapi} from './backend';
 
 function randomInt(max: number) {
     return Math.floor(Math.random() * max);
@@ -11,12 +11,6 @@ function sampleWithReplacement<Type>(arr: Type[], count: number): Type[] {
         sampled.push(arr[ind]);
     }
     return sampled;
-}
-
-interface SliceAttributes {
-    imageId: number;
-    sliceIndex: number;
-    orientation: Orientation;
 }
 
 function sampleSlices(images: DatasetImage[], imageCount: number, sliceCount: number,

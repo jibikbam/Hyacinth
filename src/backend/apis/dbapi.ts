@@ -12,6 +12,7 @@ function connect() {
 function createTables() {
     const createTablesTransaction = dbConn.transaction(() => {
         // For development
+        dbConn.prepare(`DROP TABLE IF EXISTS session_elements;`).run();
         dbConn.prepare(`DROP TABLE IF EXISTS labeling_sessions;`).run();
         dbConn.prepare(`DROP TABLE IF EXISTS dataset_images;`).run();
         dbConn.prepare(`DROP TABLE IF EXISTS datasets;`).run();
@@ -46,6 +47,23 @@ function createTables() {
                 FOREIGN KEY (datasetId) REFERENCES datasets (id)
             )
         `).run();
+
+        dbConn.prepare(`
+            CREATE TABLE IF NOT EXISTS session_elements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sessionId INTEGER NOT NULL,
+                elementType TEXT NOT NULL,
+                imageId1 INTEGER NOT NULL,
+                sliceIndex1 INTEGER NOT NULL,
+                orientation1 TEXT NOT NULL,
+                imageId2 INTEGER,
+                sliceIndex2 INTEGER,
+                orientation2 TEXT,
+                FOREIGN KEY (sessionId) REFERENCES labeling_sessions (id),
+                FOREIGN KEY (imageId1) REFERENCES dataset_images (id),
+                FOREIGN KEY (imageId2) REFERENCES dataset_images (id)
+            )
+        `).run();
     });
 
     createTablesTransaction();
@@ -71,14 +89,29 @@ function insertDataset(datasetName, rootPath, imageRelPaths) {
 }
 
 function insertLabelingSession(datasetId: number, sessionType: string, name: string,
-                               prompt: string, labelOptions: string, metadataJson: string) {
+                               prompt: string, labelOptions: string, metadataJson: string, slices: any) {
     const insertTransaction = dbConn.transaction(() => {
         const sessionInsertInfo = dbConn.prepare(`
             INSERT INTO labeling_sessions (datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson)
                 VALUES (:datasetId, :sessionType, :name, :prompt, :labelOptions, :metadataJson);
         `).run({datasetId, sessionType, name, prompt, labelOptions, metadataJson});
 
-        const sessionId = sessionInsertInfo.lastInsertRowId;
+        const sessionId = sessionInsertInfo.lastInsertRowid;
+
+        const insertSlice = dbConn.prepare(`
+            INSERT INTO session_elements (sessionId, elementType, imageId1, sliceIndex1, orientation1, imageId2, sliceIndex2, orientation2)
+                VALUES (:sessionId, :elementType, :imageId, :sliceIndex, :orientation, null, null, null);
+        `);
+
+        for (const slice of slices) {
+            insertSlice.run({
+                sessionId: sessionId,
+                elementType: 'slice',
+                imageId: slice.imageId,
+                sliceIndex: slice.sliceIndex,
+                orientation: slice.orientation,
+            });
+        }
     });
 
     insertTransaction();

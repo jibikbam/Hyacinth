@@ -177,7 +177,7 @@ function CreateSession() {
 
     function createSession() {
         const slices = sampleSlices(datasetImages, imageCount, sliceCount, orientation, sliceMinPct, sliceMaxPct);
-        dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, '');
+        dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, '', slices);
         history.push(`/dataset/${datasetId}`);
     }
 
