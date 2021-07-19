@@ -31,7 +31,7 @@ function Button({onClick, size = 'md', color = 'gray', disabled = false, childre
     }
 
     const classes = [BUTTON_CLASSES, SIZE_CLASSES[size], COLOR_CLASSES[color]];
-    return <button onClick={() => onClick} className={classes.join(' ')}>{children}</button>
+    return <button onClick={() => onClick()} className={classes.join(' ')}>{children}</button>
 }
 
 function LinkButton({to, size = 'md', color = 'gray', disabled = false, children}: LinkButtonProps) {

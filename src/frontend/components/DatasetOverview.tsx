@@ -1,17 +1,18 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
+import {Dataset, dbapi} from '../backend';
 import {LinkButton} from './Buttons';
 import {ArrowLeftIcon, CogIcon} from '@heroicons/react/solid';
 import {PlusIcon} from '@heroicons/react/outline';
 
 function DatasetOverview() {
     const {datasetId} = useParams();
-    const [dataset, setDataset] = useState(null);
+    const [dataset, setDataset] = useState<Dataset | null>(null);
 
     useEffect(() => {
-        setDataset((window as any).dbapi.selectDataset(datasetId));
-    }, [datasetId])
+        setDataset(dbapi.selectDataset(datasetId));
+    }, [datasetId]);
 
     return (
         <main className="h-screen flex">
@@ -22,7 +23,7 @@ function DatasetOverview() {
                         <span className="ml-1">Back to datasets</span>
                     </Link>
                     <div className="mt-2 flex justify-between items-center">
-                        <div className="text-3xl">{dataset && dataset.name}</div>
+                        <div className="text-3xl">{dataset && dataset.datasetName}</div>
                         <Link>
                             <CogIcon className="w-6 h-6 text-gray-500" />
                         </Link>

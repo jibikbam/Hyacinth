@@ -1,15 +1,12 @@
 import * as React from 'react';
 import {useState} from 'react';
 import {Link} from 'react-router-dom';
+import {Dataset, dbapi} from '../backend';
 import {PlusIcon} from '@heroicons/react/solid';
 import {ChevronRightIcon} from '@heroicons/react/outline';
 
-function loadDatasets() {
-    return (window as any).dbapi.selectDatasets();
-}
-
 function Datasets() {
-    const [datasets, setDatasets] = useState(loadDatasets());
+    const [datasets, setDatasets] = useState<Dataset[]>(dbapi.selectAllDatasets());
 
     return (
         <main className="mt-32 mx-auto max-w-screen-sm">
@@ -29,8 +26,8 @@ function Datasets() {
                         <Link className="block" to={`/dataset/${d.id}`}>
                             <div className="px-3 py-2 bg-gray-700 rounded flex justify-between items-center">
                                 <div>
-                                    <div className="text-2xl">{d.name}</div>
-                                    <div className="text-gray-400 font-medium">{d.image_count} volumes &bull; 0 labeling sessions</div>
+                                    <div className="text-2xl">{d.datasetName}</div>
+                                    <div className="text-gray-400 font-medium">{d.imageCount} volumes &bull; 0 labeling sessions</div>
                                 </div>
                                 <ChevronRightIcon className="text-gray-400 w-6 h-6" />
                             </div>

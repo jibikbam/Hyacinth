@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {Switch, Route, useHistory} from 'react-router-dom';
+import {dbapi, fileapi} from '../backend';
 import {Button} from './Buttons';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
@@ -100,9 +101,7 @@ function CreateDataset() {
     const history = useHistory();
 
     useEffect(() => {
-        if (datasetRoot) {
-            setFilePaths((window as any).fileapi.getDatasetImages(datasetRoot));
-        }
+        if (datasetRoot) setFilePaths(fileapi.getDatasetImages(datasetRoot));
     }, [datasetRoot]);
 
     function chooseDatasetRoot() {
@@ -111,7 +110,7 @@ function CreateDataset() {
     }
 
     function createDataset() {
-        (window as any).dbapi.insertDataset(datasetName, datasetRoot, filePaths);
+        dbapi.insertDataset(datasetName, datasetRoot, filePaths);
         history.push('/');
     }
 

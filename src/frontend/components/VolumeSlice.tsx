@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {useEffect, useRef, useState} from 'react';
+import {volumeapi} from '../backend';
 
 function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceIndex) {
     const rows = imageHeader.dims[1];
@@ -40,7 +41,7 @@ function VolumeSlice({imagePath, sliceIndex}) {
     const canvasRef = useRef(null);
 
     useEffect(() => {
-        const [imageHeader, imageData] = (window as any).volumeapi.readNifti(imagePath);
+        const [imageHeader, imageData] = volumeapi.readNifti(imagePath);
         setImage({
             header: imageHeader,
             data: imageData

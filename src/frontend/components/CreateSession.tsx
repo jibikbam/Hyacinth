@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {Switch, Route, useParams, useHistory} from 'react-router-dom';
+import {dbapi} from '../backend';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
@@ -19,7 +20,7 @@ function TypeOption({text, highlight, onClick, children}: {text: string, highlig
 
     return (
         <div className="flex flex-col items-center">
-            <button onClick={() => onClick} className={`pt-2 w-48 h-48 border-2 ${borderColor} rounded flex flex-col justify-center items-center`}>
+            <button onClick={() => onClick()} className={`pt-2 w-48 h-48 border-2 ${borderColor} rounded flex flex-col justify-center items-center`}>
                 <span className={`w-20 h-20 ${circleColor} rounded-full flex justify-center items-center`}>
                     {children}
                 </span>
@@ -172,11 +173,11 @@ function CreateSession() {
     const [comparisonCount, setComparisonCount] = useState<number>(0);
 
     useEffect(() => {
-        setDataset((window as any).dbapi.selectDataset(datasetId));
-    }, [datasetId])
+        setDataset(dbapi.selectDataset(datasetId));
+    }, [datasetId]);
 
     function createSession() {
-        (window as any).dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, '');
+        dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, '');
         history.push(`/dataset/${datasetId}`);
     }
 
