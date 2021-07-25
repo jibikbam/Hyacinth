@@ -8,9 +8,15 @@ import {PlusIcon} from '@heroicons/react/outline';
 import {SessionOverview} from './SessionOverview';
 
 function DatasetOverview() {
-    const {datasetId, sessionId} = useParams();
+    let {datasetId, sessionId} = useParams();
+    datasetId = parseInt(datasetId);
+    if (sessionId) sessionId = parseInt(sessionId);
+
     const [dataset, setDataset] = useState<Dataset | null>(null);
     const [sessions, setSessions] = useState<LabelingSession[] | null>(null);
+
+    // Default to first session if no sessionId is passed via route url
+    if (!sessionId && sessions && sessions.length > 0) sessionId = sessions[0].id;
 
     useEffect(() => {
         setDataset(dbapi.selectDataset(datasetId));
@@ -40,8 +46,14 @@ function DatasetOverview() {
                 </div>
                 <div className="mt-6">
                     <h2 className="text-sm text-gray-400 font-medium">Labeling Sessions</h2>
-                    <div className="mt-2 space-y-2">
-                        {sessions && sessions.map(s => <Link to={`/dataset/${datasetId}/session/${s.id}`} className="text-lg text-gray-400 font-medium">{s.sessionName}</Link>)}
+                    <div className="mt-2 space-y-1 flex flex-col items-start">
+                        {sessions && sessions.map(s => {
+                            return (
+                                <Link to={`/dataset/${datasetId}/session/${s.id}`} className="text-lg font-medium">
+                                    <span className={s.id === sessionId ? 'text-gray-100' : 'text-gray-400'}>{s.sessionName}</span>
+                                </Link>
+                            )
+                        })}
                     </div>
                 </div>
             </div>

@@ -125,9 +125,11 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
 
 function selectAllDatasets() {
     const datasetRows = dbConn.prepare(`
-        SELECT datasets.id, datasets.datasetName, datasets.rootPath, count(di.id) AS imageCount FROM datasets
-            INNER JOIN dataset_images di on datasets.id = di.datasetId
-        GROUP BY datasets.id;
+        SELECT d.id, d.datasetName, d.rootPath, count(DISTINCT di.id) AS imageCount, count(DISTINCT ls.id) AS sessionCount
+        FROM datasets d
+            INNER JOIN dataset_images di on d.id = di.datasetId
+            INNER JOIN labeling_sessions ls on d.id = ls.datasetId
+        GROUP BY d.id;
     `).all();
     console.log(JSON.stringify(datasetRows));
     return datasetRows;
@@ -155,7 +157,9 @@ function selectDatasetImages(datasetId: number) {
 
 function selectDatasetSessions(datasetId: number) {
     const sessionRows = dbConn.prepare(`
-        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson FROM labeling_sessions;
+        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson
+        FROM labeling_sessions
+        WHERE datasetId = :datasetId;
     `).all({datasetId});
     console.log(`Selected ${sessionRows.length} sessions for dataset ${datasetId}`);
     console.log(JSON.stringify(sessionRows));

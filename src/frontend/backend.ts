@@ -7,6 +7,7 @@ interface Dataset {
     datasetName: string;
     rootPath: string;
     imageCount?: number;
+    sessionCount?: number;
 }
 
 interface DatasetImage {

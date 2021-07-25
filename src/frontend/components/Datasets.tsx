@@ -27,7 +27,7 @@ function Datasets() {
                             <div className="px-3 py-2 bg-gray-700 rounded flex justify-between items-center">
                                 <div>
                                     <div className="text-2xl">{d.datasetName}</div>
-                                    <div className="text-gray-400 font-medium">{d.imageCount} volumes &bull; 0 labeling sessions</div>
+                                    <div className="text-gray-400 font-medium">{d.imageCount} volumes &bull; {d.sessionCount} labeling sessions</div>
                                 </div>
                                 <ChevronRightIcon className="text-gray-400 w-6 h-6" />
                             </div>
