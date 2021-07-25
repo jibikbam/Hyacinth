@@ -34,6 +34,41 @@ function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTime
     )
 }
 
+function LabelControls({labelOptions}: {labelOptions: string[]}) {
+    return (
+        <div>
+            <div className="text-gray-400 flex items-center">
+                <ColorSwatchIcon className="w-5 h-5" />
+                <span className="ml-1">Other Labels</span>
+            </div>
+            <div className="mt-3 flex flex-col space-y-3">
+                {labelOptions.map((label, i) => {
+                    return (
+                        <button className="py-2 bg-gray-600 rounded text-lg text-white focus:outline-none focus:ring-4 ring-gray-600 ring-opacity-50 flex justify-center">
+                            <span>{label} ({i + 1})</span>
+                        </button>
+                    )
+                })}
+            </div>
+        </div>
+    )
+}
+
+function ClassificationControls({session, curSlice}: {session: LabelingSession, curSlice: Slice}) {
+    return (
+        <div className="flex justify-center items-start">
+            <div>
+                <div className="bg-black rounded overflow-hidden flex justify-center items-center" style={{width: '80vh', height: '80vh'}}>
+                    <VolumeSlice imagePath={curSlice.datasetRootPath + '/' + curSlice.imageRelPath} sliceIndex={curSlice.sliceIndex} />
+                </div>
+            </div>
+            <div className="ml-6 w-56">
+                <LabelControls labelOptions={session.labelOptions.split(', ')} />
+            </div>
+        </div>
+    )
+}
+
 function LabelView() {
     let {sessionId, elementIndex} = useParams();
     elementIndex = parseInt(elementIndex);
@@ -93,27 +128,8 @@ function LabelView() {
                     </div>
                 </div>
             </header>
-            <main className="mt-6 flex justify-center items-start">
-                <div>
-                    <div className="bg-black rounded overflow-hidden flex justify-center items-center" style={{width: '80vh', height: '80vh'}}>
-                        <VolumeSlice imagePath={curSlice.datasetRootPath + '/' + curSlice.imageRelPath} sliceIndex={curSlice.sliceIndex} />
-                    </div>
-                </div>
-                <div className="ml-6 w-56">
-                    <div className="text-gray-400 flex items-center">
-                        <ColorSwatchIcon className="w-5 h-5" />
-                        <span className="ml-1">Other Labels</span>
-                    </div>
-                    <div className="mt-3 flex flex-col space-y-3">
-                        {session.labelOptions.split(',').map((label, i) => {
-                            return (
-                                <button className="py-2 bg-gray-600 rounded text-lg text-white focus:outline-none focus:ring-4 ring-gray-600 ring-opacity-50 flex justify-center">
-                                    <span>{label} ({i + 1})</span>
-                                </button>
-                            )
-                        })}
-                    </div>
-                </div>
+            <main className="mt-6">
+                <ClassificationControls session={session} curSlice={curSlice} />
             </main>
         </div>
     )
