@@ -106,17 +106,15 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
                     VALUES (:sessionId, :elementType, :elementIndex, :imageId, :sliceIndex, :orientation, null, null, null);
             `);
 
-            let sliceInd = 0;
-            for (const slice of slices) {
+            for (const [i, slice] of slices.entries()) {
                 insertSlice.run({
                     sessionId: sessionId,
                     elementType: 'slice',
-                    elementIndex: sliceInd,
+                    elementIndex: i,
                     imageId: slice.imageId,
                     sliceIndex: slice.sliceIndex,
                     orientation: slice.orientation,
                 });
-                sliceInd += 1;
             }
         }
     });
