@@ -1,8 +1,10 @@
 import * as React from 'react';
-import {Link, useParams} from 'react-router-dom';
-import {ChevronLeftIcon, ChevronRightIcon} from '@heroicons/react/outline';
 import {useEffect, useState} from 'react';
+import {Link, useParams} from 'react-router-dom';
 import {dbapi, LabelingSession, Slice} from '../backend';
+import {useTimer} from '../hooks/useTimer';
+import {VolumeSlice} from './VolumeSlice';
+import {ChevronLeftIcon, ChevronRightIcon} from '@heroicons/react/outline';
 import {
     ArrowLeftIcon,
     ChatAltIcon,
@@ -11,8 +13,26 @@ import {
     QuestionMarkCircleIcon,
     RefreshIcon
 } from '@heroicons/react/solid';
-import {VolumeSlice} from './VolumeSlice';
-import {Button} from './Buttons';
+
+function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTimer: Function}) {
+    const minutes = Math.floor(timerSeconds / 60).toString();
+    const seconds = Math.floor(timerSeconds % 60).toString().padStart(2, '0');
+
+    function handleResetClick() {
+        resetTimer();
+    }
+
+    return (
+        <div className="flex">
+            <div className="px-3 bg-gray-600 rounded-l flex items-center">
+                <span className="text-gray-300 font-mono">{minutes}:{seconds}</span>
+            </div>
+            <button className="px-3 py-1.5 bg-gray-400 rounded-r focus:outline-none focus:ring-4 ring-gray-400 ring-opacity-50" onClick={handleResetClick}>
+                <RefreshIcon className="text-gray-800 w-5 h-5" />
+            </button>
+        </div>
+    )
+}
 
 function LabelView() {
     let {sessionId, elementIndex} = useParams();
@@ -21,22 +41,12 @@ function LabelView() {
     const [session, setSession] = useState<LabelingSession | null>(null);
     const [slices, setSlices] = useState<Slice[]>(null);
 
-    const [timerSeconds, setTimerSeconds] = useState<number>(0);
+    const [startTimestamp, timerSeconds, resetTimer] = useTimer();
 
     useEffect(() => {
         setSession(dbapi.selectLabelingSession(sessionId));
         setSlices(dbapi.selectSessionSlices(sessionId));
     }, [sessionId]);
-
-    useEffect(() => {
-        const intervalId = setInterval(() => {
-            setTimerSeconds(s => s + 1);
-        }, 1000);
-
-        return () => {
-            clearInterval(intervalId);
-        }
-    }, []);
 
     if (!session || !slices) {
         return <div>Loading</div>
@@ -78,13 +88,8 @@ function LabelView() {
                             <CollectionIcon className="text-gray-800 w-5 h-5" />
                         </button>
                     </div>
-                    <div className="ml-6 flex">
-                        <div className="px-3 bg-gray-600 rounded-l flex items-center">
-                            <span className="text-gray-300 font-mono">{Math.floor(timerSeconds / 60)}:{(timerSeconds % 60).toString().padStart(2, '0')}</span>
-                        </div>
-                        <button className="px-3 py-1.5 bg-gray-400 rounded-r focus:outline-none focus:ring-4 ring-gray-400 ring-opacity-50" onClick={() => setTimerSeconds(0)}>
-                            <RefreshIcon className="text-gray-800 w-5 h-5" />
-                        </button>
+                    <div className="ml-6">
+                        <LabelTimer timerSeconds={timerSeconds} resetTimer={resetTimer} />
                     </div>
                 </div>
             </header>
