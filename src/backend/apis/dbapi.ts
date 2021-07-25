@@ -92,6 +92,9 @@ function insertDataset(datasetName, rootPath, imageRelPaths) {
 function insertLabelingSession(datasetId: number, sessionType: string, name: string,
                                prompt: string, labelOptions: string, metadataJson: string,
                                slices: any) {
+    labelOptions = labelOptions.split(',').map(s => s.trim()).join(',');
+
+    let insertedSessionId;
     const insertTransaction = dbConn.transaction(() => {
         const sessionInsertInfo = dbConn.prepare(`
             INSERT INTO labeling_sessions (datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson)
@@ -99,6 +102,7 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
         `).run({datasetId, sessionType, name, prompt, labelOptions, metadataJson});
 
         const sessionId = sessionInsertInfo.lastInsertRowid;
+        insertedSessionId = sessionId;
 
         if (sessionType === 'Classification') {
             const insertSlice = dbConn.prepare(`
@@ -121,6 +125,7 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
 
     insertTransaction();
     console.log(`Inserted labeling session ${name}`);
+    return insertedSessionId;
 }
 
 function selectAllDatasets() {

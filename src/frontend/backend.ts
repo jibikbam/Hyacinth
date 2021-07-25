@@ -50,7 +50,7 @@ interface DBApiType {
     insertDataset: (datasetName: string, rootPath: string, imageRelPaths: string[]) => void;
     insertLabelingSession: (datasetId: number, sessionType: string, name: string,
                             prompt: string, labelOptions: string, metadataJson: string,
-                            slices: SliceAttributes[]) => void;
+                            slices: SliceAttributes[]) => number;
     selectAllDatasets: () => Dataset[];
     selectDataset: (datasetId: number) => Dataset;
     selectDatasetImages: (datasetId: number) => DatasetImage[];
