@@ -46,6 +46,30 @@ function InputNumber({id, label, value, setValue}: InputNumberProps) {
     )
 }
 
+interface InputRangeProps {
+    min: number;
+    max: number;
+    step: number;
+    value: number;
+    setValue: (number) => void;
+}
+
+function InputRange({min, max, step, value, setValue}: InputRangeProps) {
+    const valPct = value == 0 ? 0 : ((value - min) / (max - min)) * 100;
+    return (
+        <input
+            className="w-full"
+            style={{backgroundSize: `${valPct}% 100%`}}
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onInput={ev => setValue(ev.currentTarget.value)}
+        />
+    )
+}
+
 interface SelectProps {
     id: string;
     label: string;
@@ -70,4 +94,4 @@ function Select({id, label, options, value, setValue}: SelectProps) {
     )
 }
 
-export {InputText, InputNumber, Select};
+export {InputText, InputNumber, InputRange, Select};

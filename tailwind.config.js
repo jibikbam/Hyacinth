@@ -12,7 +12,10 @@ module.exports = {
     },
   },
   variants: {
-    extend: {},
+    extend: {
+      textColor: ['active'],
+      backgroundColor: ['active'],
+    },
   },
   plugins: [],
 }

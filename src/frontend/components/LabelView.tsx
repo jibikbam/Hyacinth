@@ -11,8 +11,9 @@ import {
     CollectionIcon,
     ColorSwatchIcon,
     QuestionMarkCircleIcon,
-    RefreshIcon
+    RefreshIcon, SunIcon
 } from '@heroicons/react/solid';
+import {InputRange} from './Inputs';
 
 function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTimer: Function}) {
     const minutes = Math.floor(timerSeconds / 60).toString();
@@ -30,6 +31,34 @@ function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTime
             <button className="px-3 py-1.5 bg-gray-400 rounded-r focus:outline-none focus:ring-4 ring-gray-400 ring-opacity-50" onClick={handleResetClick}>
                 <RefreshIcon className="text-gray-800 w-5 h-5" />
             </button>
+        </div>
+    )
+}
+
+const DEFAULT_BRIGHTNESS = 80;
+
+function LabelSlice({slice}: {slice: Slice}) {
+    const [brightness, setBrightness] = useState<number>(DEFAULT_BRIGHTNESS);
+
+    return (
+        <div>
+            <div className="bg-black rounded overflow-hidden flex justify-center items-center" style={{width: '70vh', height: '70vh'}}>
+                <VolumeSlice imagePath={slice.datasetRootPath + '/' + slice.imageRelPath} sliceIndex={slice.sliceIndex} />
+            </div>
+            <div className="mt-3 px-2 py-1 bg-gray-800 rounded flex items-center">
+                <SunIcon className="mr-2 w-6 h-6 text-gray-400" />
+                <InputRange min={0} max={100} step={0.01} value={brightness} setValue={setBrightness} />
+                <button
+                    className="ml-3 rounded text-gray-500 hover:text-gray-400 active:text-gray-100 focus:outline-none focus:ring-2 ring-gray-600"
+                    onClick={() => setBrightness(DEFAULT_BRIGHTNESS)}
+                >
+                    <RefreshIcon className="w-5 h-5" />
+                </button>
+                <div className="ml-3 py-0.5 w-12 bg-gray-700 rounded text-gray-400 text-center">{Math.round(brightness)}</div>
+            </div>
+            <div className="mt-2 p-2 bg-gray-800 rounded text-gray-400 text-center">
+                <div className="text-xl">{slice.imageRelPath} {slice.orientation} {slice.sliceIndex}</div>
+            </div>
         </div>
     )
 }
@@ -58,9 +87,7 @@ function ClassificationControls({session, curSlice}: {session: LabelingSession, 
     return (
         <div className="flex justify-center items-start">
             <div>
-                <div className="bg-black rounded overflow-hidden flex justify-center items-center" style={{width: '80vh', height: '80vh'}}>
-                    <VolumeSlice imagePath={curSlice.datasetRootPath + '/' + curSlice.imageRelPath} sliceIndex={curSlice.sliceIndex} />
-                </div>
+                <LabelSlice slice={curSlice} />
             </div>
             <div className="ml-6 w-56">
                 <LabelControls labelOptions={session.labelOptions.split(', ')} />
