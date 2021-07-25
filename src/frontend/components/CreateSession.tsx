@@ -31,10 +31,10 @@ function TypeOption({text, highlight, onClick, children}: {text: string, highlig
 function ChooseTypeStep({sessionType, setSessionType}: {sessionType: SessionType | null, setSessionType: Function}) {
     return (
         <div className="mt-24 flex justify-center items-start space-x-6">
-            <TypeOption text="Classification Session" highlight={sessionType === 'classification'} onClick={() => setSessionType('classification')}>
+            <TypeOption text="Classification Session" highlight={sessionType === 'Classification'} onClick={() => setSessionType('Classification')}>
                 <CollectionIcon className="text-gray-800 w-8 h-8" />
             </TypeOption>
-            <TypeOption text="Comparison Session" highlight={sessionType === 'comparison'} onClick={() => setSessionType('comparison')}>
+            <TypeOption text="Comparison Session" highlight={sessionType === 'Comparison'} onClick={() => setSessionType('Comparison')}>
                 <ScaleIcon className="text-gray-800 w-8 h-8" />
             </TypeOption>
         </div>
@@ -74,15 +74,15 @@ function SamplingButtonGroup({sampling, setSampling}: {sampling: SamplingType, s
     return (
         <div className="flex items-center">
             <button
-                className={'px-3 py-1.5 rounded-l border border-gray-400 text-xl flex items-center ' + (sampling === 'random' ? 'bg-gray-400 text-black' : 'text-gray-400')}
-                onClick={() => setSampling('random')}
+                className={'px-3 py-1.5 rounded-l border border-gray-400 text-xl flex items-center ' + (sampling === 'Random' ? 'bg-gray-400 text-black' : 'text-gray-400')}
+                onClick={() => setSampling('Random')}
             >
                 <ChartPieIcon className="w-5 h-5" />
                 <span className="ml-1">Random</span>
             </button>
             <button
-                className={'px-3 py-1.5 rounded-r border border-gray-400 text-xl flex items-center ' + (sampling === 'sort' ? 'bg-gray-400 text-black' : 'text-gray-400')}
-                onClick={() => setSampling('sort')}
+                className={'px-3 py-1.5 rounded-r border border-gray-400 text-xl flex items-center ' + (sampling === 'Sort' ? 'bg-gray-400 text-black' : 'text-gray-400')}
+                onClick={() => setSampling('Sort')}
             >
                 <ChartBarIcon className="w-5 h-5" />
                 <span className="ml-1">Sort</span>
@@ -130,7 +130,7 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                     <InputNumber id="slice-max-pct" label="Slice Max (%)" value={props.sliceMaxPct} setValue={props.setSliceMaxPct} />
                 </div>
             </div>
-            {props.sessionType === 'comparison' && (
+            {props.sessionType === 'Comparison' && (
                 <div className="w-64">
                     <div>
                         <div className="text-sm text-gray-400 font-medium">Comparison Sampling</div>
@@ -167,7 +167,7 @@ function CreateSession() {
     const [sliceMinPct, setSliceMinPct] = useState<number>(20);
     const [sliceMaxPct, setSliceMaxPct] = useState<number>(80);
 
-    const [sampling, setSampling] = useState<SamplingType>('random');
+    const [sampling, setSampling] = useState<SamplingType>('Random');
     const [comparisonCount, setComparisonCount] = useState<number>(0);
 
     useEffect(() => {

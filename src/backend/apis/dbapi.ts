@@ -41,9 +41,9 @@ function createTables() {
                 datasetId INTEGER NOT NULL,
                 sessionType TEXT NOT NULL,
                 sessionName TEXT UNIQUE NOT NULL,
-                prompt TEXT UNIQUE NOT NULL,
-                labelOptions TEXT UNIQUE NOT NULL,
-                metadataJson TEXT UNIQUE NOT NULL,
+                prompt TEXT NOT NULL,
+                labelOptions TEXT NOT NULL,
+                metadataJson TEXT NOT NULL,
                 FOREIGN KEY (datasetId) REFERENCES datasets (id)
             )
         `).run();
@@ -53,6 +53,7 @@ function createTables() {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sessionId INTEGER NOT NULL,
                 elementType TEXT NOT NULL,
+                elementIndex INTEGER NOT NULL,
                 imageId1 INTEGER NOT NULL,
                 sliceIndex1 INTEGER NOT NULL,
                 orientation1 TEXT NOT NULL,
@@ -89,7 +90,8 @@ function insertDataset(datasetName, rootPath, imageRelPaths) {
 }
 
 function insertLabelingSession(datasetId: number, sessionType: string, name: string,
-                               prompt: string, labelOptions: string, metadataJson: string, slices: any) {
+                               prompt: string, labelOptions: string, metadataJson: string,
+                               slices: any) {
     const insertTransaction = dbConn.transaction(() => {
         const sessionInsertInfo = dbConn.prepare(`
             INSERT INTO labeling_sessions (datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson)
@@ -98,19 +100,24 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
 
         const sessionId = sessionInsertInfo.lastInsertRowid;
 
-        const insertSlice = dbConn.prepare(`
-            INSERT INTO session_elements (sessionId, elementType, imageId1, sliceIndex1, orientation1, imageId2, sliceIndex2, orientation2)
-                VALUES (:sessionId, :elementType, :imageId, :sliceIndex, :orientation, null, null, null);
-        `);
+        if (sessionType === 'Classification') {
+            const insertSlice = dbConn.prepare(`
+                INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceIndex1, orientation1, imageId2, sliceIndex2, orientation2)
+                    VALUES (:sessionId, :elementType, :elementIndex, :imageId, :sliceIndex, :orientation, null, null, null);
+            `);
 
-        for (const slice of slices) {
-            insertSlice.run({
-                sessionId: sessionId,
-                elementType: 'slice',
-                imageId: slice.imageId,
-                sliceIndex: slice.sliceIndex,
-                orientation: slice.orientation,
-            });
+            let sliceInd = 0;
+            for (const slice of slices) {
+                insertSlice.run({
+                    sessionId: sessionId,
+                    elementType: 'slice',
+                    elementIndex: sliceInd,
+                    imageId: slice.imageId,
+                    sliceIndex: slice.sliceIndex,
+                    orientation: slice.orientation,
+                });
+                sliceInd += 1;
+            }
         }
     });
 
@@ -168,7 +175,7 @@ function selectLabelingSession(sessionId: number) {
 
 function selectSessionSlices(sessionId: number) {
     const sliceRows = dbConn.prepare(`
-        SELECT se.id, se.sessionId, se.imageId1 as imageId, se.sliceIndex1 as sliceIndex, se.orientation1 as orientation,
+        SELECT se.id, se.sessionId, se.elementIndex, se.imageId1 as imageId, se.sliceIndex1 as sliceIndex, se.orientation1 as orientation,
                d.rootPath as datasetRootPath, di.relPath as imageRelPath
         FROM session_elements se
         INNER JOIN dataset_images di on se.imageId1 = di.id

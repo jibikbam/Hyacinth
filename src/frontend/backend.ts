@@ -1,6 +1,6 @@
-type SessionType = 'classification' | 'comparison';
+type SessionType = 'Classification' | 'Comparison';
 type Orientation = 'Sagittal';
-type SamplingType = 'random' | 'sort';
+type SamplingType = 'Random' | 'Sort';
 
 interface Dataset {
     id: number;
@@ -29,6 +29,7 @@ interface LabelingSession {
 interface Slice {
     id: number;
     sessionId: number;
+    elementIndex: number;
     imageId: number;
     sliceIndex: number
     orientation: Orientation;
