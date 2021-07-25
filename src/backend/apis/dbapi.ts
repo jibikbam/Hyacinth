@@ -127,8 +127,8 @@ function selectAllDatasets() {
     const datasetRows = dbConn.prepare(`
         SELECT d.id, d.datasetName, d.rootPath, count(DISTINCT di.id) AS imageCount, count(DISTINCT ls.id) AS sessionCount
         FROM datasets d
-            INNER JOIN dataset_images di on d.id = di.datasetId
-            INNER JOIN labeling_sessions ls on d.id = ls.datasetId
+            LEFT JOIN dataset_images di on d.id = di.datasetId
+            LEFT JOIN labeling_sessions ls on d.id = ls.datasetId
         GROUP BY d.id;
     `).all();
     console.log(JSON.stringify(datasetRows));
