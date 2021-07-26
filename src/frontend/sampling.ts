@@ -72,4 +72,23 @@ function sampleSlices(images: DatasetImage[], imageCount: number, sliceCount: nu
     return slices;
 }
 
-export {sampleSlices};
+function sampleComparisons(sliceCount: number, comparisonCount: number): number[][] {
+    const startMs = Date.now();
+
+    let curMs = Date.now();
+    const combinations = [];
+    for (let i = 0; i < sliceCount - 1; i++) {
+        for (let j = i; j < sliceCount - 1; j++) {
+            combinations.push([i, j]);
+        }
+    }
+    console.log(`Generated ${combinations.length} combinations in ${Date.now() - curMs}ms`);
+
+    curMs = Date.now();
+    const comparisons = sampleWithoutReplacement(combinations, comparisonCount);
+    console.log(`Sampled ${comparisons.length} comparisons in ${Date.now() - curMs}ms`);
+    console.log(`Finished sampling comparisons in ${Date.now() - startMs}ms`);
+    return comparisons;
+}
+
+export {sampleSlices, sampleComparisons};

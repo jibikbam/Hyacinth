@@ -112,7 +112,7 @@ function SessionOverview({sessionId}: {sessionId: number}) {
                 <div>
                     <h1 className="text-5xl font-medium">{session.sessionName}</h1>
                     <div className="mt-3 flex">
-                        <SessionTag>Classification Session</SessionTag>
+                        <SessionTag>{session.sessionType} Session</SessionTag>
                     </div>
                 </div>
                 <div>

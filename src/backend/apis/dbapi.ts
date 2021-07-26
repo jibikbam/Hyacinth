@@ -102,7 +102,7 @@ function insertDataset(datasetName, rootPath, imageRelPaths) {
 
 function insertLabelingSession(datasetId: number, sessionType: string, name: string,
                                prompt: string, labelOptions: string, metadataJson: string,
-                               slices: any) {
+                               slices: any, comparisons: any) {
     labelOptions = labelOptions.split(',').map(s => s.trim()).join(',');
 
     let insertedSessionId;
@@ -115,20 +115,42 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
         const sessionId = sessionInsertInfo.lastInsertRowid;
         insertedSessionId = sessionId;
 
-        const insertSlice = dbConn.prepare(`
+        const insertElement = dbConn.prepare(`
             INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceIndex1, orientation1, imageId2, sliceIndex2, orientation2)
-                VALUES (:sessionId, :elementType, :elementIndex, :imageId, :sliceIndex, :orientation, null, null, null);
+                VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceIndex1, :orientation1, :imageId2, :sliceIndex2, :orientation2);
         `);
 
         for (const [i, slice] of slices.entries()) {
-            insertSlice.run({
+            insertElement.run({
                 sessionId: sessionId,
-                elementType: 'slice',
+                elementType: 'Slice',
                 elementIndex: i,
-                imageId: slice.imageId,
-                sliceIndex: slice.sliceIndex,
-                orientation: slice.orientation,
+                imageId1: slice.imageId,
+                sliceIndex1: slice.sliceIndex,
+                orientation1: slice.orientation,
+                imageId2: null,
+                sliceIndex2: null,
+                orientation2: null,
             });
+        }
+
+        if (comparisons) {
+            for (const [i, c] of comparisons.entries()) {
+                const sl1 = slices[c[0]];
+                const sl2 = slices[c[1]];
+
+                insertElement.run({
+                    sessionId: sessionId,
+                    elementType: 'Comparison',
+                    elementIndex: i,
+                    imageId1: sl1.imageId,
+                    sliceIndex1: sl1.sliceIndex,
+                    orientation1: sl1.orientation,
+                    imageId2: sl2.imageId,
+                    sliceIndex2: sl2.sliceIndex,
+                    orientation2: sl2.orientation,
+                });
+            }
         }
     });
 
@@ -207,7 +229,7 @@ function selectSessionSlices(sessionId: number) {
         FROM session_elements se
         INNER JOIN dataset_images di on se.imageId1 = di.id
         INNER JOIN datasets d on di.datasetId = d.id
-        WHERE se.sessionId = :sessionId AND se.elementType = 'slice'
+        WHERE se.sessionId = :sessionId AND se.elementType = 'Slice'
         ORDER BY se.elementIndex;
     `).all({sessionId});
     console.log(`Selected ${sliceRows.length} slices for session ${sessionId}`);
