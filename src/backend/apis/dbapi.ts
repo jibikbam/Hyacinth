@@ -224,7 +224,7 @@ function selectLabelingSession(sessionId: number) {
 
 function selectSessionSlices(sessionId: number) {
     const sliceRows = dbConn.prepare(`
-        SELECT se.id, se.sessionId, se.elementIndex, se.imageId1 as imageId, se.sliceIndex1 as sliceIndex, se.orientation1 as orientation,
+        SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1 as imageId, se.sliceIndex1 as sliceIndex, se.orientation1 as orientation,
                d.rootPath as datasetRootPath, di.relPath as imageRelPath
         FROM session_elements se
         INNER JOIN dataset_images di on se.imageId1 = di.id
@@ -234,6 +234,21 @@ function selectSessionSlices(sessionId: number) {
     `).all({sessionId});
     console.log(`Selected ${sliceRows.length} slices for session ${sessionId}`);
     return sliceRows;
+}
+
+function selectSessionComparisons(sessionId: number) {
+    const comparisonRows = dbConn.prepare(`
+        SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1, se.sliceIndex1, se.orientation1, se.imageId2, se.sliceIndex2, se.orientation2,
+               d.rootPath AS datasetRootPath, di1.relPath AS imageRelPath1, di2.relPath AS imageRelPath2
+        FROM session_elements se
+            INNER JOIN dataset_images di1 on se.imageId1 = di1.id
+            INNER JOIN dataset_images di2 on se.imageId2 = di2.id
+            INNER JOIN datasets d on di1.datasetId = d.id
+        WHERE se.sessionId = :sessionId AND se.elementType = 'Comparison'
+        ORDER BY se.elementIndex;
+    `).all({sessionId});
+    console.log(`Selected ${comparisonRows.length} comparisons for session ${sessionId}`);
+    return comparisonRows;
 }
 
 function selectElementLabels(elementId: number) {
@@ -248,4 +263,4 @@ function selectElementLabels(elementId: number) {
 }
 
 export {connect, createTables, insertDataset, insertLabelingSession, insertElementLabel,
-    selectAllDatasets, selectDataset, selectDatasetImages, selectDatasetSessions, selectLabelingSession, selectSessionSlices, selectElementLabels};
+    selectAllDatasets, selectDataset, selectDatasetImages, selectDatasetSessions, selectLabelingSession, selectSessionSlices, selectSessionComparisons, selectElementLabels};

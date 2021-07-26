@@ -1,9 +1,11 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
-import {dbapi, ElementLabel, LabelingSession, SessionElement, Slice} from '../backend';
+import {Comparison, dbapi, ElementLabel, LabelingSession, Orientation, SessionElement, Slice} from '../backend';
 import {useTimer} from '../hooks/useTimer';
 import {InputRange} from './Inputs';
+import {Button} from './Buttons';
+import {Modal} from './Modal';
 import {VolumeSlice} from './VolumeSlice';
 import {ChevronLeftIcon, ChevronRightIcon, XIcon} from '@heroicons/react/outline';
 import {
@@ -14,8 +16,6 @@ import {
     QuestionMarkCircleIcon,
     RefreshIcon, SunIcon
 } from '@heroicons/react/solid';
-import {Button} from './Buttons';
-import {Modal} from './Modal';
 
 function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTimer: Function}) {
     const minutes = Math.floor(timerSeconds / 60).toString();
@@ -49,7 +49,7 @@ function PastLabelsModal({labels, closeModal}: {labels: ElementLabel[], closeMod
                 </div>
                 <div className="mt-2 px-3 overflow-y-scroll">
                     <table className="w-full">
-                        <thead className="text-sm text-gray-400 font-medium">
+                        <thead className="text-xs text-gray-400 font-medium">
                             <tr>
                                 <td className="pb-1">Label</td>
                                 <td className="pb-1">Date Labeled</td>
@@ -80,13 +80,31 @@ function PastLabelsModal({labels, closeModal}: {labels: ElementLabel[], closeMod
 
 const DEFAULT_BRIGHTNESS = 80;
 
-function LabelSlice({slice}: {slice: Slice}) {
+interface LabelSliceProps {
+    datasetRootPath: string;
+    imageRelPath: string;
+    sliceIndex: number;
+    orientation: Orientation;
+    bindKey: string | null;
+    selected: boolean;
+    onImageClick: (() => void) | null;
+}
+
+function LabelSlice({datasetRootPath, imageRelPath, sliceIndex, orientation, bindKey, selected, onImageClick}: LabelSliceProps) {
     const [brightness, setBrightness] = useState<number>(DEFAULT_BRIGHTNESS);
+
+    function handleClick() {
+        if (onImageClick) onImageClick();
+    }
 
     return (
         <div>
-            <div className="bg-black rounded overflow-hidden flex justify-center items-center" style={{width: '70vh', height: '70vh'}}>
-                <VolumeSlice imagePath={slice.datasetRootPath + '/' + slice.imageRelPath} sliceIndex={slice.sliceIndex} />
+            <div
+                className={`bg-black rounded ${selected ? 'border-2' : ''} border-pink-900 overflow-hidden flex justify-center items-center ${bindKey ? 'cursor-pointer' : ''}`}
+                style={{width: '65vh', height: '65vh'}}
+                onClick={handleClick}
+            >
+                <VolumeSlice imagePath={datasetRootPath + '/' + imageRelPath} sliceIndex={sliceIndex} />
             </div>
             <div className="mt-3 px-2 py-1 bg-gray-800 rounded flex items-center">
                 <SunIcon className="mr-2 w-6 h-6 text-gray-400" />
@@ -100,7 +118,10 @@ function LabelSlice({slice}: {slice: Slice}) {
                 <div className="ml-3 py-0.5 w-12 bg-gray-700 rounded text-gray-400 text-center">{Math.round(brightness)}</div>
             </div>
             <div className="mt-2 p-2 bg-gray-800 rounded text-gray-400 text-center">
-                <div className="text-xl">{slice.imageRelPath} {slice.orientation} {slice.sliceIndex}</div>
+                <div className="flex justify-center items-center">
+                    <div className="ml-2 text-xl">{imageRelPath} {orientation} {sliceIndex}</div>
+                </div>
+                {bindKey && <div className="text-sm">Click or press "{bindKey}".</div>}
             </div>
         </div>
     )
@@ -110,14 +131,12 @@ interface LabelControlsProps {
     labelOptions: string[];
     labels: ElementLabel[];
     addLabel: (string) => void;
+    bindStart: number;
 }
 
-function LabelControls({labelOptions, labels, addLabel}: LabelControlsProps) {
+function LabelControls({labelOptions, labels, addLabel, bindStart}: LabelControlsProps) {
     const curLabelValue = labels.length > 0 ? labels[0].labelValue : null;
-
-    function handleLabelButtonClick(labelOption: string) {
-        if (labelOption !== curLabelValue) addLabel(labelOption);
-    }
+    const skeletonLabels = Array.from(Array(Math.max(3 - labelOptions.length, 0)).keys());
 
     return (
         <div>
@@ -129,13 +148,15 @@ function LabelControls({labelOptions, labels, addLabel}: LabelControlsProps) {
                 {labelOptions.map((labelOption, i) => {
                     return (
                         <Button
-                            color={labelOption === curLabelValue ? 'pink' : 'gray'}
-                            onClick={() => handleLabelButtonClick(labelOption)}
+                            size="lg"
+                            color={labelOption === curLabelValue ? 'darkPink' : 'darkGray'}
+                            onClick={() => addLabel(labelOption)}
                         >
-                            <span>{labelOption} ({i + 1})</span>
+                            <span>{labelOption} ({i + bindStart + 1})</span>
                         </Button>
                     )
                 })}
+                {skeletonLabels.map(i => <div className="bg-gray-800 rounded h-10" />)}
             </div>
         </div>
     )
@@ -143,19 +164,65 @@ function LabelControls({labelOptions, labels, addLabel}: LabelControlsProps) {
 
 interface ClassificationControlsProps {
     session: LabelingSession;
-    curSlice: Slice;
+    slice: Slice;
     labels: ElementLabel[];
     addLabel: (labelValue: string) => void;
 }
 
-function ClassificationControls({session, curSlice, labels, addLabel}: ClassificationControlsProps) {
+function ClassificationControls({session, slice, labels, addLabel}: ClassificationControlsProps) {
     return (
         <div className="flex justify-center items-start">
             <div>
-                <LabelSlice slice={curSlice} />
+                <LabelSlice
+                    datasetRootPath={slice.datasetRootPath}
+                    imageRelPath={slice.imageRelPath}
+                    sliceIndex={slice.sliceIndex}
+                    orientation={slice.orientation}
+                    bindKey={null}
+                    selected={false}
+                    onImageClick={null}
+                />
             </div>
             <div className="ml-6 w-56">
-                <LabelControls labelOptions={session.labelOptions.split(',')} labels={labels} addLabel={addLabel} />
+                <LabelControls labelOptions={session.labelOptions.split(',')} labels={labels} addLabel={addLabel} bindStart={0} />
+            </div>
+        </div>
+    )
+}
+
+interface ComparisonControlsProps {
+    session: LabelingSession;
+    comparison: Comparison;
+    labels: ElementLabel[];
+    addLabel: (labelValue: string) => void;
+}
+
+function ComparisonControls({session, comparison, labels, addLabel}: ComparisonControlsProps) {
+    const curLabelValue = labels.length > 0 ? labels[0].labelValue : null;
+    return (
+        <div className="flex justify-center items-start">
+            <div className="flex items-center space-x-4">
+                <LabelSlice
+                    datasetRootPath={comparison.datasetRootPath}
+                    imageRelPath={comparison.imageRelPath1}
+                    sliceIndex={comparison.sliceIndex1}
+                    orientation={comparison.orientation1}
+                    bindKey="1"
+                    selected={curLabelValue === 'First'}
+                    onImageClick={() => addLabel('First')}
+                />
+                <LabelSlice
+                    datasetRootPath={comparison.datasetRootPath}
+                    imageRelPath={comparison.imageRelPath2}
+                    sliceIndex={comparison.sliceIndex2}
+                    orientation={comparison.orientation2}
+                    bindKey="2"
+                    selected={curLabelValue === 'Second'}
+                    onImageClick={() => addLabel('Second')}
+                />
+            </div>
+            <div className="ml-6 w-48">
+                <LabelControls labelOptions={session.labelOptions.split(',')} labels={labels} addLabel={addLabel} bindStart={2} />
             </div>
         </div>
     )
@@ -181,21 +248,22 @@ function LabelView() {
 
     useEffect(() => {
         if (session) {
-            if (session.sessionType === 'Classification') {
-                const _elements = dbapi.selectSessionSlices(session.id);
-                setElements(_elements);
+            let _elements;
+            if (session.sessionType === 'Classification') _elements = dbapi.selectSessionSlices(session.id);
+            else _elements = dbapi.selectSessionComparisons(session.id);
 
-                const _curElement = _elements[parseInt(elementIndex)];
-                const _labels = dbapi.selectElementLabels(_curElement.id);
-                setCurElement({
-                    element: _curElement,
-                    labels: _labels,
-                });
-            }
+            setElements(_elements);
+            const _curElement = _elements[parseInt(elementIndex)];
+            const _labels = dbapi.selectElementLabels(_curElement.id);
+            setCurElement({
+                element: _curElement,
+                labels: _labels,
+            });
         }
     }, [elementIndex, session]);
 
     function addLabel(labelValue: string) {
+        if (curElement.labels.length > 0 && curElement.labels[0].labelValue === labelValue) return;
         const element = curElement.element;
         const finishTimestamp = Date.now();
         dbapi.insertElementLabel(element.id, labelValue, startTimestamp, finishTimestamp);
@@ -204,7 +272,8 @@ function LabelView() {
         setCurElement({
             element: element,
             labels: newLabels,
-        })
+        });
+        resetTimer();
     }
 
     function closeModal() {
@@ -212,7 +281,7 @@ function LabelView() {
     }
 
     if (!session || !curElement) {
-        return <div>Loading</div>
+        return <div className="w-screen h-screen text-2xl text-gray-400 font-medium flex justify-center items-center">Loading...</div>
     }
 
     let modalEl = null;
@@ -233,7 +302,7 @@ function LabelView() {
                         <Link to={elementIndexInt > 0 && `/label/${sessionId}/${elementIndexInt - 1}`}>
                             <ChevronLeftIcon className="text-gray-500 w-6 h-6" />
                         </Link>
-                        <h1 className="mx-2 w-32 text-xl font-medium text-center">Slice {elementIndexInt + 1}</h1>
+                        <h1 className="mx-2 w-48 text-xl font-medium text-center">{curElement.element.elementType} {elementIndexInt + 1}</h1>
                         <Link to={elementIndexInt < (elements.length - 1) && `/label/${sessionId}/${elementIndexInt + 1}`}>
                             <ChevronRightIcon className="text-gray-500 w-6 h-6" />
                         </Link>
@@ -259,7 +328,10 @@ function LabelView() {
                 </div>
             </header>
             <main className="mt-6">
-                <ClassificationControls session={session} curSlice={curElement.element as Slice} labels={curElement.labels} addLabel={addLabel} />
+                {session.sessionType === 'Classification'
+                    ? <ClassificationControls session={session} slice={curElement.element as Slice} labels={curElement.labels} addLabel={addLabel} />
+                    : <ComparisonControls session={session} comparison={curElement.element as Comparison} labels={curElement.labels} addLabel={addLabel} />
+                }
             </main>
         </div>
     )

@@ -78,7 +78,7 @@ function sampleComparisons(sliceCount: number, comparisonCount: number): number[
     let curMs = Date.now();
     const combinations = [];
     for (let i = 0; i < sliceCount - 1; i++) {
-        for (let j = i; j < sliceCount - 1; j++) {
+        for (let j = i + 1; j < sliceCount - 1; j++) {
             combinations.push([i, j]);
         }
     }

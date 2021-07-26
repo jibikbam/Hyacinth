@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {dbapi, LabelingSession, Slice} from '../backend';
+import {Comparison, dbapi, LabelingSession, SessionElement, Slice} from '../backend';
 import {LinkButton} from './Buttons';
 import {
     ChevronDownIcon,
@@ -65,13 +65,17 @@ function SessionTag({children}: {children?: any}) {
 function SlicesTable({slices}: {slices: Slice[]}) {
     return (
         <div>
-            <table className="w-1/2">
+            <table className="w-full table-fixed">
+                <colgroup>
+                    <col className="w-1/12" />
+                    <col className="w-2/12" />
+                    <col className="w-2/12" />
+                    <col className="w-1/12" />
+                </colgroup>
                 <thead className="text-sm text-gray-400 font-medium">
                     <tr>
                         <td className="pb-1 pr-8" />
-                        <td className="pb-1">Slice</td>
-                        <td className="pb-1" />
-                        <td className="pb-1" />
+                        <td className="pb-1" colSpan={3}>Slice</td>
                         <td className="pb-1 text-center">Label</td>
                         <td className="pb-1 text-center">Last Edited</td>
                     </tr>
@@ -82,9 +86,51 @@ function SlicesTable({slices}: {slices: Slice[]}) {
                             <td className="pr-8 text-sm text-gray-500 text-right">#{i + 1}</td>
                             <td className="">{s.imageRelPath}</td>
                             <td>{s.orientation}</td>
-                            <td className="text-center">{s.sliceIndex}</td>
+                            <td className="">{s.sliceIndex}</td>
                             <td className="text-center">-</td>
-                            <td className="text-center">2 hours ago</td>
+                            <td className="text-center">-</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    )
+}
+
+function ComparisonsTable({comparisons}: {comparisons: Comparison[]}) {
+    return (
+        <div>
+            <table className="w-full">
+                <colgroup>
+                    <col className="w-1/12" />
+                    <col className="w-2/12" />
+                    <col className="w-1/12" />
+                    <col className="w-1/12" />
+                    <col className="w-2/12" />
+                    <col className="w-1/12" />
+                    <col className="w-1/12" />
+                </colgroup>
+                <thead className="text-sm text-gray-400 font-medium">
+                    <tr>
+                        <td className="pb-1 pr-8" />
+                        <td className="pb-1" colSpan={3}>Slice 1</td>
+                        <td className="pb-1" colSpan={3}>Slice 2</td>
+                        <td className="pb-1 text-center">Label</td>
+                        <td className="pb-1 text-center">Last Edited</td>
+                    </tr>
+                </thead>
+                <tbody className="text-gray-400">
+                    {comparisons.map((c, i) => (
+                        <tr>
+                            <td className="pr-8 text-sm text-gray-500 text-right">#{i + 1}</td>
+                            <td>{c.imageRelPath1}</td>
+                            <td>{c.orientation1}</td>
+                            <td>{c.sliceIndex1}</td>
+                            <td>{c.imageRelPath2}</td>
+                            <td>{c.orientation2}</td>
+                            <td>{c.sliceIndex2}</td>
+                            <td className="text-center">-</td>
+                            <td className="text-center">-</td>
                         </tr>
                     ))}
                 </tbody>
@@ -95,14 +141,16 @@ function SlicesTable({slices}: {slices: Slice[]}) {
 
 function SessionOverview({sessionId}: {sessionId: number}) {
     const [session, setSession] = useState<LabelingSession | null>(null);
-    const [slices, setSlices] = useState<Slice[] | null>(null);
+    const [elements, setElements] = useState<SessionElement[] | null>(null);
 
     useEffect(() => {
-        setSession(dbapi.selectLabelingSession(sessionId));
-        setSlices(dbapi.selectSessionSlices(sessionId));
+        const _session = dbapi.selectLabelingSession(sessionId);
+        setSession(_session);
+        if (_session.sessionType === 'Classification') setElements(dbapi.selectSessionSlices(_session.id));
+        else setElements(dbapi.selectSessionComparisons(_session.id));
     }, [sessionId]);
 
-    if (!session || !slices) {
+    if (!session || !elements) {
         return <div>Loading</div>
     }
 
@@ -126,11 +174,14 @@ function SessionOverview({sessionId}: {sessionId: number}) {
                 </LinkButton>
             </div>
             <div className="mt-2">
-                <span>0 / {slices.length}</span>
-                <span className="text-gray-400"> slices labeled</span>
+                <span>0 / {elements.length}</span>
+                <span className="text-gray-400"> {session.sessionType === 'Classification' ? 'slices' : 'comparisons'} labeled</span>
             </div>
             <div className="mt-1 p-2 bg-gray-800 rounded overflow-y-scroll">
-                <SlicesTable slices={slices} />
+                {session.sessionType === 'Classification'
+                    ? <SlicesTable slices={elements as Slice[]} />
+                    : <ComparisonsTable comparisons={elements as Comparison[]} />
+                }
             </div>
         </div>
     )

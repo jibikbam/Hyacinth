@@ -3,11 +3,14 @@ import {Link} from 'react-router-dom';
 
 const SIZE_CLASSES = {
     md: 'px-4 py-1.5',
+    lg: 'px-4 py-2',
 }
 
 const COLOR_CLASSES = {
     gray: 'bg-gray-500 ring-gray-500 text-white',
+    darkGray: 'bg-gray-600 ring-gray-600 text-gray-300',
     pink: 'bg-pink-200 ring-pink-200 text-black',
+    darkPink: 'bg-pink-900 ring-pink-900 text-gray-300',
 }
 
 const FLEX_CLASSES = 'flex justify-center items-center';
@@ -15,8 +18,8 @@ const BUTTON_CLASSES = FLEX_CLASSES + ' rounded shadow focus:outline-none focus:
 const DISABLED_CLASSES = FLEX_CLASSES + ' rounded bg-gray-600 text-gray-400';
 
 interface CommonButtonProps {
-    size?: 'md';
-    color?: 'gray' | 'pink';
+    size?: 'md' | 'lg';
+    color?: 'gray' | 'darkGray' | 'pink' | 'darkPink';
     disabled?: boolean;
     children?: any;
 }

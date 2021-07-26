@@ -43,6 +43,18 @@ interface Slice extends SessionElement {
     imageRelPath: string;
 }
 
+interface Comparison extends SessionElement {
+    imageId1: number;
+    sliceIndex1: number
+    orientation1: Orientation;
+    imageId2: number;
+    sliceIndex2: number
+    orientation2: Orientation;
+    datasetRootPath: string;
+    imageRelPath1: string;
+    imageRelPath2: string;
+}
+
 interface ElementLabel {
     id: number;
     elementId: number;
@@ -72,6 +84,7 @@ interface DBApiType {
     selectDatasetSessions: (datasetId: number) => LabelingSession[];
     selectLabelingSession: (sessionId: number) => LabelingSession;
     selectSessionSlices: (sessionId: number) => Slice[];
+    selectSessionComparisons: (sessionId: number) => Comparison[];
     selectElementLabels: (elementId: number) => ElementLabel[];
 }
 
@@ -88,4 +101,4 @@ const dbapi = (window as any).dbapi as DBApiType;
 const fileapi = (window as any).fileapi as FileApiType;
 const volumeapi = (window as any).volumeapi as VolumeApiType;
 
-export {SessionType, Orientation, SamplingType, Dataset, DatasetImage, LabelingSession, SessionElement, Slice, ElementLabel, SliceAttributes, dbapi, fileapi, volumeapi};
+export {SessionType, Orientation, SamplingType, Dataset, DatasetImage, LabelingSession, SessionElement, Slice, Comparison, ElementLabel, SliceAttributes, dbapi, fileapi, volumeapi};
