@@ -21,6 +21,9 @@ function Datasets() {
                 </Link>
             </div>
             <div className="mt-2 space-y-3">
+                {datasets.length === 0 && (
+                    <div className="text-gray-400 font-medium">You have not created any datasets yet.</div>
+                )}
                 {datasets.map(d => {
                     return (
                         <Link className="block" to={`/dataset/${d.id}`}>
