@@ -64,7 +64,7 @@ function SessionTag({children}: {children?: any}) {
 
 function SlicesTable({slices}: {slices: Slice[]}) {
     return (
-        <div className="p-2 bg-gray-800 rounded">
+        <div>
             <table className="w-1/2">
                 <thead className="text-sm text-gray-400 font-medium">
                     <tr>
@@ -107,7 +107,7 @@ function SessionOverview({sessionId}: {sessionId: number}) {
     }
 
     return (
-        <div className="px-16 pt-12 pb-8">
+        <div className="px-16 pt-12 pb-8 h-screen flex flex-col">
             <div className="flex justify-between items-start">
                 <div>
                     <h1 className="text-5xl font-medium">{session.sessionName}</h1>
@@ -119,22 +119,18 @@ function SessionOverview({sessionId}: {sessionId: number}) {
                     <ManageDropdown />
                 </div>
             </div>
-            <div className="mt-6 inline-block">
+            <div className="mt-6 self-start">
                 <LinkButton to={`/label/${sessionId}/0`} color="pink">
                     <PlayIcon className="w-5 h-5" />
                     <span className="mx-1 font-medium">Start Labeling</span>
                 </LinkButton>
             </div>
-            <div className="mt-4">
-                <div>
-                    <div>
-                        <span>0 / {slices.length}</span>
-                        <span className="text-gray-400"> slices labeled</span>
-                    </div>
-                </div>
-                <div className="mt-1">
-                    <SlicesTable slices={slices} />
-                </div>
+            <div className="mt-2">
+                <span>0 / {slices.length}</span>
+                <span className="text-gray-400"> slices labeled</span>
+            </div>
+            <div className="mt-1 p-2 bg-gray-800 rounded overflow-y-scroll">
+                <SlicesTable slices={slices} />
             </div>
         </div>
     )

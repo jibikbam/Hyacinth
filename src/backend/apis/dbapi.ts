@@ -65,6 +65,17 @@ function createTables() {
                 FOREIGN KEY (imageId2) REFERENCES dataset_images (id)
             )
         `).run();
+
+        dbConn.prepare(`
+            CREATE TABLE IF NOT EXISTS element_labels (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                elementId INTEGER NOT NULL,
+                labelValue TEXT NOT NULL,
+                startTimestamp INTEGER NOT NULL,
+                finishTimestamp INTEGER NOT NULL,
+                FOREIGN KEY (elementId) REFERENCES session_elements (id)
+            )
+        `).run();
     });
 
     createTablesTransaction();
@@ -104,28 +115,38 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
         const sessionId = sessionInsertInfo.lastInsertRowid;
         insertedSessionId = sessionId;
 
-        if (sessionType === 'Classification') {
-            const insertSlice = dbConn.prepare(`
-                INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceIndex1, orientation1, imageId2, sliceIndex2, orientation2)
-                    VALUES (:sessionId, :elementType, :elementIndex, :imageId, :sliceIndex, :orientation, null, null, null);
-            `);
+        const insertSlice = dbConn.prepare(`
+            INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceIndex1, orientation1, imageId2, sliceIndex2, orientation2)
+                VALUES (:sessionId, :elementType, :elementIndex, :imageId, :sliceIndex, :orientation, null, null, null);
+        `);
 
-            for (const [i, slice] of slices.entries()) {
-                insertSlice.run({
-                    sessionId: sessionId,
-                    elementType: 'slice',
-                    elementIndex: i,
-                    imageId: slice.imageId,
-                    sliceIndex: slice.sliceIndex,
-                    orientation: slice.orientation,
-                });
-            }
+        for (const [i, slice] of slices.entries()) {
+            insertSlice.run({
+                sessionId: sessionId,
+                elementType: 'slice',
+                elementIndex: i,
+                imageId: slice.imageId,
+                sliceIndex: slice.sliceIndex,
+                orientation: slice.orientation,
+            });
         }
     });
 
     insertTransaction();
     console.log(`Inserted labeling session ${name}`);
     return insertedSessionId;
+}
+
+function insertElementLabel(elementId: number, labelValue: string, startTimestamp: number, finishTimestamp: number) {
+    const insertTransaction = dbConn.transaction(() => {
+        dbConn.prepare(`
+            INSERT INTO element_labels (elementId, labelValue, startTimestamp, finishTimestamp)
+                VALUES (:elementId, :labelValue, :startTimestamp, :finishTimestamp);
+        `).run({elementId, labelValue, startTimestamp, finishTimestamp});
+    });
+
+    insertTransaction();
+    console.log(`Inserted label "${labelValue}" for element ${elementId}`);
 }
 
 function selectAllDatasets() {
@@ -167,7 +188,6 @@ function selectDatasetSessions(datasetId: number) {
         WHERE datasetId = :datasetId;
     `).all({datasetId});
     console.log(`Selected ${sessionRows.length} sessions for dataset ${datasetId}`);
-    console.log(JSON.stringify(sessionRows));
     return sessionRows;
 }
 
@@ -187,11 +207,23 @@ function selectSessionSlices(sessionId: number) {
         FROM session_elements se
         INNER JOIN dataset_images di on se.imageId1 = di.id
         INNER JOIN datasets d on di.datasetId = d.id
-        WHERE se.sessionId = :sessionId AND se.elementType = 'slice';
+        WHERE se.sessionId = :sessionId AND se.elementType = 'slice'
+        ORDER BY se.elementIndex;
     `).all({sessionId});
     console.log(`Selected ${sliceRows.length} slices for session ${sessionId}`);
-    console.log(JSON.stringify(sliceRows));
     return sliceRows;
 }
 
-export {connect, createTables, insertDataset, insertLabelingSession, selectAllDatasets, selectDataset, selectDatasetImages, selectDatasetSessions, selectLabelingSession, selectSessionSlices};
+function selectElementLabels(elementId: number) {
+    const labelRows = dbConn.prepare(`
+        SELECT id, elementId, labelValue, startTimestamp, finishTimestamp
+        FROM element_labels
+        WHERE elementId = :elementId
+        ORDER BY finishTimestamp DESC;
+    `).all({elementId});
+    console.log(`Selected ${labelRows.length} labels for element ${elementId}`);
+    return labelRows;
+}
+
+export {connect, createTables, insertDataset, insertLabelingSession, insertElementLabel,
+    selectAllDatasets, selectDataset, selectDatasetImages, selectDatasetSessions, selectLabelingSession, selectSessionSlices, selectElementLabels};

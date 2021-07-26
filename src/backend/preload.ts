@@ -8,12 +8,14 @@ contextBridge.exposeInMainWorld('dbapi', {
     createTables: dbapi.createTables,
     insertDataset: dbapi.insertDataset,
     insertLabelingSession: dbapi.insertLabelingSession,
+    insertElementLabel: dbapi.insertElementLabel,
     selectAllDatasets: dbapi.selectAllDatasets,
     selectDataset: dbapi.selectDataset,
     selectDatasetImages: dbapi.selectDatasetImages,
     selectDatasetSessions: dbapi.selectDatasetSessions,
     selectLabelingSession: dbapi.selectLabelingSession,
     selectSessionSlices: dbapi.selectSessionSlices,
+    selectElementLabels: dbapi.selectElementLabels,
 });
 
 contextBridge.exposeInMainWorld('fileapi', {
