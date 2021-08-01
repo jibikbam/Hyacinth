@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('dbapi', {
     insertDataset: dbapi.insertDataset,
     insertLabelingSession: dbapi.insertLabelingSession,
     insertElementLabel: dbapi.insertElementLabel,
+    insertComparison: dbapi.insertComparison,
     selectAllDatasets: dbapi.selectAllDatasets,
     selectDataset: dbapi.selectDataset,
     selectDatasetImages: dbapi.selectDatasetImages,
@@ -17,6 +18,7 @@ contextBridge.exposeInMainWorld('dbapi', {
     selectSessionSlices: dbapi.selectSessionSlices,
     selectSessionComparisons: dbapi.selectSessionComparisons,
     selectElementLabels: dbapi.selectElementLabels,
+    selectSessionLatestComparisonLabels: dbapi.selectSessionLatestComparisonLabels,
 });
 
 contextBridge.exposeInMainWorld('fileapi', {

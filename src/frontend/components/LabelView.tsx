@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {Link, useParams} from 'react-router-dom';
+import {Link, useParams, useHistory} from 'react-router-dom';
 import {Comparison, dbapi, ElementLabel, LabelingSession, Orientation, SessionElement, Slice} from '../backend';
 import {useTimer} from '../hooks/useTimer';
 import {InputRange} from './Inputs';
@@ -16,6 +16,7 @@ import {
     QuestionMarkCircleIcon,
     RefreshIcon, SunIcon
 } from '@heroicons/react/solid';
+import {buildSortMatrix, comparisonToSliceStrings, sortSlices} from '../sort';
 
 function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTimer: Function}) {
     const minutes = Math.floor(timerSeconds / 60).toString();
@@ -231,6 +232,7 @@ function ComparisonControls({session, comparison, labels, addLabel}: ComparisonC
 type LabelModal = 'pastLabels';
 
 function LabelView() {
+    const history = useHistory();
     let {sessionId, elementIndex} = useParams();
     const elementIndexInt = parseInt(elementIndex);
 
@@ -248,11 +250,12 @@ function LabelView() {
 
     useEffect(() => {
         if (session) {
-            let _elements;
-            if (session.sessionType === 'Classification') _elements = dbapi.selectSessionSlices(session.id);
-            else _elements = dbapi.selectSessionComparisons(session.id);
+            const _elements = (session.sessionType === 'Classification')
+                ? dbapi.selectSessionSlices(session.id)
+                : dbapi.selectSessionComparisons(session.id);
 
             setElements(_elements);
+
             const _curElement = _elements[parseInt(elementIndex)];
             const _labels = dbapi.selectElementLabels(_curElement.id);
             setCurElement({
@@ -264,6 +267,7 @@ function LabelView() {
 
     function addLabel(labelValue: string) {
         if (curElement.labels.length > 0 && curElement.labels[0].labelValue === labelValue) return;
+        if (session.comparisonSampling === 'Sort' && parseInt(elementIndex) < elements.length - 1) return; //TODO: allow changing past labels
         const element = curElement.element;
         const finishTimestamp = Date.now();
         dbapi.insertElementLabel(element.id, labelValue, startTimestamp, finishTimestamp);
@@ -274,6 +278,21 @@ function LabelView() {
             labels: newLabels,
         });
         resetTimer();
+
+        if (session.comparisonSampling === 'Sort') {
+            const comparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
+            const matrix = buildSortMatrix(elements as Comparison[], comparisonLabels);
+            const slices = dbapi.selectSessionSlices(session.id);
+
+            const sortResult = sortSlices(matrix, slices);
+            if (!Array.isArray(sortResult)) {
+                dbapi.insertComparison(session.id, elements.length, sortResult.slice1, sortResult.slice2);
+                setElements(dbapi.selectSessionComparisons(session.id));
+            }
+            else {
+                console.log('Sort Results:', sortResult.map(r => r.elementIndex));
+            }
+        }
     }
 
     function closeModal() {

@@ -43,6 +43,7 @@ function createTables() {
                 sessionName TEXT UNIQUE NOT NULL,
                 prompt TEXT NOT NULL,
                 labelOptions TEXT NOT NULL,
+                comparisonSampling TEXT,
                 metadataJson TEXT NOT NULL,
                 FOREIGN KEY (datasetId) REFERENCES datasets (id)
             )
@@ -101,16 +102,17 @@ function insertDataset(datasetName, rootPath, imageRelPaths) {
 }
 
 function insertLabelingSession(datasetId: number, sessionType: string, name: string,
-                               prompt: string, labelOptions: string, metadataJson: string,
+                               prompt: string, labelOptions: string, comparisonSampling: string | null, metadataJson: string,
                                slices: any, comparisons: any) {
     labelOptions = labelOptions.split(',').map(s => s.trim()).join(',');
+    if (sessionType !== 'Comparison') comparisonSampling = null;
 
     let insertedSessionId;
     const insertTransaction = dbConn.transaction(() => {
         const sessionInsertInfo = dbConn.prepare(`
-            INSERT INTO labeling_sessions (datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson)
-                VALUES (:datasetId, :sessionType, :name, :prompt, :labelOptions, :metadataJson);
-        `).run({datasetId, sessionType, name, prompt, labelOptions, metadataJson});
+            INSERT INTO labeling_sessions (datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson)
+                VALUES (:datasetId, :sessionType, :name, :prompt, :labelOptions, :comparisonSampling, :metadataJson);
+        `).run({datasetId, sessionType, name, prompt, labelOptions, comparisonSampling, metadataJson});
 
         const sessionId = sessionInsertInfo.lastInsertRowid;
         insertedSessionId = sessionId;
@@ -171,6 +173,30 @@ function insertElementLabel(elementId: number, labelValue: string, startTimestam
     console.log(`Inserted label "${labelValue}" for element ${elementId}`);
 }
 
+function insertComparison(sessionId: number, elementIndex: number, slice1, slice2) {
+    const insertTransaction = dbConn.transaction(() => {
+        const insertStatement = dbConn.prepare(`
+            INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceIndex1, orientation1, imageId2, sliceIndex2, orientation2)
+                VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceIndex1, :orientation1, :imageId2, :sliceIndex2, :orientation2);
+        `);
+
+        insertStatement.run({
+            sessionId: sessionId,
+            elementIndex: elementIndex,
+            elementType: 'Comparison',
+            imageId1: slice1.imageId,
+            sliceIndex1: slice1.sliceIndex,
+            orientation1: slice1.orientation,
+            imageId2: slice2.imageId,
+            sliceIndex2: slice2.sliceIndex,
+            orientation2: slice2.orientation,
+        });
+    });
+
+    insertTransaction();
+    console.log(`Inserted additional comparison for session ${sessionId}`);
+}
+
 function selectAllDatasets() {
     const datasetRows = dbConn.prepare(`
         SELECT d.id, d.datasetName, d.rootPath, count(DISTINCT di.id) AS imageCount, count(DISTINCT ls.id) AS sessionCount
@@ -205,7 +231,7 @@ function selectDatasetImages(datasetId: number) {
 
 function selectDatasetSessions(datasetId: number) {
     const sessionRows = dbConn.prepare(`
-        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson
+        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson
         FROM labeling_sessions
         WHERE datasetId = :datasetId;
     `).all({datasetId});
@@ -215,7 +241,7 @@ function selectDatasetSessions(datasetId: number) {
 
 function selectLabelingSession(sessionId: number) {
     const sessionRow = dbConn.prepare(`
-        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson FROM labeling_sessions
+        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson FROM labeling_sessions
         WHERE id = :sessionId;
     `).get({sessionId});
     console.log(`Selected session: ${JSON.stringify(sessionRow)}`);
@@ -262,5 +288,16 @@ function selectElementLabels(elementId: number) {
     return labelRows;
 }
 
-export {connect, createTables, insertDataset, insertLabelingSession, insertElementLabel,
-    selectAllDatasets, selectDataset, selectDatasetImages, selectDatasetSessions, selectLabelingSession, selectSessionSlices, selectSessionComparisons, selectElementLabels};
+function selectSessionLatestComparisonLabels(sessionId: number) {
+    const labelRows = dbConn.prepare(`
+        SELECT (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
+        FROM session_elements se
+        WHERE se.sessionId = :sessionId AND se.elementType = 'Comparison'
+        ORDER BY se.id;
+    `).all({sessionId});
+    console.log(`Selected ${labelRows.length} latest comparison labels for session ${sessionId}`);
+    return labelRows.map(r => r.elementLabel);
+}
+
+export {connect, createTables, insertDataset, insertLabelingSession, insertElementLabel, insertComparison,
+    selectAllDatasets, selectDataset, selectDatasetImages, selectDatasetSessions, selectLabelingSession, selectSessionSlices, selectSessionComparisons, selectElementLabels, selectSessionLatestComparisonLabels};

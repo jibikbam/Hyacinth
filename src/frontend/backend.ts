@@ -25,6 +25,7 @@ interface LabelingSession {
     sessionName: string;
     prompt: string;
     labelOptions: string;
+    comparisonSampling: SamplingType;
     metadataJson: string;
 }
 
@@ -74,10 +75,11 @@ interface DBApiType {
     createTables: () => void;
     insertDataset: (datasetName: string, rootPath: string, imageRelPaths: string[]) => void;
     insertLabelingSession: (datasetId: number, sessionType: string, name: string,
-                            prompt: string, labelOptions: string, metadataJson: string,
+                            prompt: string, labelOptions: string, comparisonSampling: SamplingType | null, metadataJson: string,
                             slices: SliceAttributes[], comparisons: number[][] | null) => number;
     insertElementLabel: (elementId: number, labelValue: string,
                          startTimestamp: number, finishTimestamp: number) => void;
+    insertComparison: (sessionId: number, elementIndex: number, slice1: Slice, slice2: Slice) => void;
     selectAllDatasets: () => Dataset[];
     selectDataset: (datasetId: number) => Dataset;
     selectDatasetImages: (datasetId: number) => DatasetImage[];
@@ -86,6 +88,7 @@ interface DBApiType {
     selectSessionSlices: (sessionId: number) => Slice[];
     selectSessionComparisons: (sessionId: number) => Comparison[];
     selectElementLabels: (elementId: number) => ElementLabel[];
+    selectSessionLatestComparisonLabels: (sessionId: number) => (string | null)[];
 }
 
 interface FileApiType {

@@ -9,6 +9,7 @@ import {InputNumber, InputText, Select} from './Inputs';
 import {CheckCircleIcon, CollectionIcon, ScaleIcon} from '@heroicons/react/outline';
 import {ChartBarIcon, ChartPieIcon} from '@heroicons/react/solid';
 import {sampleComparisons, sampleSlices} from '../sampling';
+import {getInitialComparison} from '../sort';
 
 function TypeOption({text, highlight, onClick, children}: {text: string, highlight: boolean, onClick: Function, children?: any}) {
     const borderColor = highlight ? 'border-gray-300' : 'border-gray-500';
@@ -179,9 +180,13 @@ function CreateSession() {
         const slices = sampleSlices(datasetImages, imageCount, sliceCount, orientation, sliceMinPct, sliceMaxPct);
 
         let comparisons = null;
-        if (sessionType === 'Comparison' && sampling === 'Random') comparisons = sampleComparisons(sliceCount, comparisonCount);
+        if (sessionType === 'Comparison') {
+            comparisons = sampling === 'Random'
+                ? sampleComparisons(sliceCount, comparisonCount)
+                : [getInitialComparison(slices)];
+        }
 
-        const newSessionId = dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, '', slices, comparisons);
+        const newSessionId = dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, sampling, '', slices, comparisons);
         history.push(`/dataset/${datasetId}/session/${newSessionId}`);
     }
 
