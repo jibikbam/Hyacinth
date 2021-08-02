@@ -17,7 +17,7 @@ function StepNavigation({cancelTo, backTo, nextTo, finishText, finishClicked, fi
             <div className="flex items-center space-x-3">
                 <LinkButton to={backTo} disabled={!backTo}>Back</LinkButton>
                 {!finishText
-                    ? <LinkButton to={nextTo} disabled={!nextTo}>Next</LinkButton>
+                    ? <LinkButton to={nextTo} color="pink" disabled={!nextTo}>Next</LinkButton>
                     : <Button onClick={finishClicked} color="pink" disabled={finishDisabled}>{finishText}</Button>
                 }
             </div>
