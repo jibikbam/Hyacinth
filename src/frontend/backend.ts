@@ -92,6 +92,7 @@ interface DBApiType {
 }
 
 interface FileApiType {
+    showFolderDialog: () => string[] | undefined;
     getDatasetImages: (datasetRootPath: string) => string[];
 }
 

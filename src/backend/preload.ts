@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('dbapi', {
 });
 
 contextBridge.exposeInMainWorld('fileapi', {
+    showFolderDialog: fileapi.showFolderDialog,
     getDatasetImages: fileapi.getDatasetImages,
 });
 

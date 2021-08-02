@@ -16,11 +16,14 @@ function ChooseDirectoryButton({onClick}: {onClick: Function}) {
     )
 }
 
-function DirectoryStatus({datasetRoot}: {datasetRoot: string}) {
+function DirectoryStatus({datasetRoot, chooseDatasetRoot}: {datasetRoot: string, chooseDatasetRoot: Function}) {
     return (
-        <div className="w-96 flex items-center">
-            <div className="flex-1 px-3 py-1.5 bg-gray-600 rounded-l text-gray-400">{datasetRoot}</div>
-            <button className="px-3 py-1.5 bg-pink-200 rounded-r text-black focus:outline-none focus:ring-4 ring-pink-200 ring-opacity-50">Edit</button>
+        <div className="flex items-center">
+            <div className="flex-1 px-3 py-1.5 bg-gray-600 rounded-l text-gray-400" title={datasetRoot}>{datasetRoot}</div>
+            <button
+                className="px-3 py-1.5 bg-pink-200 rounded-r text-black focus:outline-none focus:ring-4 ring-pink-200 ring-opacity-50"
+                onClick={() => chooseDatasetRoot()}
+            >Edit</button>
         </div>
     )
 }
@@ -30,7 +33,7 @@ function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}: {datasetRoot: str
         <div className="mt-32 flex flex-col items-center">
             {!datasetRoot
                 ? <ChooseDirectoryButton onClick={chooseDatasetRoot} />
-                : <DirectoryStatus datasetRoot={datasetRoot} />
+                : <DirectoryStatus datasetRoot={datasetRoot} chooseDatasetRoot={chooseDatasetRoot} />
             }
             <div className="mt-4 w-96 text-sm text-gray-400 text-center">
                 <div>The chosen directory will be scanned for nifti files to be added to this dataset. Any collaborators will have to use the same directory structure.</div>
@@ -105,8 +108,8 @@ function CreateDataset() {
     }, [datasetRoot]);
 
     function chooseDatasetRoot() {
-        //TODO: actually set
-        setDatasetRoot('data/datasets/dataset1');
+        const chosenPaths = fileapi.showFolderDialog();
+        if (chosenPaths) setDatasetRoot(chosenPaths[0]);
     }
 
     function createDataset() {

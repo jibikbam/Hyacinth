@@ -1,4 +1,4 @@
-import {app, BrowserWindow} from 'electron';
+import {app, BrowserWindow, ipcMain, dialog} from 'electron';
 import * as path from 'path';
 
 function createWindow() {
@@ -23,4 +23,10 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.on('show-dialog', (event, arg) => {
+    event.returnValue = dialog.showOpenDialogSync(BrowserWindow.getFocusedWindow(), {
+        properties: ['openDirectory'],
+    });
 });
