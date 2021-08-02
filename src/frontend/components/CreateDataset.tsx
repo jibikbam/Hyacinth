@@ -45,13 +45,13 @@ function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}: {datasetRoot: str
 function FilePreviewStep({datasetRoot, filePaths}: {datasetRoot: string, filePaths: string[]}) {
     return (
         <div className="mt-6">
-            <div className="text-lg text-gray-400">
+            <div className="text-gray-400">
                 <span>Found</span>
                 <span className="text-white"> {filePaths.length}</span>
                 <span> nifti files under</span>
-                <span className="text-white"> {datasetRoot}</span>
+                <span className="text-gray-200"> {datasetRoot}</span>
             </div>
-            <div className="mt-1 px-4 py-3 h-96 bg-gray-800 rounded text-gray-400 overflow-y-scroll">
+            <div className="mt-1 px-4 py-3 h-96 bg-gray-800 rounded text-sm leading-relaxed text-gray-400 font-mono overflow-y-scroll">
                 {filePaths.map(p => <div key={p}>{p}</div>)}
             </div>
         </div>
@@ -82,12 +82,12 @@ function ChooseNameStep({datasetName, setDatasetName, datasetRoot, numFiles}: Ch
                 <div className="mt-2 text-sm text-gray-400">Choose a name for this dataset. Dataset names must be unique.</div>
                 <div className="mt-8 flex items-center text-gray-400">
                     <CheckCircleIcon className="w-5 h-5 text-gray-400" />
-                    <div className="ml-1">
+                    <div className="ml-1 text-sm">
                         <span className="text-white">{datasetName ? datasetName : 'Dataset'}</span>
                         <span> will be created with</span>
                         <span className="text-white"> {numFiles}</span>
                         <span> files at</span>
-                        <span className="text-white"> {datasetRoot}</span>
+                        <span className="text-gray-200"> {datasetRoot}</span>
                         <span>.</span>
                     </div>
                 </div>
@@ -126,14 +126,14 @@ function CreateDataset() {
                             <StepHeader title="Create Dataset" stepDescription="Choose Directory" curStep={0} stepCount={3} />
                             <ChooseDirectoryStep datasetRoot={datasetRoot} chooseDatasetRoot={chooseDatasetRoot} />
                         </div>
-                        <StepNavigation cancelTo="/" backTo={null} nextTo={datasetRoot ? '/create-dataset/file-preview' : null} />
+                        <StepNavigation cancelTo="/" backTo={null} nextTo={datasetRoot && '/create-dataset/file-preview'} />
                     </Route>
                     <Route path="/create-dataset/file-preview">
                         <div>
                             <StepHeader title="Create Dataset" stepDescription="Review Files" curStep={1} stepCount={3} />
                             <FilePreviewStep datasetRoot={datasetRoot} filePaths={filePaths} />
                         </div>
-                        <StepNavigation cancelTo="/" backTo="/create-dataset/choose-directory" nextTo="/create-dataset/choose-name" />
+                        <StepNavigation cancelTo="/" backTo="/create-dataset/choose-directory" nextTo={filePaths.length > 0 && "/create-dataset/choose-name"} />
                     </Route>
                     <Route path="/create-dataset/choose-name">
                         <div>
