@@ -159,8 +159,9 @@ function SessionOverview({sessionId}: {sessionId: number}) {
             <div className="flex justify-between items-start">
                 <div>
                     <h1 className="text-5xl font-medium">{session.sessionName}</h1>
-                    <div className="mt-3 flex">
+                    <div className="mt-3 flex space-x-2">
                         <SessionTag>{session.sessionType} Session</SessionTag>
+                        {session.comparisonSampling && <SessionTag>{session.comparisonSampling} Sampling</SessionTag>}
                     </div>
                 </div>
                 <div>

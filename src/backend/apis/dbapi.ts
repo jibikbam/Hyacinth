@@ -211,8 +211,10 @@ function selectAllDatasets() {
 
 function selectDataset(datasetId: number) {
     const datasetRow = dbConn.prepare(`
-        SELECT id, datasetName, rootPath FROM datasets
-        WHERE id = :datasetId;
+        SELECT d.id, d.datasetName, d.rootPath, count(di.id) AS imageCount
+        FROM datasets d
+        INNER JOIN dataset_images di on d.id = di.datasetId
+        WHERE d.id = :datasetId;
     `).get({datasetId});
     console.log(JSON.stringify(datasetRow));
     return datasetRow;

@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Switch, Route, useParams, useHistory} from 'react-router-dom';
-import {SessionType, Orientation, SamplingType, dbapi, DatasetImage} from '../backend';
+import {SessionType, Orientation, SamplingType, dbapi, DatasetImage, Dataset} from '../backend';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
@@ -53,19 +53,20 @@ interface SessionInfoStepProps {
 }
 
 function SessionInfoStep({sessionName, setSessionName, prompt, setPrompt, labelOptions, setLabelOptions, sessionType}: SessionInfoStepProps) {
+    const isCompare = sessionType === 'Comparison';
     return (
         <div className="mx-auto mt-10 w-2/3 flex flex-col space-y-8">
             <div>
-                <InputText id="session-name" label="Session Name" placeholder="My Session" value={sessionName} setValue={setSessionName} />
-                <div className="mt-2 text-xs text-gray-400">Choose a name for this labeling session. Session names must be unique per dataset.</div>
+                <InputText id="session-name" label="Session Name *" placeholder="My Session" value={sessionName} setValue={setSessionName} />
+                <div className="mt-2 text-xs text-gray-400">Choose a name for this {sessionType.toLowerCase()} session. Session names must be unique per dataset.</div>
             </div>
             <div>
-                <InputText id="prompt" label="Session Prompt" placeholder="My Prompt" value={prompt} setValue={setPrompt} />
+                <InputText id="prompt" label="Session Prompt" placeholder={isCompare ? 'Which of these slices is better?' : 'What do you think of this slice?'} value={prompt} setValue={setPrompt} />
                 <div className="mt-2 text-xs text-gray-400">The session prompt tells the labeler what criteria to use when choosing a label.</div>
             </div>
             <div>
-                <InputText id="label-options" label="Labels" placeholder="My Labels" value={labelOptions} setValue={setLabelOptions} />
-                <div className="mt-2 text-xs text-gray-400">Comma-separated list of labels for this labeling session.</div>
+                <InputText id="label-options" label={isCompare ? 'Additional Labels' : 'Labels *'} placeholder="Label 1, Label 2, Label 3" value={labelOptions} setValue={setLabelOptions} />
+                <div className="mt-2 text-xs text-gray-400">Comma-separated list of {isCompare && 'additional'} labels for this {sessionType.toLowerCase()} session.</div>
             </div>
         </div>
     )
@@ -93,7 +94,6 @@ function SamplingButtonGroup({sampling, setSampling}: {sampling: SamplingType, s
 }
 
 interface SamplingOptionsStepProps {
-    sessionType: SessionType;
     slicesFrom: string;
     setSlicesFrom: Function;
     imageCount: number;
@@ -110,6 +110,9 @@ interface SamplingOptionsStepProps {
     setSampling: Function;
     comparisonCount: number;
     setComparisonCount: Function;
+
+    sessionType: SessionType;
+    maxImageCount: number;
 }
 
 function SamplingOptionsStep(props: SamplingOptionsStepProps) {
@@ -120,15 +123,15 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                     <Select id="slices-from" label="Slices From" options={['Create New']} value={props.slicesFrom} setValue={props.setSlicesFrom} />
                 </div>
                 <div className="mt-3 flex space-x-4">
-                    <InputNumber id="image-count" label="Images" value={props.imageCount} setValue={props.setImageCount} />
-                    <InputNumber id="slice-count" label="Slices" value={props.sliceCount} setValue={props.setSliceCount} />
+                    <InputNumber id="image-count" label="Images" min={1} max={props.maxImageCount} value={props.imageCount} setValue={props.setImageCount} />
+                    <InputNumber id="slice-count" label="Slices" min={2} value={props.sliceCount} setValue={props.setSliceCount} />
                 </div>
                 <div className="mt-3">
                     <Select id="orientation" label="Orientation" options={['Sagittal']} value={props.orientation} setValue={props.setOrientation} />
                 </div>
                 <div className="mt-3 flex space-x-4">
-                    <InputNumber id="slice-min-pct" label="Slice Min (%)" value={props.sliceMinPct} setValue={props.setSliceMinPct} />
-                    <InputNumber id="slice-max-pct" label="Slice Max (%)" value={props.sliceMaxPct} setValue={props.setSliceMaxPct} />
+                    <InputNumber id="slice-min-pct" label="Slice Min (%)" min={0} max={100} value={props.sliceMinPct} setValue={props.setSliceMinPct} />
+                    <InputNumber id="slice-max-pct" label="Slice Max (%)" min={0} max={100} value={props.sliceMaxPct} setValue={props.setSliceMaxPct} />
                 </div>
             </div>
             {props.sessionType === 'Comparison' && (
@@ -139,9 +142,11 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                             <SamplingButtonGroup sampling={props.sampling} setSampling={props.setSampling} />
                         </div>
                     </div>
-                    <div className="mt-3 w-1/2 pr-2">
-                        <InputNumber id="comparison-count" label="Comparisons" value={props.comparisonCount} setValue={props.setComparisonCount} />
-                    </div>
+                    {props.sampling === 'Random' && (
+                        <div className="mt-3 w-1/2 pr-2">
+                            <InputNumber id="comparison-count" label="Comparisons" value={props.comparisonCount} setValue={props.setComparisonCount} />
+                        </div>
+                    )}
                 </div>
             )}
         </div>
@@ -151,30 +156,25 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
 function CreateSession() {
     const {datasetId} = useParams();
     const history = useHistory();
-    const [dataset, setDataset] = useState(null);
-    const [datasetImages, setDatasetImages] = useState<DatasetImage[] | null>(null);
+
+    const [dataset, datasetImages] = useMemo(() => {
+        return [dbapi.selectDataset(datasetId), dbapi.selectDatasetImages(datasetId)];
+    }, []);
 
     const [sessionType, setSessionType] = useState<SessionType | null>(null);
     const [sessionName, setSessionName] = useState<string>('');
     const [prompt, setPrompt] = useState<string>('');
     const [labelOptions, setLabelOptions] = useState<string>('');
 
-    const infoValid = sessionName.length > 0; // TODO: Validate inputs
-
     const [slicesFrom, setSlicesFrom] = useState<string>('Create New');
-    const [imageCount, setImageCount] = useState<number>(0);
-    const [sliceCount, setSliceCount] = useState<number>(0);
+    const [imageCount, setImageCount] = useState<number>(1);
+    const [sliceCount, setSliceCount] = useState<number>(2);
     const [orientation, setOrientation] = useState<Orientation>('Sagittal');
     const [sliceMinPct, setSliceMinPct] = useState<number>(20);
     const [sliceMaxPct, setSliceMaxPct] = useState<number>(80);
 
     const [sampling, setSampling] = useState<SamplingType>('Random');
     const [comparisonCount, setComparisonCount] = useState<number>(0);
-
-    useEffect(() => {
-        setDataset(dbapi.selectDataset(datasetId));
-        setDatasetImages(dbapi.selectDatasetImages(datasetId));
-    }, [datasetId]);
 
     function createSession() {
         const slices = sampleSlices(datasetImages, imageCount, sliceCount, orientation, sliceMinPct, sliceMaxPct);
@@ -186,9 +186,22 @@ function CreateSession() {
                 : [getInitialComparison(slices)];
         }
 
-        const newSessionId = dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, sampling, '', slices, comparisons);
+        const metadata = {
+            'Slices From': slicesFrom,
+            'Image Count': imageCount,
+            'Slice Count': sliceCount,
+            'Orientation': orientation,
+            'Slice Min Pct': sliceMinPct,
+            'Slice Max Pct': sliceMaxPct,
+        }
+        if (sessionType === 'Comparison' && sampling === 'Random') metadata['Comparison Count'] = comparisonCount;
+        const metadataJson = JSON.stringify(metadata);
+
+        const newSessionId = dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, sampling, metadataJson, slices, comparisons);
         history.push(`/dataset/${datasetId}/session/${newSessionId}`);
     }
+
+    const infoValid = sessionName.length > 0 && (sessionType !== 'Classification' || labelOptions.length > 0);
 
     return (
         <StepContainer>
@@ -198,7 +211,7 @@ function CreateSession() {
                         <StepHeader title="Create Labeling Session" stepDescription="Choose Session Type" curStep={0} stepCount={3} />
                         <ChooseTypeStep sessionType={sessionType} setSessionType={setSessionType} />
                     </div>
-                    <StepNavigation cancelTo="/" backTo={null} nextTo={sessionType && `/create-session/${datasetId}/session-info`} />
+                    <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={null} nextTo={sessionType && `/create-session/${datasetId}/session-info`} />
                 </Route>
                 <Route path="/create-session/:datasetId/session-info">
                     <div>
@@ -213,13 +226,12 @@ function CreateSession() {
                             sessionType={sessionType}
                         />
                     </div>
-                    <StepNavigation cancelTo="/" backTo={`/create-session/${datasetId}/choose-type`} nextTo={`/create-session/${datasetId}/sampling-options`} />
+                    <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={`/create-session/${datasetId}/choose-type`} nextTo={infoValid && `/create-session/${datasetId}/sampling-options`} />
                 </Route>
                 <Route path="/create-session/:datasetId/sampling-options">
                     <div>
                         <StepHeader title="Create Labeling Session" stepDescription="Sampling Options" curStep={2} stepCount={3} />
                         <SamplingOptionsStep
-                            sessionType={sessionType}
                             slicesFrom={slicesFrom}
                             setSlicesFrom={setSlicesFrom}
                             imageCount={imageCount}
@@ -236,9 +248,11 @@ function CreateSession() {
                             setSampling={setSampling}
                             comparisonCount={comparisonCount}
                             setComparisonCount={setComparisonCount}
+                            sessionType={sessionType}
+                            maxImageCount={dataset.imageCount}
                         />
                     </div>
-                    <StepNavigation cancelTo="/" backTo={`/create-session/${datasetId}/session-info`} nextTo={null} finishText="Create" finishClicked={createSession} finishDisabled={false} />
+                    <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={`/create-session/${datasetId}/session-info`} nextTo={null} finishText="Create" finishClicked={createSession} finishDisabled={false} />
                 </Route>
             </Switch>
         </StepContainer>

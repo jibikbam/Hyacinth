@@ -50,6 +50,7 @@ function doSliceSample(images: {image: DatasetImage, sliceCount: number}[],
         }
     }
 
+    if (sliceCount > possibleSlices.length) sliceCount = possibleSlices.length;
     return sampleWithoutReplacement(possibleSlices, sliceCount);
 }
 
