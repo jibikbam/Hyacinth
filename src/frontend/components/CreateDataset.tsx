@@ -51,7 +51,7 @@ function FilePreviewStep({datasetRoot, filePaths}: {datasetRoot: string, filePat
                 <span> nifti files under</span>
                 <span className="text-white"> {datasetRoot}</span>
             </div>
-            <div className="mt-1 px-4 py-3 h-96 bg-gray-800 rounded text-gray-400">
+            <div className="mt-1 px-4 py-3 h-96 bg-gray-800 rounded text-gray-400 overflow-y-scroll">
                 {filePaths.map(p => <div key={p}>{p}</div>)}
             </div>
         </div>
