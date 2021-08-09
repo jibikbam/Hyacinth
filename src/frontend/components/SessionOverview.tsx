@@ -91,7 +91,7 @@ function SlicesTable({sessionId, slices}: {sessionId: number, slices: Slice[]}) 
                             <td>{s.sliceIndex}</td>
                             <td className="text-center">{s.elementLabel || '-'}</td>
                             <td>
-                                <Link to={`/label/${sessionId}/${s.elementIndex}`} className="text-pink-200 opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</Link>
+                                <Link to={`/label/${sessionId}/${s.elementIndex}`} className="text-pink-200 hover:text-pink-600 opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</Link>
                             </td>
                         </tr>
                     ))}
@@ -135,7 +135,7 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: number, comparis
                             <td>{c.sliceIndex2}</td>
                             <td className="text-center">{c.elementLabel || '-'}</td>
                             <td>
-                                <Link to={`/label/${sessionId}/${c.elementIndex}`} className="text-pink-200 opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</Link>
+                                <Link to={`/label/${sessionId}/${c.elementIndex}`} className="text-pink-200 hover:text-pink-600 opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</Link>
                             </td>
                         </tr>
                     ))}

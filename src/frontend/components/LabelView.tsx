@@ -79,7 +79,7 @@ function PastLabelsModal({labels, closeModal}: {labels: ElementLabel[], closeMod
     )
 }
 
-const DEFAULT_BRIGHTNESS = 80;
+const DEFAULT_BRIGHTNESS = 50;
 
 interface LabelSliceProps {
     datasetRootPath: string;
@@ -105,7 +105,7 @@ function LabelSlice({datasetRootPath, imageRelPath, sliceIndex, orientation, bin
                 style={{width: '65vh', height: '65vh'}}
                 onClick={handleClick}
             >
-                <VolumeSlice imagePath={datasetRootPath + '/' + imageRelPath} sliceIndex={sliceIndex} />
+                <VolumeSlice imagePath={datasetRootPath + '/' + imageRelPath} sliceIndex={sliceIndex} brightness={brightness} />
             </div>
             <div className="mt-3 px-2 py-1 bg-gray-800 rounded flex items-center">
                 <SunIcon className="mr-2 w-6 h-6 text-gray-400" />
@@ -309,7 +309,7 @@ function LabelView() {
     return (
         <div>
             {modalEl}
-            <header className="pt-3 pb-1 pl-4 pr-2 bg-gray-800 flex justify-between items-center">
+            <header className="py-2 pl-4 pr-2 bg-gray-800 flex justify-between items-center">
                 <div className="w-1/4">
                     <Link to={`/dataset/${session.datasetId}/session/${session.id}`} className="text-gray-400 hover:text-white flex items-center">
                         <ArrowLeftIcon className="w-5 h-5" />
