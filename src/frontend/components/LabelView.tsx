@@ -1,12 +1,14 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {Link, useParams, useHistory} from 'react-router-dom';
+import {Link, useParams} from 'react-router-dom';
 import {Comparison, dbapi, ElementLabel, LabelingSession, Orientation, SessionElement, Slice} from '../backend';
 import {useTimer} from '../hooks/useTimer';
 import {InputRange} from './Inputs';
 import {Button} from './Buttons';
 import {Modal} from './Modal';
 import {VolumeSlice} from './VolumeSlice';
+import {buildSortMatrix, sortSlices} from '../sort';
+import {splitLabelOptions} from '../utils';
 import {ChevronLeftIcon, ChevronRightIcon, XIcon} from '@heroicons/react/outline';
 import {
     ArrowLeftIcon,
@@ -16,7 +18,6 @@ import {
     QuestionMarkCircleIcon,
     RefreshIcon, SunIcon
 } from '@heroicons/react/solid';
-import {buildSortMatrix, comparisonToSliceStrings, sortSlices} from '../sort';
 
 function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTimer: Function}) {
     const minutes = Math.floor(timerSeconds / 60).toString();
@@ -129,13 +130,14 @@ function LabelSlice({datasetRootPath, imageRelPath, sliceIndex, orientation, bin
 }
 
 interface LabelControlsProps {
+    additional: boolean;
     labelOptions: string[];
     labels: ElementLabel[];
     addLabel: (string) => void;
     bindStart: number;
 }
 
-function LabelControls({labelOptions, labels, addLabel, bindStart}: LabelControlsProps) {
+function LabelControls({additional, labelOptions, labels, addLabel, bindStart}: LabelControlsProps) {
     const curLabelValue = labels.length > 0 ? labels[0].labelValue : null;
     const skeletonLabels = Array.from(Array(Math.max(3 - labelOptions.length, 0)).keys());
 
@@ -143,7 +145,7 @@ function LabelControls({labelOptions, labels, addLabel, bindStart}: LabelControl
         <div>
             <div className="text-gray-400 flex items-center">
                 <ColorSwatchIcon className="w-5 h-5" />
-                <span className="ml-1">Other Labels</span>
+                <span className="ml-1">{additional && 'Additional '}Labels</span>
             </div>
             <div className="mt-3 flex flex-col space-y-3">
                 {labelOptions.map((labelOption, i) => {
@@ -185,7 +187,7 @@ function ClassificationControls({session, slice, labels, addLabel}: Classificati
                 />
             </div>
             <div className="ml-6 w-56">
-                <LabelControls labelOptions={session.labelOptions.split(',')} labels={labels} addLabel={addLabel} bindStart={0} />
+                <LabelControls additional={false} labelOptions={session.labelOptions.split(',')} labels={labels} addLabel={addLabel} bindStart={0} />
             </div>
         </div>
     )
@@ -223,7 +225,7 @@ function ComparisonControls({session, comparison, labels, addLabel}: ComparisonC
                 />
             </div>
             <div className="ml-6 w-48">
-                <LabelControls labelOptions={session.labelOptions.split(',')} labels={labels} addLabel={addLabel} bindStart={2} />
+                <LabelControls additional={true} labelOptions={splitLabelOptions(session.labelOptions)} labels={labels} addLabel={addLabel} bindStart={2} />
             </div>
         </div>
     )
@@ -232,7 +234,6 @@ function ComparisonControls({session, comparison, labels, addLabel}: ComparisonC
 type LabelModal = 'pastLabels';
 
 function LabelView() {
-    const history = useHistory();
     let {sessionId, elementIndex} = useParams();
     const elementIndexInt = parseInt(elementIndex);
 

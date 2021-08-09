@@ -11,7 +11,7 @@ function sliceToString(slice: SliceAny): string {
     return makeSliceString(slice.imageId, slice.sliceIndex, slice.orientation);
 }
 
-export function comparisonToSliceStrings(comparison: Comparison): [string, string] {
+function comparisonToSliceStrings(comparison: Comparison): [string, string] {
     return [
         makeSliceString(comparison.imageId1, comparison.sliceIndex1, comparison.orientation1),
         makeSliceString(comparison.imageId2, comparison.sliceIndex2, comparison.orientation2),
