@@ -27,7 +27,7 @@ function DatasetOverview() {
         <main className="h-screen flex">
             <div className="px-4 py-3 w-80 bg-gray-800">
                 <div>
-                    <Link to="/" className="text-sm text-pink-200 flex items-center">
+                    <Link to="/" className="text-sm text-pink-200 hover:text-pink-600 flex items-center">
                         <ArrowLeftIcon className="w-4 h-4" />
                         <span className="ml-1">Back to datasets</span>
                     </Link>
@@ -50,10 +50,11 @@ function DatasetOverview() {
                         {sessions && sessions.map(s => {
                             return (
                                 <Link to={`/dataset/${datasetId}/session/${s.id}`} className="text-lg font-medium">
-                                    <span className={s.id === sessionId ? 'text-gray-100' : 'text-gray-400'}>{s.sessionName}</span>
+                                    <span className={s.id === sessionId ? 'text-gray-100' : 'text-gray-400 hover:text-white focus:text-white'}>{s.sessionName}</span>
                                 </Link>
                             )
                         })}
+                        {sessions && sessions.length === 0 && <span className="mt-1 text-xs text-gray-400">No sessions created yet.</span>}
                     </div>
                 </div>
             </div>

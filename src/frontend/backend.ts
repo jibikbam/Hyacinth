@@ -34,6 +34,7 @@ interface SessionElement {
     sessionId: number;
     elementType: ElementType;
     elementIndex: number;
+    elementLabel?: string;
 }
 
 interface Slice extends SessionElement {

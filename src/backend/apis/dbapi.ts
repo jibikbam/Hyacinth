@@ -253,7 +253,8 @@ function selectLabelingSession(sessionId: number) {
 function selectSessionSlices(sessionId: number) {
     const sliceRows = dbConn.prepare(`
         SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1 as imageId, se.sliceIndex1 as sliceIndex, se.orientation1 as orientation,
-               d.rootPath as datasetRootPath, di.relPath as imageRelPath
+               d.rootPath as datasetRootPath, di.relPath as imageRelPath,
+               (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
         FROM session_elements se
         INNER JOIN dataset_images di on se.imageId1 = di.id
         INNER JOIN datasets d on di.datasetId = d.id
@@ -267,7 +268,8 @@ function selectSessionSlices(sessionId: number) {
 function selectSessionComparisons(sessionId: number) {
     const comparisonRows = dbConn.prepare(`
         SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1, se.sliceIndex1, se.orientation1, se.imageId2, se.sliceIndex2, se.orientation2,
-               d.rootPath AS datasetRootPath, di1.relPath AS imageRelPath1, di2.relPath AS imageRelPath2
+               d.rootPath AS datasetRootPath, di1.relPath AS imageRelPath1, di2.relPath AS imageRelPath2,
+               (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
         FROM session_elements se
             INNER JOIN dataset_images di1 on se.imageId1 = di1.id
             INNER JOIN dataset_images di2 on se.imageId2 = di2.id

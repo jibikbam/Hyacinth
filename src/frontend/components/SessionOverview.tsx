@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
+import {Link} from 'react-router-dom';
 import {Comparison, dbapi, LabelingSession, SessionElement, Slice} from '../backend';
 import {LinkButton} from './Buttons';
 import {
@@ -62,33 +63,36 @@ function SessionTag({children}: {children?: any}) {
     )
 }
 
-function SlicesTable({slices}: {slices: Slice[]}) {
+function SlicesTable({sessionId, slices}: {sessionId: number, slices: Slice[]}) {
     return (
         <div>
             <table className="w-full table-fixed">
                 <colgroup>
                     <col className="w-1/12" />
                     <col className="w-2/12" />
-                    <col className="w-2/12" />
                     <col className="w-1/12" />
+                    <col className="w-1/12" />
+                    <col className="w-2/12" />
                 </colgroup>
                 <thead className="text-sm text-gray-400 font-medium">
                     <tr>
                         <td className="pb-1 pr-8" />
                         <td className="pb-1" colSpan={3}>Slice</td>
                         <td className="pb-1 text-center">Label</td>
-                        <td className="pb-1 text-center">Last Edited</td>
+                        <td />
                     </tr>
                 </thead>
                 <tbody className="text-gray-400">
                     {slices.map((s, i) => (
-                        <tr>
-                            <td className="pr-8 text-sm text-gray-500 text-right">#{i + 1}</td>
-                            <td className="">{s.imageRelPath}</td>
+                        <tr className="group hover:text-white">
+                            <td className="pr-8 text-sm text-gray-500 group-hover:text-white text-right">#{i + 1}</td>
+                            <td>{s.imageRelPath}</td>
                             <td>{s.orientation}</td>
-                            <td className="">{s.sliceIndex}</td>
-                            <td className="text-center">-</td>
-                            <td className="text-center">-</td>
+                            <td>{s.sliceIndex}</td>
+                            <td className="text-center">{s.elementLabel || '-'}</td>
+                            <td>
+                                <Link to={`/label/${sessionId}/${s.elementIndex}`} className="text-pink-200 opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</Link>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
@@ -97,7 +101,7 @@ function SlicesTable({slices}: {slices: Slice[]}) {
     )
 }
 
-function ComparisonsTable({comparisons}: {comparisons: Comparison[]}) {
+function ComparisonsTable({sessionId, comparisons}: {sessionId: number, comparisons: Comparison[]}) {
     return (
         <div>
             <table className="w-full">
@@ -116,21 +120,23 @@ function ComparisonsTable({comparisons}: {comparisons: Comparison[]}) {
                         <td className="pb-1" colSpan={3}>Slice 1</td>
                         <td className="pb-1" colSpan={3}>Slice 2</td>
                         <td className="pb-1 text-center">Label</td>
-                        <td className="pb-1 text-center">Last Edited</td>
+                        <td />
                     </tr>
                 </thead>
                 <tbody className="text-gray-400">
                     {comparisons.map((c, i) => (
-                        <tr>
-                            <td className="pr-8 text-sm text-gray-500 text-right">#{i + 1}</td>
+                        <tr className="group hover:text-white">
+                            <td className="pr-8 text-sm text-gray-500 group-hover:text-white text-right">#{i + 1}</td>
                             <td>{c.imageRelPath1}</td>
                             <td>{c.orientation1}</td>
                             <td>{c.sliceIndex1}</td>
                             <td>{c.imageRelPath2}</td>
                             <td>{c.orientation2}</td>
                             <td>{c.sliceIndex2}</td>
-                            <td className="text-center">-</td>
-                            <td className="text-center">-</td>
+                            <td className="text-center">{c.elementLabel || '-'}</td>
+                            <td>
+                                <Link to={`/label/${sessionId}/${c.elementIndex}`} className="text-pink-200 opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</Link>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
@@ -175,13 +181,13 @@ function SessionOverview({sessionId}: {sessionId: number}) {
                 </LinkButton>
             </div>
             <div className="mt-2">
-                <span>0 / {elements.length}</span>
+                <span>{elements.map(e => e.elementLabel ? 1 : 0).reduce((a, b) => a + b, 0)} / {elements.length}</span>
                 <span className="text-gray-400"> {session.sessionType === 'Classification' ? 'slices' : 'comparisons'} labeled</span>
             </div>
             <div className="mt-1 p-2 bg-gray-800 rounded overflow-y-scroll">
                 {session.sessionType === 'Classification'
-                    ? <SlicesTable slices={elements as Slice[]} />
-                    : <ComparisonsTable comparisons={elements as Comparison[]} />
+                    ? <SlicesTable sessionId={sessionId} slices={elements as Slice[]} />
+                    : <ComparisonsTable sessionId={sessionId} comparisons={elements as Comparison[]} />
                 }
             </div>
         </div>

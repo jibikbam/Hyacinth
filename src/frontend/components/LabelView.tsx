@@ -311,22 +311,24 @@ function LabelView() {
             {modalEl}
             <header className="pt-3 pb-1 pl-4 pr-2 bg-gray-800 flex justify-between items-center">
                 <div className="w-1/4">
-                    <Link to={`/dataset/${session.datasetId}/session/${session.id}`} className="text-gray-400 flex items-center">
+                    <Link to={`/dataset/${session.datasetId}/session/${session.id}`} className="text-gray-400 hover:text-white flex items-center">
                         <ArrowLeftIcon className="w-5 h-5" />
-                        <span className="ml-1 text-lg font-medium">{session.sessionName}</span>
+                        <span className="ml-1.5 text-lg font-medium">{session.sessionName}</span>
                     </Link>
                 </div>
                 <div>
                     <div className="flex items-center">
-                        <Link to={elementIndexInt > 0 && `/label/${sessionId}/${elementIndexInt - 1}`}>
-                            <ChevronLeftIcon className="text-gray-500 w-6 h-6" />
+                        <Link to={elementIndexInt > 0 && `/label/${sessionId}/${elementIndexInt - 1}`} className="p-4 text-gray-500 hover:text-white">
+                            <ChevronLeftIcon className="w-6 h-6" />
                         </Link>
-                        <h1 className="mx-2 w-48 text-xl font-medium text-center">{curElement.element.elementType} {elementIndexInt + 1}</h1>
-                        <Link to={elementIndexInt < (elements.length - 1) && `/label/${sessionId}/${elementIndexInt + 1}`}>
-                            <ChevronRightIcon className="text-gray-500 w-6 h-6" />
+                        <div className="mx-16">
+                            <h1 className="w-48 text-xl font-medium text-center">{curElement.element.elementType} {elementIndexInt + 1}</h1>
+                            <div className="mt-0.5 text-sm text-gray-400 font-medium text-center">{session.prompt}</div>
+                        </div>
+                        <Link to={elementIndexInt < (elements.length - 1) && `/label/${sessionId}/${elementIndexInt + 1}`} className="p-4 text-gray-500 hover:text-white">
+                            <ChevronRightIcon className="w-6 h-6" />
                         </Link>
                     </div>
-                    <div className="mt-0.5 text-sm text-gray-400 font-medium text-center">{session.prompt}</div>
                 </div>
                 <div className="w-1/4 flex justify-end items-center">
                     <button className="text-gray-400 flex items-center">
