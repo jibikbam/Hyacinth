@@ -25,8 +25,15 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.on('show-dialog', (event, arg) => {
+ipcMain.on('show-open-directory-dialog', (event, arg) => {
     event.returnValue = dialog.showOpenDialogSync(BrowserWindow.getFocusedWindow(), {
         properties: ['openDirectory'],
+    });
+});
+
+ipcMain.on('show-save-file-dialog', (event, defaultName) => {
+    event.returnValue = dialog.showSaveDialogSync(BrowserWindow.getFocusedWindow(), {
+        defaultPath: defaultName,
+        properties: ['createDirectory', 'showOverwriteConfirmation'],
     });
 });

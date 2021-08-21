@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
-import {Comparison, dbapi, LabelingSession, SessionElement, Slice} from '../backend';
+import {Comparison, dbapi, fileapi, LabelingSession, SessionElement, Slice} from '../backend';
 import {LinkButton} from './Buttons';
 import {
     ChevronDownIcon,
@@ -172,8 +172,9 @@ function SessionOverview({sessionId}: {sessionId: number}) {
     }
 
     function exportSession() {
-        console.log('exporting...');
-        console.log(sessionToJson(session.id));
+        const sessionJsonString = sessionToJson(session.id);
+        const savePath = fileapi.showSaveDialog(session.sessionName + '.json');
+        fileapi.writeTextFile(savePath, sessionJsonString);
     }
 
     return (

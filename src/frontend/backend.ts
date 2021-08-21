@@ -94,7 +94,9 @@ export interface DBApiType {
 
 export interface FileApiType {
     showFolderDialog: () => string[] | undefined;
+    showSaveDialog: (defaultName: string) => string | undefined;
     getDatasetImages: (datasetRootPath: string) => string[];
+    writeTextFile: (savePath: string, contents: string) => void;
 }
 
 export interface VolumeApiType {

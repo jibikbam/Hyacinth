@@ -23,7 +23,9 @@ contextBridge.exposeInMainWorld('dbapi', {
 
 contextBridge.exposeInMainWorld('fileapi', {
     showFolderDialog: fileapi.showFolderDialog,
+    showSaveDialog: fileapi.showSaveDialog,
     getDatasetImages: fileapi.getDatasetImages,
+    writeTextFile: fileapi.writeTextFile,
 });
 
 contextBridge.exposeInMainWorld('volumeapi', {
