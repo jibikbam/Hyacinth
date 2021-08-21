@@ -205,7 +205,7 @@ export function selectAllDatasets() {
             LEFT JOIN labeling_sessions ls on d.id = ls.datasetId
         GROUP BY d.id;
     `).all();
-    console.log(JSON.stringify(datasetRows));
+    console.log(`Selected ${datasetRows.length} datasets`);
     return datasetRows;
 }
 
@@ -216,7 +216,7 @@ export function selectDataset(datasetId: number) {
         INNER JOIN dataset_images di on d.id = di.datasetId
         WHERE d.id = :datasetId;
     `).get({datasetId});
-    console.log(JSON.stringify(datasetRow));
+    console.log(`Selected dataset ${datasetRow.id} ${datasetRow.datasetName}`);
     return datasetRow;
 }
 
@@ -227,7 +227,6 @@ export function selectDatasetImages(datasetId: number) {
         WHERE di.datasetId = :datasetId;
     `).all({datasetId});
     console.log(`Selected ${imageRows.length} images for dataset ${datasetId}`);
-    console.log(JSON.stringify(imageRows));
     return imageRows;
 }
 
@@ -246,7 +245,7 @@ export function selectLabelingSession(sessionId: number) {
         SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson FROM labeling_sessions
         WHERE id = :sessionId;
     `).get({sessionId});
-    console.log(`Selected session: ${JSON.stringify(sessionRow)}`);
+    console.log(`Selected session ${sessionRow.id} ${sessionRow.sessionName}`);
     return sessionRow;
 }
 

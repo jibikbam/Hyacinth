@@ -39,7 +39,7 @@ export interface SessionElement {
 
 export interface Slice extends SessionElement {
     imageId: number;
-    sliceIndex: number
+    sliceIndex: number;
     orientation: Orientation;
     datasetRootPath: string;
     imageRelPath: string;
@@ -47,7 +47,7 @@ export interface Slice extends SessionElement {
 
 export interface Comparison extends SessionElement {
     imageId1: number;
-    sliceIndex1: number
+    sliceIndex1: number;
     orientation1: Orientation;
     imageId2: number;
     sliceIndex2: number

@@ -12,9 +12,19 @@ import {
     TagIcon,
     TrashIcon
 } from '@heroicons/react/solid';
+import {sessionToJson} from '../collaboration';
 
-function ManageDropdown() {
+interface ManageDropdownProps {
+    exportSession: () => void;
+}
+
+function ManageDropdown({exportSession}: ManageDropdownProps) {
     const [open, setOpen] = useState<boolean>(false);
+
+    function closeAndRun(runFunc: () => any) {
+        setOpen(false);
+        runFunc();
+    }
 
     return (
         <div className="relative">
@@ -29,7 +39,8 @@ function ManageDropdown() {
             </button>
             {open && (
                 <div className="absolute right-0 mt-2 py-1.5 w-56 bg-gray-300 rounded font-medium overflow-hidden">
-                    <button className="w-full px-4 py-1.5 hover:bg-gray-400 focus:bg-gray-400 text-black font-medium flex items-center focus:outline-none">
+                    <button className="w-full px-4 py-1.5 hover:bg-gray-400 focus:bg-gray-400 text-black font-medium flex items-center focus:outline-none"
+                            onClick={() => closeAndRun(exportSession)}>
                         <ExternalLinkIcon className="w-5 h-5" />
                         <span className="ml-2">Export Session</span>
                     </button>
@@ -160,6 +171,11 @@ function SessionOverview({sessionId}: {sessionId: number}) {
         return <div>Loading</div>
     }
 
+    function exportSession() {
+        console.log('exporting...');
+        console.log(sessionToJson(session.id));
+    }
+
     return (
         <div className="px-16 pt-12 pb-8 h-screen flex flex-col">
             <div className="flex justify-between items-start">
@@ -171,7 +187,7 @@ function SessionOverview({sessionId}: {sessionId: number}) {
                     </div>
                 </div>
                 <div>
-                    <ManageDropdown />
+                    <ManageDropdown exportSession={exportSession} />
                 </div>
             </div>
             <div className="mt-6 self-start">
