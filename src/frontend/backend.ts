@@ -1,9 +1,9 @@
-type SessionType = 'Classification' | 'Comparison';
-type Orientation = 'Sagittal';
-type SamplingType = 'Random' | 'Sort';
-type ElementType = 'Slice' | 'Comparison';
+export type SessionType = 'Classification' | 'Comparison';
+export type Orientation = 'Sagittal';
+export type SamplingType = 'Random' | 'Sort';
+export type ElementType = 'Slice' | 'Comparison';
 
-interface Dataset {
+export interface Dataset {
     id: number;
     datasetName: string;
     rootPath: string;
@@ -11,14 +11,14 @@ interface Dataset {
     sessionCount?: number;
 }
 
-interface DatasetImage {
+export interface DatasetImage {
     id: number;
     datasetId: number;
     relPath: string;
     datasetRootPath?: string;
 }
 
-interface LabelingSession {
+export interface LabelingSession {
     id: number;
     datasetId: number;
     sessionType: SessionType;
@@ -29,7 +29,7 @@ interface LabelingSession {
     metadataJson: string;
 }
 
-interface SessionElement {
+export interface SessionElement {
     id: number;
     sessionId: number;
     elementType: ElementType;
@@ -37,7 +37,7 @@ interface SessionElement {
     elementLabel?: string;
 }
 
-interface Slice extends SessionElement {
+export interface Slice extends SessionElement {
     imageId: number;
     sliceIndex: number
     orientation: Orientation;
@@ -45,7 +45,7 @@ interface Slice extends SessionElement {
     imageRelPath: string;
 }
 
-interface Comparison extends SessionElement {
+export interface Comparison extends SessionElement {
     imageId1: number;
     sliceIndex1: number
     orientation1: Orientation;
@@ -57,7 +57,7 @@ interface Comparison extends SessionElement {
     imageRelPath2: string;
 }
 
-interface ElementLabel {
+export interface ElementLabel {
     id: number;
     elementId: number;
     labelValue: string;
@@ -65,13 +65,13 @@ interface ElementLabel {
     finishTimestamp: number;
 }
 
-interface SliceAttributes {
+export interface SliceAttributes {
     imageId: number;
     sliceIndex: number;
     orientation: Orientation;
 }
 
-interface DBApiType {
+export interface DBApiType {
     connect: () => void;
     createTables: () => void;
     insertDataset: (datasetName: string, rootPath: string, imageRelPaths: string[]) => void;
@@ -92,18 +92,16 @@ interface DBApiType {
     selectSessionLatestComparisonLabels: (sessionId: number) => (string | null)[];
 }
 
-interface FileApiType {
+export interface FileApiType {
     showFolderDialog: () => string[] | undefined;
     getDatasetImages: (datasetRootPath: string) => string[];
 }
 
-interface VolumeApiType {
+export interface VolumeApiType {
     readNiftiHeader: (imagePath: string) => any;
     readNifti: (imagePath: string) => any;
 }
 
-const dbapi = (window as any).dbapi as DBApiType;
-const fileapi = (window as any).fileapi as FileApiType;
-const volumeapi = (window as any).volumeapi as VolumeApiType;
-
-export {SessionType, Orientation, SamplingType, Dataset, DatasetImage, LabelingSession, SessionElement, Slice, Comparison, ElementLabel, SliceAttributes, dbapi, fileapi, volumeapi};
+export const dbapi = (window as any).dbapi as DBApiType;
+export const fileapi = (window as any).fileapi as FileApiType;
+export const volumeapi = (window as any).volumeapi as VolumeApiType;

@@ -8,12 +8,12 @@ function readNiftiData(imagePath) {
     return niftiReader.decompress(dataArrayBuffer);
 }
 
-function readNiftiHeader(imagePath) {
+export function readNiftiHeader(imagePath) {
     const niftiData = readNiftiData(imagePath);
     return niftiReader.readHeader(niftiData);
 }
 
-function readNifti(imagePath) {
+export function readNifti(imagePath) {
     const niftiData = readNiftiData(imagePath);
     const imgHeader = niftiReader.readHeader(niftiData);
     const imgDataUntyped = niftiReader.readImage(imgHeader, niftiData);
@@ -21,5 +21,3 @@ function readNifti(imagePath) {
 
     return [imgHeader, imgData];
 }
-
-export {readNiftiHeader, readNifti};

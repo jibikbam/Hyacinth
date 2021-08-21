@@ -3,13 +3,13 @@ import * as Database from 'better-sqlite3';
 const DATABASE_PATH = 'data/db/hyacinth.db';
 let dbConn;
 
-function connect() {
+export function connect() {
     dbConn = new Database(DATABASE_PATH);
     dbConn.pragma('foreign_keys = ON;');
     console.log('Connected to ' + DATABASE_PATH);
 }
 
-function createTables() {
+export function createTables() {
     const createTablesTransaction = dbConn.transaction(() => {
         // For development
         // dbConn.prepare(`DROP TABLE IF EXISTS session_elements;`).run();
@@ -83,7 +83,7 @@ function createTables() {
     console.log('Created tables');
 }
 
-function insertDataset(datasetName, rootPath, imageRelPaths) {
+export function insertDataset(datasetName, rootPath, imageRelPaths) {
     const insertDatasetTransaction = dbConn.transaction(() => {
         const datasetInsertInfo = dbConn.prepare(`
             INSERT INTO datasets (datasetName, rootPath) VALUES (:datasetName, :rootPath);
@@ -101,7 +101,7 @@ function insertDataset(datasetName, rootPath, imageRelPaths) {
     console.log(`Inserted dataset ${datasetName}`);
 }
 
-function insertLabelingSession(datasetId: number, sessionType: string, name: string,
+export function insertLabelingSession(datasetId: number, sessionType: string, name: string,
                                prompt: string, labelOptions: string, comparisonSampling: string | null, metadataJson: string,
                                slices: any, comparisons: any) {
     labelOptions = labelOptions.split(',').map(s => s.trim()).join(',');
@@ -161,7 +161,7 @@ function insertLabelingSession(datasetId: number, sessionType: string, name: str
     return insertedSessionId;
 }
 
-function insertElementLabel(elementId: number, labelValue: string, startTimestamp: number, finishTimestamp: number) {
+export function insertElementLabel(elementId: number, labelValue: string, startTimestamp: number, finishTimestamp: number) {
     const insertTransaction = dbConn.transaction(() => {
         dbConn.prepare(`
             INSERT INTO element_labels (elementId, labelValue, startTimestamp, finishTimestamp)
@@ -173,7 +173,7 @@ function insertElementLabel(elementId: number, labelValue: string, startTimestam
     console.log(`Inserted label "${labelValue}" for element ${elementId}`);
 }
 
-function insertComparison(sessionId: number, elementIndex: number, slice1, slice2) {
+export function insertComparison(sessionId: number, elementIndex: number, slice1, slice2) {
     const insertTransaction = dbConn.transaction(() => {
         const insertStatement = dbConn.prepare(`
             INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceIndex1, orientation1, imageId2, sliceIndex2, orientation2)
@@ -197,7 +197,7 @@ function insertComparison(sessionId: number, elementIndex: number, slice1, slice
     console.log(`Inserted additional comparison for session ${sessionId}`);
 }
 
-function selectAllDatasets() {
+export function selectAllDatasets() {
     const datasetRows = dbConn.prepare(`
         SELECT d.id, d.datasetName, d.rootPath, count(DISTINCT di.id) AS imageCount, count(DISTINCT ls.id) AS sessionCount
         FROM datasets d
@@ -209,7 +209,7 @@ function selectAllDatasets() {
     return datasetRows;
 }
 
-function selectDataset(datasetId: number) {
+export function selectDataset(datasetId: number) {
     const datasetRow = dbConn.prepare(`
         SELECT d.id, d.datasetName, d.rootPath, count(di.id) AS imageCount
         FROM datasets d
@@ -220,7 +220,7 @@ function selectDataset(datasetId: number) {
     return datasetRow;
 }
 
-function selectDatasetImages(datasetId: number) {
+export function selectDatasetImages(datasetId: number) {
     const imageRows = dbConn.prepare(`
         SELECT di.id, di.datasetId, di.relPath, d.rootPath as datasetRootPath FROM dataset_images di
         INNER JOIN datasets d on di.datasetId = d.id
@@ -231,7 +231,7 @@ function selectDatasetImages(datasetId: number) {
     return imageRows;
 }
 
-function selectDatasetSessions(datasetId: number) {
+export function selectDatasetSessions(datasetId: number) {
     const sessionRows = dbConn.prepare(`
         SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson
         FROM labeling_sessions
@@ -241,7 +241,7 @@ function selectDatasetSessions(datasetId: number) {
     return sessionRows;
 }
 
-function selectLabelingSession(sessionId: number) {
+export function selectLabelingSession(sessionId: number) {
     const sessionRow = dbConn.prepare(`
         SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson FROM labeling_sessions
         WHERE id = :sessionId;
@@ -250,7 +250,7 @@ function selectLabelingSession(sessionId: number) {
     return sessionRow;
 }
 
-function selectSessionSlices(sessionId: number) {
+export function selectSessionSlices(sessionId: number) {
     const sliceRows = dbConn.prepare(`
         SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1 as imageId, se.sliceIndex1 as sliceIndex, se.orientation1 as orientation,
                d.rootPath as datasetRootPath, di.relPath as imageRelPath,
@@ -265,7 +265,7 @@ function selectSessionSlices(sessionId: number) {
     return sliceRows;
 }
 
-function selectSessionComparisons(sessionId: number) {
+export function selectSessionComparisons(sessionId: number) {
     const comparisonRows = dbConn.prepare(`
         SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1, se.sliceIndex1, se.orientation1, se.imageId2, se.sliceIndex2, se.orientation2,
                d.rootPath AS datasetRootPath, di1.relPath AS imageRelPath1, di2.relPath AS imageRelPath2,
@@ -281,7 +281,7 @@ function selectSessionComparisons(sessionId: number) {
     return comparisonRows;
 }
 
-function selectElementLabels(elementId: number) {
+export function selectElementLabels(elementId: number) {
     const labelRows = dbConn.prepare(`
         SELECT id, elementId, labelValue, startTimestamp, finishTimestamp
         FROM element_labels
@@ -292,7 +292,7 @@ function selectElementLabels(elementId: number) {
     return labelRows;
 }
 
-function selectSessionLatestComparisonLabels(sessionId: number) {
+export function selectSessionLatestComparisonLabels(sessionId: number) {
     const labelRows = dbConn.prepare(`
         SELECT (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
         FROM session_elements se
@@ -302,6 +302,3 @@ function selectSessionLatestComparisonLabels(sessionId: number) {
     console.log(`Selected ${labelRows.length} latest comparison labels for session ${sessionId}`);
     return labelRows.map(r => r.elementLabel);
 }
-
-export {connect, createTables, insertDataset, insertLabelingSession, insertElementLabel, insertComparison,
-    selectAllDatasets, selectDataset, selectDatasetImages, selectDatasetSessions, selectLabelingSession, selectSessionSlices, selectSessionComparisons, selectElementLabels, selectSessionLatestComparisonLabels};

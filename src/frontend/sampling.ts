@@ -54,7 +54,7 @@ function doSliceSample(images: {image: DatasetImage, sliceCount: number}[],
     return sampleWithoutReplacement(possibleSlices, sliceCount);
 }
 
-function sampleSlices(images: DatasetImage[], imageCount: number, sliceCount: number,
+export function sampleSlices(images: DatasetImage[], imageCount: number, sliceCount: number,
                       orientation: Orientation, sliceMinPct: number, sliceMaxPct: number): SliceAttributes[] {
     const startMs = Date.now();
 
@@ -73,7 +73,7 @@ function sampleSlices(images: DatasetImage[], imageCount: number, sliceCount: nu
     return slices;
 }
 
-function sampleComparisons(sliceCount: number, comparisonCount: number): number[][] {
+export function sampleComparisons(sliceCount: number, comparisonCount: number): number[][] {
     const startMs = Date.now();
 
     let curMs = Date.now();
@@ -91,5 +91,3 @@ function sampleComparisons(sliceCount: number, comparisonCount: number): number[
     console.log(`Finished sampling comparisons in ${Date.now() - startMs}ms`);
     return comparisons;
 }
-
-export {sampleSlices, sampleComparisons};
