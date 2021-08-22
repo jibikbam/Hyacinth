@@ -23,8 +23,10 @@ contextBridge.exposeInMainWorld('dbapi', {
 
 contextBridge.exposeInMainWorld('fileapi', {
     showFolderDialog: fileapi.showFolderDialog,
+    showOpenJsonDialog: fileapi.showOpenJsonDialog,
     showSaveDialog: fileapi.showSaveDialog,
     getDatasetImages: fileapi.getDatasetImages,
+    readJsonFile: fileapi.readJsonFile,
     writeTextFile: fileapi.writeTextFile,
 });
 

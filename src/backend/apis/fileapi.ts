@@ -8,6 +8,10 @@ export function showFolderDialog() {
     return ipcRenderer.sendSync('show-open-directory-dialog');
 }
 
+export function showOpenJsonDialog() {
+    return ipcRenderer.sendSync('show-open-json-dialog');
+}
+
 export function showSaveDialog(defaultName: string) {
     return ipcRenderer.sendSync('show-save-file-dialog', defaultName);
 }
@@ -35,6 +39,11 @@ export function getDatasetImages(datasetRootPath: string) {
     if (!fs.existsSync(datasetRootPath) || !fs.statSync(datasetRootPath).isDirectory()) return null;
     const fullPaths = getImageFullPathsRecursive(datasetRootPath);
     return fullPaths.map(fp => fp.slice(datasetRootPath.length + 1));
+}
+
+export function readJsonFile(filePath: string): string {
+    if (!filePath.endsWith('.json')) throw new Error('Not a JSON file.');
+    return fs.readFileSync(filePath, 'utf8');
 }
 
 export function writeTextFile(savePath: string, contents: string) {

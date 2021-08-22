@@ -7,7 +7,7 @@ function makeSliceString(imageId: number, sliceIndex: number, orientation: Orien
     return imageId.toString() + '-' + sliceIndex.toString() + '-' + orientation;
 }
 
-function sliceToString(slice: SliceAny): string {
+export function sliceToString(slice: SliceAny): string {
     return makeSliceString(slice.imageId, slice.sliceIndex, slice.orientation);
 }
 

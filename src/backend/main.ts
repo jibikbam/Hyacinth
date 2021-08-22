@@ -31,6 +31,13 @@ ipcMain.on('show-open-directory-dialog', (event, arg) => {
     });
 });
 
+ipcMain.on('show-open-json-dialog', (event, arg) => {
+    event.returnValue = dialog.showOpenDialogSync(BrowserWindow.getFocusedWindow(), {
+        filters: [{name: 'JSON', extensions: ['json']}],
+        properties: ['openFile'],
+    });
+});
+
 ipcMain.on('show-save-file-dialog', (event, defaultName) => {
     event.returnValue = dialog.showSaveDialogSync(BrowserWindow.getFocusedWindow(), {
         defaultPath: defaultName,

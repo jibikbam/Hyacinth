@@ -174,7 +174,9 @@ function SessionOverview({sessionId}: {sessionId: number}) {
     function exportSession() {
         const sessionJsonString = sessionToJson(session.id);
         const savePath = fileapi.showSaveDialog(session.sessionName + '.json');
-        fileapi.writeTextFile(savePath, sessionJsonString);
+        if (savePath) {
+            fileapi.writeTextFile(savePath, sessionJsonString);
+        }
     }
 
     return (
