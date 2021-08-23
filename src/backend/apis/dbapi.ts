@@ -30,7 +30,7 @@ export function createTables() {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 datasetId INTEGER,
                 relPath TEXT,
-                FOREIGN KEY (datasetId) REFERENCES datasets (id),
+                FOREIGN KEY (datasetId) REFERENCES datasets (id) ON UPDATE CASCADE ON DELETE CASCADE,
                 UNIQUE (datasetId, relPath)
             );
         `).run();
@@ -45,7 +45,7 @@ export function createTables() {
                 labelOptions TEXT NOT NULL,
                 comparisonSampling TEXT,
                 metadataJson TEXT NOT NULL,
-                FOREIGN KEY (datasetId) REFERENCES datasets (id)
+                FOREIGN KEY (datasetId) REFERENCES datasets (id) ON UPDATE CASCADE ON DELETE CASCADE
             )
         `).run();
 
@@ -61,9 +61,9 @@ export function createTables() {
                 imageId2 INTEGER,
                 sliceIndex2 INTEGER,
                 orientation2 TEXT,
-                FOREIGN KEY (sessionId) REFERENCES labeling_sessions (id),
-                FOREIGN KEY (imageId1) REFERENCES dataset_images (id),
-                FOREIGN KEY (imageId2) REFERENCES dataset_images (id)
+                FOREIGN KEY (sessionId) REFERENCES labeling_sessions (id) ON UPDATE CASCADE ON DELETE CASCADE,
+                FOREIGN KEY (imageId1) REFERENCES dataset_images (id) ON UPDATE CASCADE ON DELETE CASCADE,
+                FOREIGN KEY (imageId2) REFERENCES dataset_images (id) ON UPDATE CASCADE ON DELETE CASCADE
             )
         `).run();
 
@@ -74,7 +74,7 @@ export function createTables() {
                 labelValue TEXT NOT NULL,
                 startTimestamp INTEGER NOT NULL,
                 finishTimestamp INTEGER NOT NULL,
-                FOREIGN KEY (elementId) REFERENCES session_elements (id)
+                FOREIGN KEY (elementId) REFERENCES session_elements (id) ON UPDATE CASCADE ON DELETE CASCADE
             )
         `).run();
     });
@@ -195,6 +195,17 @@ export function insertComparison(sessionId: number, elementIndex: number, slice1
 
     insertTransaction();
     console.log(`Inserted additional comparison for session ${sessionId}`);
+}
+
+export function deleteLabelingSession(sessionId: number) {
+    const deleteTransaction = dbConn.transaction(() => {
+        dbConn.prepare(`
+            DELETE FROM labeling_sessions WHERE id = :sessionId;
+        `).run({sessionId});
+    });
+
+    deleteTransaction();
+    console.log(`Deleted session ${sessionId}`);
 }
 
 export function selectAllDatasets() {

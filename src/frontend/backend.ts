@@ -81,6 +81,7 @@ export interface DBApiType {
     insertElementLabel: (elementId: number, labelValue: string,
                          startTimestamp: number, finishTimestamp: number) => void;
     insertComparison: (sessionId: number, elementIndex: number, slice1: Slice, slice2: Slice) => void;
+    deleteLabelingSession: (sessionId: number) => void;
     selectAllDatasets: () => Dataset[];
     selectDataset: (datasetId: number) => Dataset;
     selectDatasetImages: (datasetId: number) => DatasetImage[];

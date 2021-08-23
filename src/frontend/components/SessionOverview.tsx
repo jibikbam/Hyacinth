@@ -1,8 +1,8 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {Link} from 'react-router-dom';
+import {Link, useHistory} from 'react-router-dom';
 import {Comparison, dbapi, fileapi, LabelingSession, SessionElement, Slice} from '../backend';
-import {LinkButton} from './Buttons';
+import {Button, LinkButton} from './Buttons';
 import {
     ChevronDownIcon,
     CogIcon,
@@ -13,13 +13,48 @@ import {
     TrashIcon
 } from '@heroicons/react/solid';
 import {sessionLabelsToCsv, sessionToJson} from '../collaboration';
+import {Modal} from './Modal';
+import {InputText} from './Inputs';
+
+interface DeleteSessionModalProps {
+    sessionName: string;
+    deleteSession: () => void;
+    cancelDelete: () => void;
+}
+
+function DeleteSessionModal({sessionName, deleteSession, cancelDelete}: DeleteSessionModalProps) {
+    const [confirmText, setConfirmText] = useState<string>('');
+
+    return (
+        <Modal closeModal={cancelDelete}>
+            <div className="mt-48 p-4 w-full max-w-lg bg-gray-800 rounded">
+                <div>
+                    <h1 className="text-lg text-gray-100">
+                        <span>Really delete session </span>
+                        <span className="text-red-400 font-bold">{sessionName}</span>
+                        <span>?</span>
+                    </h1>
+                    <h2 className="text-sm text-gray-400">Type the name of the session below to confirm.</h2>
+                </div>
+                <div className="mt-2">
+                    <InputText id="delete-session-confirm" label={null} placeholder="Session name" value={confirmText} setValue={setConfirmText} />
+                </div>
+                <div className="pt-4 mt-6 border-t border-white border-opacity-10 flex justify-end items-center space-x-3">
+                    <Button onClick={cancelDelete} color="darkGray">Cancel</Button>
+                    <Button onClick={deleteSession} color="darkRed" disabled={confirmText !== sessionName}>Delete</Button>
+                </div>
+            </div>
+        </Modal>
+    )
+}
 
 interface ManageDropdownProps {
     exportSession: () => void;
     exportLabels: () => void;
+    openDeleteModal: () => void;
 }
 
-function ManageDropdown({exportSession, exportLabels}: ManageDropdownProps) {
+function ManageDropdown({exportSession, exportLabels, openDeleteModal}: ManageDropdownProps) {
     const [open, setOpen] = useState<boolean>(false);
 
     function closeAndRun(runFunc: () => any) {
@@ -57,6 +92,7 @@ function ManageDropdown({exportSession, exportLabels}: ManageDropdownProps) {
                     </button>
                     <button
                         className="w-full px-4 py-1.5 hover:bg-red-700 focus:bg-red-700 text-red-700 hover:text-gray-200 focus:text-gray-200 font-medium flex items-center focus:outline-none"
+                        onClick={() => closeAndRun(openDeleteModal)}
                     >
                         <TrashIcon className="w-5 h-5" />
                         <span className="ml-2">Delete Session</span>
@@ -158,9 +194,13 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: number, comparis
     )
 }
 
-function SessionOverview({sessionId}: {sessionId: number}) {
+function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: number, refreshDatasetSessions: () => void}) {
+    const history = useHistory();
+
     const [session, setSession] = useState<LabelingSession | null>(null);
     const [elements, setElements] = useState<SessionElement[] | null>(null);
+
+    const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
 
     useEffect(() => {
         const _session = dbapi.selectLabelingSession(sessionId);
@@ -189,8 +229,26 @@ function SessionOverview({sessionId}: {sessionId: number}) {
         }
     }
 
+    function openDeleteModal() {
+        setDeleteModalOpen(true);
+    }
+
+    function cancelDelete() {
+        setDeleteModalOpen(false);
+    }
+
+    function deleteSession() {
+        const datasetId = session.datasetId;
+
+        dbapi.deleteLabelingSession(session.id);
+        setDeleteModalOpen(false);
+        refreshDatasetSessions();
+        history.push(`/dataset/${datasetId}`);
+    }
+
     return (
         <div className="px-16 pt-12 pb-8 h-screen flex flex-col">
+            {deleteModalOpen && <DeleteSessionModal sessionName={session.sessionName} deleteSession={deleteSession} cancelDelete={cancelDelete} />}
             <div className="flex justify-between items-start">
                 <div>
                     <h1 className="text-5xl font-medium">{session.sessionName}</h1>
@@ -200,7 +258,7 @@ function SessionOverview({sessionId}: {sessionId: number}) {
                     </div>
                 </div>
                 <div>
-                    <ManageDropdown exportSession={exportSession} exportLabels={exportLabels} />
+                    <ManageDropdown exportSession={exportSession} exportLabels={exportLabels} openDeleteModal={openDeleteModal} />
                 </div>
             </div>
             <div className="mt-6 self-start">

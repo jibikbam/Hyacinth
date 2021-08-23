@@ -62,6 +62,10 @@ function DatasetOverview() {
         setSessions(dbapi.selectDatasetSessions(datasetId));
     }, [datasetId]);
 
+    function refreshSessions() {
+        setSessions(dbapi.selectDatasetSessions(datasetId));
+    }
+
     function startSessionImport() {
         const dialogResult = fileapi.showOpenJsonDialog();
         if (dialogResult) {
@@ -82,7 +86,7 @@ function DatasetOverview() {
         const newSessionId = importSessionFromJson(importData.json, newSessionName, datasetId);
 
         setImportData(null);
-        setSessions(dbapi.selectDatasetSessions(datasetId)); // Refresh session list
+        refreshSessions();
         history.push(`/dataset/${datasetId}/session/${newSessionId}`);
     }
 
@@ -124,7 +128,7 @@ function DatasetOverview() {
                 </div>
             </div>
             <div className="flex-1">
-                {sessionId && <SessionOverview sessionId={sessionId} />}
+                {sessionId && <SessionOverview sessionId={sessionId} refreshDatasetSessions={refreshSessions} />}
             </div>
         </main>
     )

@@ -11,6 +11,7 @@ const COLOR_CLASSES = {
     darkGray: 'bg-gray-600 ring-gray-600 text-gray-300',
     pink: 'bg-pink-200 ring-pink-200 text-black',
     darkPink: 'bg-pink-900 ring-pink-900 text-gray-300',
+    darkRed: 'bg-red-700 ring-red-700 text-white',
 }
 
 const FLEX_CLASSES = 'flex justify-center items-center';
@@ -19,7 +20,7 @@ const DISABLED_CLASSES = FLEX_CLASSES + ' rounded bg-gray-600 text-gray-400';
 
 interface CommonButtonProps {
     size?: 'md' | 'lg';
-    color?: 'gray' | 'darkGray' | 'pink' | 'darkPink';
+    color?: 'gray' | 'darkGray' | 'pink' | 'darkPink' | 'darkRed';
     disabled?: boolean;
     children?: any;
 }
