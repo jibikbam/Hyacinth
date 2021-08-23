@@ -113,3 +113,48 @@ export function importSessionFromJson(sessionJson: any, newSessionName: string, 
         comparisons
     );
 }
+
+export function sessionLabelsToCsv(sessionId: number): string {
+    const labelSession = dbapi.selectLabelingSession(sessionId);
+
+    const rows: string[][] = [];
+    if (labelSession.sessionType === 'Classification') {
+        // Header Row
+        rows.push(['elementIndex', 'imageRelPath', 'sliceIndex', 'orientation', 'labelValue', 'startTimestamp', 'finishTimestamp']);
+
+        const slices = dbapi.selectSessionSlices(labelSession.id);
+        for (const slice of slices) {
+            const labels = dbapi.selectElementLabels(slice.id);
+            for (const label of labels) {
+                rows.push([
+                    slice.elementIndex.toString(), slice.imageRelPath, slice.sliceIndex.toString(), slice.orientation,
+                    label.labelValue, label.startTimestamp.toString(), label.finishTimestamp.toString(),
+                ]);
+            }
+        }
+    }
+    else { // Comparison
+        // Header Row
+        rows.push([
+            'elementIndex',
+            'imageRelPath1', 'sliceIndex1', 'orientation1',
+            'imageRelPath2', 'sliceIndex2', 'orientation2',
+            'labelValue', 'startTimestamp', 'finishTimestamp'
+        ]);
+
+        const comparisons = dbapi.selectSessionComparisons(labelSession.id);
+        for (const comparison of comparisons) {
+            const labels = dbapi.selectElementLabels(comparison.id);
+            for (const label of labels) {
+                rows.push([
+                    comparison.elementIndex.toString(),
+                    comparison.imageRelPath1, comparison.sliceIndex1.toString(), comparison.orientation1,
+                    comparison.imageRelPath2, comparison.sliceIndex2.toString(), comparison.orientation2,
+                    label.labelValue, label.startTimestamp.toString(), label.finishTimestamp.toString(),
+                ]);
+            }
+        }
+    }
+
+    return rows.map(r => r.join(',')).join('\n');
+}

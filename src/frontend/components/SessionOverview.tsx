@@ -12,13 +12,14 @@ import {
     TagIcon,
     TrashIcon
 } from '@heroicons/react/solid';
-import {sessionToJson} from '../collaboration';
+import {sessionLabelsToCsv, sessionToJson} from '../collaboration';
 
 interface ManageDropdownProps {
     exportSession: () => void;
+    exportLabels: () => void;
 }
 
-function ManageDropdown({exportSession}: ManageDropdownProps) {
+function ManageDropdown({exportSession, exportLabels}: ManageDropdownProps) {
     const [open, setOpen] = useState<boolean>(false);
 
     function closeAndRun(runFunc: () => any) {
@@ -44,7 +45,8 @@ function ManageDropdown({exportSession}: ManageDropdownProps) {
                         <ExternalLinkIcon className="w-5 h-5" />
                         <span className="ml-2">Export Session</span>
                     </button>
-                    <button className="w-full px-4 py-1.5 hover:bg-gray-400 focus:bg-gray-400 text-black font-medium flex items-center focus:outline-none">
+                    <button className="w-full px-4 py-1.5 hover:bg-gray-400 focus:bg-gray-400 text-black font-medium flex items-center focus:outline-none"
+                            onClick={() => closeAndRun(exportLabels)}>
                         <ExternalLinkIcon className="w-5 h-5" />
                         <span className="ml-2">Export Labels</span>
                     </button>
@@ -179,6 +181,14 @@ function SessionOverview({sessionId}: {sessionId: number}) {
         }
     }
 
+    function exportLabels() {
+        const labelsCsvString = sessionLabelsToCsv(session.id);
+        const savePath = fileapi.showSaveDialog(session.sessionName + ' labels.csv');
+        if (savePath) {
+            fileapi.writeTextFile(savePath, labelsCsvString);
+        }
+    }
+
     return (
         <div className="px-16 pt-12 pb-8 h-screen flex flex-col">
             <div className="flex justify-between items-start">
@@ -190,7 +200,7 @@ function SessionOverview({sessionId}: {sessionId: number}) {
                     </div>
                 </div>
                 <div>
-                    <ManageDropdown exportSession={exportSession} />
+                    <ManageDropdown exportSession={exportSession} exportLabels={exportLabels} />
                 </div>
             </div>
             <div className="mt-6 self-start">
