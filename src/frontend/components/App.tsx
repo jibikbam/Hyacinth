@@ -8,6 +8,7 @@ import {CreateDataset} from './CreateDataset';
 import {DatasetOverview} from './DatasetOverview';
 import {CreateSession} from './CreateSession';
 import {LabelView} from './LabelView';
+import {DebugSliceViewer} from './DebugSliceViewer';
 
 function App() {
     return (
@@ -27,6 +28,9 @@ function App() {
                 </Route>
                 <Route path="/label/:sessionId/:elementIndex">
                     <LabelView />
+                </Route>
+                <Route path="/debug-slice-viewer/:datasetId">
+                    <DebugSliceViewer />
                 </Route>
                 <Route path="/">
                     <Datasets />

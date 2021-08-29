@@ -4,7 +4,7 @@ import {Link, useParams, useHistory} from 'react-router-dom';
 import {Dataset, LabelingSession, dbapi, fileapi} from '../backend';
 import {Button, LinkButton} from './Buttons';
 import {ArrowLeftIcon, CogIcon} from '@heroicons/react/solid';
-import {PlusIcon} from '@heroicons/react/outline';
+import {BeakerIcon, PlusIcon} from '@heroicons/react/outline';
 import {SessionOverview} from './SessionOverview';
 import {Modal} from './Modal';
 import {InputText} from './Inputs';
@@ -103,6 +103,9 @@ function DatasetOverview() {
                         <div className="text-3xl">{dataset && dataset.datasetName}</div>
                         <Link>
                             <CogIcon className="w-6 h-6 text-gray-500" />
+                        </Link>
+                        <Link className="text-gray-500 hover:text-white" to={`/debug-slice-viewer/${datasetId}`}>
+                            <BeakerIcon className="w-6 h-6" />
                         </Link>
                     </div>
                     <div className="mt-3">
