@@ -12,13 +12,13 @@ import {sampleComparisons, sampleSlices} from '../sampling';
 import {getInitialComparison} from '../sort';
 
 function TypeOption({text, highlight, onClick, children}: {text: string, highlight: boolean, onClick: Function, children?: any}) {
-    const borderColor = highlight ? 'border-gray-300' : 'border-gray-500';
+    const borderColor = highlight ? 'border-gray-300' : 'border-gray-500 hover:border-gray-400';
     const circleColor = highlight ? 'bg-gray-300' : 'bg-gray-400';
     const textColor = highlight ? 'text-gray-100' : 'text-gray-400';
 
     return (
         <div className="flex flex-col items-center">
-            <button onClick={() => onClick()} className={`pt-2 w-48 h-48 border-2 ${borderColor} rounded flex flex-col justify-center items-center`}>
+            <button onClick={() => onClick()} className={`pt-2 w-48 h-48 border-2 ${borderColor} rounded flex flex-col justify-center items-center transition`}>
                 <span className={`w-20 h-20 ${circleColor} rounded-full flex justify-center items-center`}>
                     {children}
                 </span>
@@ -76,14 +76,14 @@ function SamplingButtonGroup({sampling, setSampling}: {sampling: SamplingType, s
     return (
         <div className="flex items-center">
             <button
-                className={'px-3 py-1.5 rounded-l border border-gray-400 text-xl flex items-center ' + (sampling === 'Random' ? 'bg-gray-400 text-black' : 'text-gray-400')}
+                className={'px-3 py-1.5 rounded-l border border-gray-400 text-xl transition flex items-center ' + (sampling === 'Random' ? 'bg-gray-400 text-black' : 'text-gray-400 hover:text-black hover:bg-gray-400')}
                 onClick={() => setSampling('Random')}
             >
                 <ChartPieIcon className="w-5 h-5" />
                 <span className="ml-1">Random</span>
             </button>
             <button
-                className={'px-3 py-1.5 rounded-r border border-gray-400 text-xl flex items-center ' + (sampling === 'Sort' ? 'bg-gray-400 text-black' : 'text-gray-400')}
+                className={'px-3 py-1.5 rounded-r border border-gray-400 text-xl transition flex items-center ' + (sampling === 'Sort' ? 'bg-gray-400 text-black' : 'text-gray-400 hover:text-black hover:bg-gray-400')}
                 onClick={() => setSampling('Sort')}
             >
                 <ChartBarIcon className="w-5 h-5" />

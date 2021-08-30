@@ -66,15 +66,18 @@ function ManageDropdown({exportSession, exportLabels, openDeleteModal}: ManageDr
         <div className="relative">
             {open && <div className="fixed top-0 left-0 w-screen h-screen" onClick={() => setOpen(false)} />}
             <button
-                className="relative px-3 py-2 bg-gray-300 rounded text-black focus:outline-none focus:ring-4 ring-gray-300 ring-opacity-50 flex items-center"
+                className="relative px-3 py-2 rounded text-black flex items-center transition-all
+                bg-gray-300 hover:bg-gray-400
+                focus:ring-4 ring-gray-300 hover:ring-gray-400 ring-opacity-50 hover:ring-opacity-50
+                focus:outline-none"
                 onClick={() => setOpen(!open)}
             >
                 <CogIcon className="w-5 h-5" />
                 <span className="ml-2 font-medium">Manage</span>
                 <ChevronDownIcon className="ml-4 w-5 h-5" />
             </button>
-            {open && (
-                <div className="absolute right-0 mt-2 py-1.5 w-56 bg-gray-300 rounded font-medium overflow-hidden">
+            <div className={`absolute right-0 transition-all duration-100 transform origin-top ${!open ? 'invisible scale-75 opacity-0' : 'visible scale-100 opacity-100'}`}>
+                <div className="mt-2 py-1.5 w-56 bg-gray-300 rounded font-medium overflow-hidden">
                     <button className="w-full px-4 py-1.5 hover:bg-gray-400 focus:bg-gray-400 text-black font-medium flex items-center focus:outline-none"
                             onClick={() => closeAndRun(exportSession)}>
                         <ExternalLinkIcon className="w-5 h-5" />
@@ -98,7 +101,7 @@ function ManageDropdown({exportSession, exportLabels, openDeleteModal}: ManageDr
                         <span className="ml-2">Delete Session</span>
                     </button>
                 </div>
-            )}
+            </div>
         </div>
     )
 }
@@ -140,7 +143,7 @@ function SlicesTable({sessionId, slices}: {sessionId: number, slices: Slice[]}) 
                             <td className="text-center">{s.sliceIndex}</td>
                             <td className="text-center">{s.elementLabel || '-'}</td>
                             <td>
-                                <Link to={`/label/${sessionId}/${s.elementIndex}`} className="text-pink-200 hover:text-pink-600 opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</Link>
+                                <Link to={`/label/${sessionId}/${s.elementIndex}`} className="text-pink-300 hover:text-pink-500 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors">Edit</Link>
                             </td>
                         </tr>
                     ))}
@@ -184,7 +187,7 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: number, comparis
                             <td>{c.sliceIndex2}</td>
                             <td className="text-center">{c.elementLabel || '-'}</td>
                             <td>
-                                <Link to={`/label/${sessionId}/${c.elementIndex}`} className="text-pink-200 hover:text-pink-600 opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</Link>
+                                <Link to={`/label/${sessionId}/${c.elementIndex}`} className="text-pink-300 hover:text-pink-500 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors">Edit</Link>
                             </td>
                         </tr>
                     ))}

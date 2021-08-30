@@ -9,13 +9,13 @@ const SIZE_CLASSES = {
 const COLOR_CLASSES = {
     gray: 'bg-gray-500 ring-gray-500 text-white',
     darkGray: 'bg-gray-600 ring-gray-600 text-gray-300',
-    pink: 'bg-pink-200 ring-pink-200 text-black',
+    pink: 'bg-pink-200 hover:bg-pink-300 ring-pink-200 hover:ring-pink-300 text-black',
     darkPink: 'bg-pink-900 ring-pink-900 text-gray-300',
     darkRed: 'bg-red-700 ring-red-700 text-white',
 }
 
 const FLEX_CLASSES = 'flex justify-center items-center';
-const BUTTON_CLASSES = FLEX_CLASSES + ' rounded shadow focus:outline-none focus:ring-4 ring-opacity-50';
+const BUTTON_CLASSES = FLEX_CLASSES + ' rounded shadow focus:outline-none focus:ring-4 ring-opacity-50 hover:ring-opacity-50 transition';
 const DISABLED_CLASSES = FLEX_CLASSES + ' rounded bg-gray-600 text-gray-400';
 
 interface CommonButtonProps {

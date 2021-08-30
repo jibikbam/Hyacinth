@@ -14,7 +14,11 @@ module.exports = {
   variants: {
     extend: {
       textColor: ['active'],
-      backgroundColor: ['active'],
+      backgroundColor: ['active', 'group-focus'],
+      ringWidth: ['hover'],
+      ringColor: ['hover', 'active'],
+      ringOpacity: ['hover', 'active'],
+      borderColor: ['active', 'group-focus'],
     },
   },
   plugins: [],

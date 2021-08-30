@@ -32,7 +32,10 @@ function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTime
             <div className="px-3 bg-gray-600 rounded-l flex items-center">
                 <span className="text-gray-300 font-mono">{minutes}:{seconds}</span>
             </div>
-            <button className="px-3 py-1.5 bg-gray-400 rounded-r focus:outline-none focus:ring-4 ring-gray-400 ring-opacity-50" onClick={handleResetClick}>
+            <button
+                className="px-3 py-1.5 bg-gray-400 hover:bg-gray-500 rounded-r focus:outline-none focus:ring-4 ring-gray-400 hover:ring-gray-500 ring-opacity-50 hover:ring-opacity-50 transition"
+                onClick={handleResetClick}
+            >
                 <RefreshIcon className="text-gray-800 w-5 h-5" />
             </button>
         </div>
@@ -45,7 +48,7 @@ function PastLabelsModal({labels, closeModal}: {labels: ElementLabel[], closeMod
             <div className="mt-32 w-1/3 h-144 bg-gray-800 rounded flex flex-col">
                 <div className="px-3 py-1 bg-gray-700 rounded-t flex justify-between items-center">
                     <div className="text-lg text-gray-200 font-medium">Label History</div>
-                    <button className="rounded text-gray-400 hover:text-gray-100 focus:ring-2 ring-gray-400" onClick={() => closeModal()}>
+                    <button className="rounded text-gray-400 hover:text-gray-100 focus:ring-2 ring-gray-400 transition focus:outline-none" onClick={() => closeModal()}>
                         <XIcon className="w-5 h-5" />
                     </button>
                 </div>
@@ -112,7 +115,7 @@ function LabelSlice({datasetRootPath, imageRelPath, sliceDim, sliceIndex, bindKe
                 <SunIcon className="mr-2 w-6 h-6 text-gray-400" />
                 <InputRange min={0} max={100} step={0.01} value={brightness} setValue={setBrightness} />
                 <button
-                    className="ml-3 rounded text-gray-500 hover:text-gray-400 active:text-gray-100 focus:outline-none focus:ring-2 ring-gray-600"
+                    className="ml-3 rounded text-gray-500 hover:text-gray-400 active:text-gray-100 focus:outline-none focus:ring-2 ring-gray-600 transition"
                     onClick={() => setBrightness(DEFAULT_BRIGHTNESS)}
                 >
                     <RefreshIcon className="w-5 h-5" />
@@ -312,21 +315,21 @@ function LabelView() {
             {modalEl}
             <header className="py-2 pl-4 pr-2 bg-gray-800 flex justify-between items-center">
                 <div className="w-1/4">
-                    <Link to={`/dataset/${session.datasetId}/session/${session.id}`} className="text-gray-400 hover:text-white flex items-center">
+                    <Link to={`/dataset/${session.datasetId}/session/${session.id}`} className="text-gray-400 hover:text-pink-200 transition inline-flex items-center">
                         <ArrowLeftIcon className="w-5 h-5" />
                         <span className="ml-1.5 text-lg font-medium">{session.sessionName}</span>
                     </Link>
                 </div>
                 <div>
                     <div className="flex items-center">
-                        <Link to={elementIndexInt > 0 && `/label/${sessionId}/${elementIndexInt - 1}`} className="p-4 text-gray-500 hover:text-white">
+                        <Link to={elementIndexInt > 0 && `/label/${sessionId}/${elementIndexInt - 1}`} className="p-4 text-gray-500 hover:text-white transition">
                             <ChevronLeftIcon className="w-6 h-6" />
                         </Link>
                         <div className="mx-16">
                             <h1 className="w-48 text-xl font-medium text-center">{curElement.element.elementType} {elementIndexInt + 1}</h1>
                             <div className="mt-0.5 text-sm text-gray-400 font-medium text-center">{session.prompt}</div>
                         </div>
-                        <Link to={elementIndexInt < (elements.length - 1) && `/label/${sessionId}/${elementIndexInt + 1}`} className="p-4 text-gray-500 hover:text-white">
+                        <Link to={elementIndexInt < (elements.length - 1) && `/label/${sessionId}/${elementIndexInt + 1}`} className="p-4 text-gray-500 hover:text-white transition">
                             <ChevronRightIcon className="w-6 h-6" />
                         </Link>
                     </div>
@@ -337,10 +340,15 @@ function LabelView() {
                         <span className="ml-1 font-medium">Keymap</span>
                     </button>
                     <div className="ml-8 space-x-3">
-                        <button className="bg-gray-400 rounded p-1.5 focus:outline-none focus:ring-4 ring-gray-400 ring-opacity-50">
+                        <button
+                            className="bg-gray-400 hover:bg-gray-500 rounded p-1.5 focus:outline-none focus:ring-4 ring-gray-400 hover:ring-gray-500 ring-opacity-50 hover:ring-opacity-50 transition"
+                        >
                             <ChatAltIcon className="text-gray-800 w-5 h-5" />
                         </button>
-                        <button className="bg-gray-400 rounded p-1.5 focus:outline-none focus:ring-4 ring-gray-400 ring-opacity-50" onClick={() => setModal('pastLabels')}>
+                        <button
+                            className="bg-gray-400 hover:bg-gray-500 rounded p-1.5 focus:outline-none focus:ring-4 ring-gray-400 hover:ring-gray-500 ring-opacity-50 hover:ring-opacity-50 transition"
+                            onClick={() => setModal('pastLabels')}
+                        >
                             <CollectionIcon className="text-gray-800 w-5 h-5" />
                         </button>
                     </div>

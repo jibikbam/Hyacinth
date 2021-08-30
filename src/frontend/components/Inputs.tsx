@@ -14,7 +14,9 @@ function InputText({id, label, placeholder, value, setValue}: InputTextProps) {
         <div>
             {label && <label className="text-sm text-gray-400 font-medium" htmlFor={id}>{label}</label>}
             <input
-                className="px-3 py-1 w-full bg-gray-400 rounded text-lg text-black placeholder-gray-600 focus:outline-none focus:ring-2 ring-gray-300"
+                className="px-3 py-1 w-full bg-gray-400 rounded text-lg text-black placeholder-gray-700 transition
+                hover:ring-2 focus:ring-2 hover:ring-gray-300 focus:ring-gray-100
+                focus:outline-none"
                 id={id}
                 type="text"
                 placeholder={placeholder}
@@ -39,7 +41,9 @@ function InputNumber({id, label, value, min, max, setValue}: InputNumberProps) {
         <div className="flex-1 flex flex-col items-start">
             <label className="text-sm text-gray-400 font-medium" htmlFor={id}>{label}</label>
             <input
-                className="mt-0.5 px-3 py-1 w-full bg-gray-400 rounded shadow text-xl text-black focus:outline-none focus:ring-2 ring-gray-300"
+                className="mt-0.5 px-3 py-1 w-full bg-gray-400 rounded shadow text-xl text-black transition
+                hover:ring-2 focus:ring-2 hover:ring-gray-300 focus:ring-gray-100
+                focus:outline-none"
                 id={id}
                 type="number"
                 value={value.toString()}
@@ -89,7 +93,9 @@ function Select({id, label, options, value, setValue}: SelectProps) {
             <label className="text-sm text-gray-400 font-medium" htmlFor={id}>{label}</label>
             <div className="relative w-full">
                 <select
-                    className="appearance-none mt-0.5 px-3 py-1 w-full bg-gray-400 rounded text-black font-medium focus:outline-none focus:ring-2 ring-gray-300"
+                    className="appearance-none mt-0.5 px-3 py-1 w-full bg-gray-400 rounded text-black font-medium transition
+                    hover:ring-2 focus:ring-2 hover:ring-gray-300 focus:ring-gray-100
+                    focus:outline-none"
                     id={id}
                     value={value}
                     onInput={ev => setValue(ev.currentTarget.value)}

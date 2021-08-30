@@ -3,8 +3,15 @@ import {useEffect, useState} from 'react';
 import {Link, useParams, useHistory} from 'react-router-dom';
 import {Dataset, LabelingSession, dbapi, fileapi} from '../backend';
 import {Button, LinkButton} from './Buttons';
-import {ArrowLeftIcon, CogIcon} from '@heroicons/react/solid';
-import {BeakerIcon, PlusIcon} from '@heroicons/react/outline';
+import {
+    ArrowLeftIcon,
+    ChevronDownIcon,
+    CogIcon,
+    DocumentDownloadIcon,
+    PencilAltIcon,
+    PlusCircleIcon,
+} from '@heroicons/react/solid';
+import {BeakerIcon} from '@heroicons/react/outline';
 import {SessionOverview} from './SessionOverview';
 import {Modal} from './Modal';
 import {InputText} from './Inputs';
@@ -39,6 +46,48 @@ function ImportSessionModal({filePath, sessionJson, finishImport, cancelImport}:
                 </div>
             </div>
         </Modal>
+    )
+}
+
+function NewSessionDropdown({datasetId, startSessionImport}: {datasetId: number, startSessionImport: () => void}) {
+    const [open, setOpen] = useState<boolean>(false);
+
+    function closeAndRun(runFunc: () => any) {
+        setOpen(false);
+        runFunc();
+    }
+
+    return (
+        <div className="relative w-full">
+            {open && <div className="fixed top-0 left-0 w-screen h-screen" onClick={() => setOpen(false)} />}
+            <button
+                className="relative w-full px-3 py-2 text-black font-medium rounded transition-all flex justify-between items-center
+                bg-pink-200 hover:bg-pink-300
+                focus:ring-4 ring-pink-200 hover:ring-pink-300 ring-opacity-50 hover:ring-opacity-50
+                focus:outline-none"
+                onClick={() => setOpen(!open)}
+            >
+                <span className="flex items-center">
+                    <PlusCircleIcon className="w-5 h-5 opacity-80" />
+                    <span className="ml-2">New Session</span>
+                </span>
+                <ChevronDownIcon className="w-5 h-5" />
+            </button>
+            <div className={`absolute left-0 right-0 transition-all duration-100 transform origin-top ${!open ? 'invisible scale-75 opacity-0' : 'visible scale-100 opacity-100'}`}>
+                <div className="mt-2 py-1.5 w-full text-black font-medium bg-pink-200 rounded font-medium overflow-hidden">
+                    <Link className="block px-3 py-1.5 w-full text-black font-medium hover:bg-pink-300 focus:bg-pink-300 focus:outline-none flex items-center"
+                          to={`/create-session/${datasetId}/choose-type`}>
+                        <PencilAltIcon className="w-5 h-5" />
+                        <span className="ml-2">Create Session</span>
+                    </Link>
+                    <button className="px-3 py-1.5 w-full text-black font-medium hover:bg-pink-300 focus:bg-pink-300 focus:outline-none flex items-center"
+                            onClick={() => closeAndRun(startSessionImport)}>
+                        <DocumentDownloadIcon className="w-5 h-5 opacity-80" />
+                        <span className="ml-2">Import Session</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     )
 }
 
@@ -95,25 +144,23 @@ function DatasetOverview() {
             {importData && <ImportSessionModal filePath={importData.path} sessionJson={importData.json} finishImport={finishSessionImport} cancelImport={cancelSessionImport} />}
             <div className="px-4 py-3 w-80 bg-gray-800">
                 <div>
-                    <Link to="/" className="text-sm text-pink-200 hover:text-pink-600 flex items-center">
+                    <Link to="/" className="text-sm text-pink-300 hover:text-pink-500 transition-all inline-flex items-center">
                         <ArrowLeftIcon className="w-4 h-4" />
-                        <span className="ml-1">Back to datasets</span>
+                        <span className="ml-1.5">Back to datasets</span>
                     </Link>
-                    <div className="mt-2 flex justify-between items-center">
-                        <div className="text-3xl">{dataset && dataset.datasetName}</div>
-                        <Link>
-                            <CogIcon className="w-6 h-6 text-gray-500" />
-                        </Link>
-                        <Link className="text-gray-500 hover:text-white" to={`/debug-slice-viewer/${datasetId}`}>
-                            <BeakerIcon className="w-6 h-6" />
-                        </Link>
+                    <div className="flex justify-between items-center">
+                        <div className="text-3xl">{dataset ? dataset.datasetName : '...'}</div>
+                        <div className="flex items-center space-x-3">
+                            <Link className="text-gray-500 hover:text-white transition-all" to={`/debug-slice-viewer/${datasetId}`}>
+                                <BeakerIcon className="w-6 h-6" />
+                            </Link>
+                            <Link className="text-gray-500 hover:text-white transition-all">
+                                <CogIcon className="w-6 h-6" />
+                            </Link>
+                        </div>
                     </div>
                     <div className="mt-3">
-                        <LinkButton to={`/create-session/${datasetId}/choose-type`} color="pink">
-                            <PlusIcon className="w-5 h-5" />
-                            <span className="ml-1.5 text-lg font-medium">New Session</span>
-                        </LinkButton>
-                        <button className="mt-6 text-xl text-pink-200" onClick={() => startSessionImport()}>Import Session</button>
+                        <NewSessionDropdown datasetId={datasetId} startSessionImport={startSessionImport} />
                     </div>
                 </div>
                 <div className="mt-6">
