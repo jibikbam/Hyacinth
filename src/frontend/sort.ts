@@ -1,21 +1,21 @@
 import * as TimSort from 'timsort';
-import {Comparison, Orientation, Slice, SliceAttributes} from './backend';
+import {Comparison, Slice, SliceAttributes} from './backend';
 
 type SliceAny = Slice | SliceAttributes;
 
-function makeSliceString(imageId: number, sliceIndex: number, orientation: Orientation) {
-    return imageId.toString() + '-' + sliceIndex.toString() + '-' + orientation;
+function makeSliceString(imageId: number, sliceDim: number, sliceIndex: number) {
+    return imageId.toString() + '-' + sliceDim.toString() + '-' + sliceIndex.toString();
 }
 
 export function sliceToString(slice: SliceAny): string {
-    return makeSliceString(slice.imageId, slice.sliceIndex, slice.orientation);
+    return makeSliceString(slice.imageId, slice.sliceDim, slice.sliceIndex);
 }
 
 function comparisonToSliceStrings(comparison: Comparison): [string, string] {
     return [
-        makeSliceString(comparison.imageId1, comparison.sliceIndex1, comparison.orientation1),
-        makeSliceString(comparison.imageId2, comparison.sliceIndex2, comparison.orientation2),
-    ]
+        makeSliceString(comparison.imageId1, comparison.sliceDim1, comparison.sliceIndex1),
+        makeSliceString(comparison.imageId2, comparison.sliceDim2, comparison.sliceIndex2),
+    ];
 }
 
 type SortMatrix = {[key: string]: {[key: string]: string}};

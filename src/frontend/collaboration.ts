@@ -19,8 +19,8 @@ export function sessionToJson(sessionId: number): string {
     for (const slice of slices) {
         sessionJson.slices.push({
             imageRelPath: slice.imageRelPath,
+            sliceDim: slice.sliceDim,
             sliceIndex: slice.sliceIndex,
-            orientation: slice.orientation,
         });
     }
     // Only export comparisons if sampling is Random (Sort sampling will create its own comparisons)
@@ -28,11 +28,11 @@ export function sessionToJson(sessionId: number): string {
         for (const comparison of comparisons) {
             sessionJson.comparisons.push({
                 imageRelPath1: comparison.imageRelPath1,
+                sliceDim1: comparison.sliceDim1,
                 sliceIndex1: comparison.sliceIndex1,
-                orientation1: comparison.orientation1,
                 imageRelPath2: comparison.imageRelPath2,
+                sliceDim2: comparison.sliceDim2,
                 sliceIndex2: comparison.sliceIndex2,
-                orientation2: comparison.orientation2,
             });
         }
     }
@@ -41,7 +41,6 @@ export function sessionToJson(sessionId: number): string {
 
 const SESSION_TYPES = ['Classification', 'Comparison'];
 const COMPARISON_SAMPLINGS = ['Random', 'Sort', null];
-const ORIENTATIONS = ['Sagittal'];
 
 export function importSessionFromJson(sessionJson: any, newSessionName: string, datasetId: number): number {
     if (!SESSION_TYPES.includes(sessionJson.sessionType)) throw new Error(`Invalid sessionType ${sessionJson.sessionType}`);
@@ -56,13 +55,12 @@ export function importSessionFromJson(sessionJson: any, newSessionName: string, 
 
     const slices: SliceAttributes[] = [];
     for (const sl of sessionJson.slices) {
-        if (!ORIENTATIONS.includes(sl.orientation)) throw new Error(`Invalid orientation ${sl.orientation}`);
         const dImg = imagesByPath[sl.imageRelPath];
         if (!dImg) throw new Error(`Invalid imageRelPath ${sl.imageRelPath}`);
         slices.push({
             imageId: dImg.id,
+            sliceDim: sl.sliceDim,
             sliceIndex: sl.sliceIndex,
-            orientation: sl.orientation,
         });
     }
 
@@ -82,13 +80,13 @@ export function importSessionFromJson(sessionJson: any, newSessionName: string, 
             const dImg2 = imagesByPath[co.imageRelPath2];
             if (!dImg2) throw new Error(`Invalid imageRelPath ${co.imageRelPath2}`);
 
-            const sl1: SliceAttributes = {imageId: dImg1.id, sliceIndex: co.sliceIndex1, orientation: co.orientation1};
-            const sl2: SliceAttributes = {imageId: dImg2.id, sliceIndex: co.sliceIndex2, orientation: co.orientation2};
+            const sl1: SliceAttributes = {imageId: dImg1.id, sliceDim: co.sliceDim1, sliceIndex: co.sliceIndex1};
+            const sl2: SliceAttributes = {imageId: dImg2.id, sliceDim: co.sliceDim2, sliceIndex: co.sliceIndex2};
 
             const slInd1 = sliceIndByString[sliceToString(sl1)];
-            if (!slInd1) throw new Error(`Slice from comparison not found (${sl1.imageId} ${sl1.sliceIndex} ${sl1.orientation})`);
+            if (!slInd1) throw new Error(`Slice from comparison not found (${sl1.imageId} ${sl1.sliceDim} ${sl1.sliceIndex})`);
             const slInd2 = sliceIndByString[sliceToString(sl2)];
-            if (!slInd2) throw new Error(`Slice from comparison not found (${sl2.imageId} ${sl2.sliceIndex} ${sl2.orientation})`);
+            if (!slInd2) throw new Error(`Slice from comparison not found (${sl2.imageId} ${sl2.sliceDim} ${sl2.sliceIndex})`);
 
             comparisons.push([slInd1, slInd2]);
         }
@@ -120,14 +118,14 @@ export function sessionLabelsToCsv(sessionId: number): string {
     const rows: string[][] = [];
     if (labelSession.sessionType === 'Classification') {
         // Header Row
-        rows.push(['elementIndex', 'imageRelPath', 'sliceIndex', 'orientation', 'labelValue', 'startTimestamp', 'finishTimestamp']);
+        rows.push(['elementIndex', 'imageRelPath', 'sliceDim', 'sliceIndex', 'labelValue', 'startTimestamp', 'finishTimestamp']);
 
         const slices = dbapi.selectSessionSlices(labelSession.id);
         for (const slice of slices) {
             const labels = dbapi.selectElementLabels(slice.id);
             for (const label of labels) {
                 rows.push([
-                    slice.elementIndex.toString(), slice.imageRelPath, slice.sliceIndex.toString(), slice.orientation,
+                    slice.elementIndex.toString(), slice.imageRelPath, slice.sliceDim.toString(), slice.sliceIndex.toString(),
                     label.labelValue, label.startTimestamp.toString(), label.finishTimestamp.toString(),
                 ]);
             }
@@ -137,8 +135,8 @@ export function sessionLabelsToCsv(sessionId: number): string {
         // Header Row
         rows.push([
             'elementIndex',
-            'imageRelPath1', 'sliceIndex1', 'orientation1',
-            'imageRelPath2', 'sliceIndex2', 'orientation2',
+            'imageRelPath1', 'sliceDim1', 'sliceIndex1',
+            'imageRelPath2', 'sliceDim2', 'sliceIndex2',
             'labelValue', 'startTimestamp', 'finishTimestamp'
         ]);
 
@@ -148,8 +146,8 @@ export function sessionLabelsToCsv(sessionId: number): string {
             for (const label of labels) {
                 rows.push([
                     comparison.elementIndex.toString(),
-                    comparison.imageRelPath1, comparison.sliceIndex1.toString(), comparison.orientation1,
-                    comparison.imageRelPath2, comparison.sliceIndex2.toString(), comparison.orientation2,
+                    comparison.imageRelPath1, comparison.sliceDim1.toString(), comparison.sliceIndex1.toString(),
+                    comparison.imageRelPath2, comparison.sliceDim2.toString(), comparison.sliceIndex2.toString(),
                     label.labelValue, label.startTimestamp.toString(), label.finishTimestamp.toString(),
                 ]);
             }

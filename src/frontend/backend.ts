@@ -1,5 +1,4 @@
 export type SessionType = 'Classification' | 'Comparison';
-export type Orientation = 'Sagittal';
 export type SamplingType = 'Random' | 'Sort';
 export type ElementType = 'Slice' | 'Comparison';
 
@@ -39,19 +38,19 @@ export interface SessionElement {
 
 export interface Slice extends SessionElement {
     imageId: number;
+    sliceDim: number;
     sliceIndex: number;
-    orientation: Orientation;
     datasetRootPath: string;
     imageRelPath: string;
 }
 
 export interface Comparison extends SessionElement {
     imageId1: number;
+    sliceDim1: number;
     sliceIndex1: number;
-    orientation1: Orientation;
     imageId2: number;
+    sliceDim2: number;
     sliceIndex2: number
-    orientation2: Orientation;
     datasetRootPath: string;
     imageRelPath1: string;
     imageRelPath2: string;
@@ -67,8 +66,8 @@ export interface ElementLabel {
 
 export interface SliceAttributes {
     imageId: number;
+    sliceDim: number;
     sliceIndex: number;
-    orientation: Orientation;
 }
 
 export interface DBApiType {

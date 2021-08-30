@@ -118,7 +118,7 @@ function SlicesTable({sessionId, slices}: {sessionId: number, slices: Slice[]}) 
             <table className="w-full table-fixed">
                 <colgroup>
                     <col className="w-1/12" />
-                    <col className="w-2/12" />
+                    <col className="w-1/12" />
                     <col className="w-1/12" />
                     <col className="w-1/12" />
                     <col className="w-2/12" />
@@ -136,8 +136,8 @@ function SlicesTable({sessionId, slices}: {sessionId: number, slices: Slice[]}) 
                         <tr className="group hover:text-white">
                             <td className="pr-8 text-sm text-gray-500 group-hover:text-white text-right">#{i + 1}</td>
                             <td>{s.imageRelPath}</td>
-                            <td>{s.orientation}</td>
-                            <td>{s.sliceIndex}</td>
+                            <td className="text-center">{s.sliceDim}</td>
+                            <td className="text-center">{s.sliceIndex}</td>
                             <td className="text-center">{s.elementLabel || '-'}</td>
                             <td>
                                 <Link to={`/label/${sessionId}/${s.elementIndex}`} className="text-pink-200 hover:text-pink-600 opacity-0 group-hover:opacity-100 focus:opacity-100">Edit</Link>
@@ -156,10 +156,10 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: number, comparis
             <table className="w-full">
                 <colgroup>
                     <col className="w-1/12" />
-                    <col className="w-2/12" />
                     <col className="w-1/12" />
                     <col className="w-1/12" />
-                    <col className="w-2/12" />
+                    <col className="w-1/12" />
+                    <col className="w-1/12" />
                     <col className="w-1/12" />
                     <col className="w-1/12" />
                 </colgroup>
@@ -177,10 +177,10 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: number, comparis
                         <tr className="group hover:text-white">
                             <td className="pr-8 text-sm text-gray-500 group-hover:text-white text-right">#{i + 1}</td>
                             <td>{c.imageRelPath1}</td>
-                            <td>{c.orientation1}</td>
+                            <td className="text-center">{c.sliceDim1}</td>
                             <td>{c.sliceIndex1}</td>
                             <td>{c.imageRelPath2}</td>
-                            <td>{c.orientation2}</td>
+                            <td className="text-center">{c.sliceDim2}</td>
                             <td>{c.sliceIndex2}</td>
                             <td className="text-center">{c.elementLabel || '-'}</td>
                             <td>

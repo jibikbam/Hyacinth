@@ -1,7 +1,7 @@
 import * as React from 'react';
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {Switch, Route, useParams, useHistory} from 'react-router-dom';
-import {SessionType, Orientation, SamplingType, dbapi, DatasetImage, Dataset} from '../backend';
+import {SessionType, SamplingType, dbapi} from '../backend';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
@@ -100,8 +100,8 @@ interface SamplingOptionsStepProps {
     setImageCount: Function;
     sliceCount: number;
     setSliceCount: Function;
-    orientation: Orientation;
-    setOrientation: Function;
+    sliceDim: number;
+    setSliceDim: Function;
     sliceMinPct: number;
     setSliceMinPct: Function;
     sliceMaxPct: number;
@@ -127,7 +127,7 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                     <InputNumber id="slice-count" label="Slices" min={2} value={props.sliceCount} setValue={props.setSliceCount} />
                 </div>
                 <div className="mt-3">
-                    <Select id="orientation" label="Orientation" options={['Sagittal']} value={props.orientation} setValue={props.setOrientation} />
+                    <Select id="slice-dim" label="Slice Dimension" options={['0', '1', '2']} value={props.sliceDim.toString()} setValue={(val: string) => props.setSliceDim(parseInt(val))} />
                 </div>
                 <div className="mt-3 flex space-x-4">
                     <InputNumber id="slice-min-pct" label="Slice Min (%)" min={0} max={100} value={props.sliceMinPct} setValue={props.setSliceMinPct} />
@@ -169,7 +169,7 @@ function CreateSession() {
     const [slicesFrom, setSlicesFrom] = useState<string>('Create New');
     const [imageCount, setImageCount] = useState<number>(1);
     const [sliceCount, setSliceCount] = useState<number>(2);
-    const [orientation, setOrientation] = useState<Orientation>('Sagittal');
+    const [sliceDim, setSliceDim] = useState<number>(0);
     const [sliceMinPct, setSliceMinPct] = useState<number>(20);
     const [sliceMaxPct, setSliceMaxPct] = useState<number>(80);
 
@@ -177,7 +177,7 @@ function CreateSession() {
     const [comparisonCount, setComparisonCount] = useState<number>(0);
 
     function createSession() {
-        const slices = sampleSlices(datasetImages, imageCount, sliceCount, orientation, sliceMinPct, sliceMaxPct);
+        const slices = sampleSlices(datasetImages, imageCount, sliceCount, sliceDim, sliceMinPct, sliceMaxPct);
 
         let comparisons = null;
         if (sessionType === 'Comparison') {
@@ -190,7 +190,7 @@ function CreateSession() {
             'Slices From': slicesFrom,
             'Image Count': imageCount,
             'Slice Count': sliceCount,
-            'Orientation': orientation,
+            'Slice Dim': sliceDim,
             'Slice Min Pct': sliceMinPct,
             'Slice Max Pct': sliceMaxPct,
         }
@@ -238,8 +238,8 @@ function CreateSession() {
                             setImageCount={setImageCount}
                             sliceCount={sliceCount}
                             setSliceCount={setSliceCount}
-                            orientation={orientation}
-                            setOrientation={setOrientation}
+                            sliceDim={sliceDim}
+                            setSliceDim={setSliceDim}
                             sliceMinPct={sliceMinPct}
                             setSliceMinPct={setSliceMinPct}
                             sliceMaxPct={sliceMaxPct}

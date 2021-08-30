@@ -56,11 +56,11 @@ export function createTables() {
                 elementType TEXT NOT NULL,
                 elementIndex INTEGER NOT NULL,
                 imageId1 INTEGER NOT NULL,
+                sliceDim1 INTEGER NOT NULL,
                 sliceIndex1 INTEGER NOT NULL,
-                orientation1 TEXT NOT NULL,
                 imageId2 INTEGER,
+                sliceDim2 INTEGER,
                 sliceIndex2 INTEGER,
-                orientation2 TEXT,
                 FOREIGN KEY (sessionId) REFERENCES labeling_sessions (id) ON UPDATE CASCADE ON DELETE CASCADE,
                 FOREIGN KEY (imageId1) REFERENCES dataset_images (id) ON UPDATE CASCADE ON DELETE CASCADE,
                 FOREIGN KEY (imageId2) REFERENCES dataset_images (id) ON UPDATE CASCADE ON DELETE CASCADE
@@ -118,8 +118,8 @@ export function insertLabelingSession(datasetId: number, sessionType: string, na
         insertedSessionId = sessionId;
 
         const insertElement = dbConn.prepare(`
-            INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceIndex1, orientation1, imageId2, sliceIndex2, orientation2)
-                VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceIndex1, :orientation1, :imageId2, :sliceIndex2, :orientation2);
+            INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceDim1, sliceIndex1, imageId2, sliceDim2, sliceIndex2)
+                VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceDim1, :sliceIndex1, :imageId2, :sliceDim2, :sliceIndex2);
         `);
 
         for (const [i, slice] of slices.entries()) {
@@ -128,11 +128,11 @@ export function insertLabelingSession(datasetId: number, sessionType: string, na
                 elementType: 'Slice',
                 elementIndex: i,
                 imageId1: slice.imageId,
+                sliceDim1: slice.sliceDim,
                 sliceIndex1: slice.sliceIndex,
-                orientation1: slice.orientation,
                 imageId2: null,
+                sliceDim2: null,
                 sliceIndex2: null,
-                orientation2: null,
             });
         }
 
@@ -146,11 +146,11 @@ export function insertLabelingSession(datasetId: number, sessionType: string, na
                     elementType: 'Comparison',
                     elementIndex: i,
                     imageId1: sl1.imageId,
+                    sliceDim1: sl1.sliceDim,
                     sliceIndex1: sl1.sliceIndex,
-                    orientation1: sl1.orientation,
                     imageId2: sl2.imageId,
+                    sliceDim2: sl2.sliceDim,
                     sliceIndex2: sl2.sliceIndex,
-                    orientation2: sl2.orientation,
                 });
             }
         }
@@ -176,8 +176,8 @@ export function insertElementLabel(elementId: number, labelValue: string, startT
 export function insertComparison(sessionId: number, elementIndex: number, slice1, slice2) {
     const insertTransaction = dbConn.transaction(() => {
         const insertStatement = dbConn.prepare(`
-            INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceIndex1, orientation1, imageId2, sliceIndex2, orientation2)
-                VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceIndex1, :orientation1, :imageId2, :sliceIndex2, :orientation2);
+            INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceDim1, sliceIndex1, imageId2, sliceDim2, sliceIndex2)
+                VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceDim1, :sliceIndex1, :imageId2, :sliceDim2, :sliceIndex2);
         `);
 
         insertStatement.run({
@@ -185,11 +185,11 @@ export function insertComparison(sessionId: number, elementIndex: number, slice1
             elementIndex: elementIndex,
             elementType: 'Comparison',
             imageId1: slice1.imageId,
+            sliceDim1: slice1.sliceDim,
             sliceIndex1: slice1.sliceIndex,
-            orientation1: slice1.orientation,
             imageId2: slice2.imageId,
+            sliceDim2: slice2.sliceDim,
             sliceIndex2: slice2.sliceIndex,
-            orientation2: slice2.orientation,
         });
     });
 
@@ -262,7 +262,7 @@ export function selectLabelingSession(sessionId: number) {
 
 export function selectSessionSlices(sessionId: number) {
     const sliceRows = dbConn.prepare(`
-        SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1 as imageId, se.sliceIndex1 as sliceIndex, se.orientation1 as orientation,
+        SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1 as imageId, se.sliceDim1 as sliceDim, se.sliceIndex1 as sliceIndex,
                d.rootPath as datasetRootPath, di.relPath as imageRelPath,
                (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
         FROM session_elements se
@@ -277,7 +277,7 @@ export function selectSessionSlices(sessionId: number) {
 
 export function selectSessionComparisons(sessionId: number) {
     const comparisonRows = dbConn.prepare(`
-        SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1, se.sliceIndex1, se.orientation1, se.imageId2, se.sliceIndex2, se.orientation2,
+        SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1, se.sliceDim1, se.sliceIndex1, se.imageId2, se.sliceDim2, se.sliceIndex2,
                d.rootPath AS datasetRootPath, di1.relPath AS imageRelPath1, di2.relPath AS imageRelPath2,
                (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
         FROM session_elements se

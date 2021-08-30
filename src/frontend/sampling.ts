@@ -1,4 +1,4 @@
-import {DatasetImage, Orientation, SliceAttributes, volumeapi} from './backend';
+import {DatasetImage, SliceAttributes, volumeapi} from './backend';
 
 function randomInt(max: number) {
     return Math.floor(Math.random() * max);
@@ -29,13 +29,14 @@ function doImageSample(images: DatasetImage[], imageCount: number): DatasetImage
     return sampleWithoutReplacement(imagesCopy, imageCount);
 }
 
-function loadSliceCount(image: DatasetImage): number {
+function loadSliceCount(image: DatasetImage, sliceDim: number): number {
+    if (sliceDim < 0 || sliceDim > 2) throw new Error(`Invalid sliceDim ${sliceDim}`);
     const imageHeader = volumeapi.readNiftiHeader(image.datasetRootPath + '/' + image.relPath);
-    return imageHeader.dims[3]; // TODO: handle orientation
+    return imageHeader.dims[sliceDim + 1]; // dim[0] in Nifti header stores number of dimensions
 }
 
 function doSliceSample(images: {image: DatasetImage, sliceCount: number}[],
-                       orientation: Orientation, sliceMinPct: number, sliceMaxPct: number,
+                       sliceDim: number, sliceMinPct: number, sliceMaxPct: number,
                        sliceCount: number) {
     const possibleSlices: SliceAttributes[] = [];
     for (const {image, sliceCount} of images) {
@@ -44,8 +45,8 @@ function doSliceSample(images: {image: DatasetImage, sliceCount: number}[],
         for (let i = minSlice; i < maxSlice; i++) {
             possibleSlices.push({
                 imageId: image.id,
+                sliceDim: sliceDim,
                 sliceIndex: i,
-                orientation: orientation,
             });
         }
     }
@@ -55,7 +56,7 @@ function doSliceSample(images: {image: DatasetImage, sliceCount: number}[],
 }
 
 export function sampleSlices(images: DatasetImage[], imageCount: number, sliceCount: number,
-                      orientation: Orientation, sliceMinPct: number, sliceMaxPct: number): SliceAttributes[] {
+                      sliceDim: number, sliceMinPct: number, sliceMaxPct: number): SliceAttributes[] {
     const startMs = Date.now();
 
     let curMs = Date.now();
@@ -63,11 +64,11 @@ export function sampleSlices(images: DatasetImage[], imageCount: number, sliceCo
     console.log(`Sampled ${sampledImages.length} images in ${Date.now() - curMs}ms`);
 
     curMs = Date.now();
-    const imagesWithCounts = sampledImages.map(img => ({image: img, sliceCount: loadSliceCount(img)}))
+    const imagesWithCounts = sampledImages.map(img => ({image: img, sliceCount: loadSliceCount(img, sliceDim)}))
     console.log(`Loaded ${imagesWithCounts.length} slice counts in ${Date.now() - curMs}ms`);
 
     curMs = Date.now();
-    const slices = doSliceSample(imagesWithCounts, orientation, sliceMinPct, sliceMaxPct, sliceCount);
+    const slices = doSliceSample(imagesWithCounts, sliceDim, sliceMinPct, sliceMaxPct, sliceCount);
     console.log(`Sampled ${slices.length} slices in ${Date.now() - curMs}ms`);
     console.log(`Finished sampling slices in ${Date.now() - startMs}ms`);
     return slices;

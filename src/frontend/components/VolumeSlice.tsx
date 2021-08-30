@@ -2,7 +2,7 @@ import * as React from 'react';
 import {useEffect, useRef, useState} from 'react';
 import {volumeapi} from '../backend';
 
-function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceIndex: number, sliceDim: number, brightness: number) {
+function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: number, sliceIndex: number, brightness: number) {
     // Get image dims 1-3 (dim[0] in the Nifti format stores the number of dimensions)
     const dims: number[] = imageHeader.dims.slice(1, 4);
 
@@ -84,7 +84,7 @@ function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceIndex
     context.putImageData(canvasImageData, 0, 0);
 }
 
-function VolumeSlice({imagePath, sliceIndex, sliceDim = 0, brightness}: {imagePath: string, sliceIndex: number, sliceDim?: number, brightness: number}) {
+function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness}: {imagePath: string, sliceDim: number, sliceIndex: number, brightness: number}) {
     const [image, setImage] = useState(null);
     const canvasRef = useRef(null);
 
@@ -98,9 +98,9 @@ function VolumeSlice({imagePath, sliceIndex, sliceDim = 0, brightness}: {imagePa
 
     useEffect(() => {
         if (image) {
-            drawSlice(canvasRef.current, image.header, image.data, sliceIndex, sliceDim, brightness);
+            drawSlice(canvasRef.current, image.header, image.data, sliceDim, sliceIndex, brightness);
         }
-    }, [image, sliceIndex, sliceDim, brightness]);
+    }, [image, sliceDim, sliceIndex, brightness]);
 
     return <canvas style={{height: '80vh'}} ref={canvasRef} width={0} height={0} />
 }

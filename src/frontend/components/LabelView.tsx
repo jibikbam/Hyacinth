@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
-import {Comparison, dbapi, ElementLabel, LabelingSession, Orientation, SessionElement, Slice} from '../backend';
+import {Comparison, dbapi, ElementLabel, LabelingSession, SessionElement, Slice} from '../backend';
 import {useTimer} from '../hooks/useTimer';
 import {InputRange} from './Inputs';
 import {Button} from './Buttons';
@@ -85,14 +85,14 @@ const DEFAULT_BRIGHTNESS = 50;
 interface LabelSliceProps {
     datasetRootPath: string;
     imageRelPath: string;
+    sliceDim: number;
     sliceIndex: number;
-    orientation: Orientation;
     bindKey: string | null;
     selected: boolean;
     onImageClick: (() => void) | null;
 }
 
-function LabelSlice({datasetRootPath, imageRelPath, sliceIndex, orientation, bindKey, selected, onImageClick}: LabelSliceProps) {
+function LabelSlice({datasetRootPath, imageRelPath, sliceDim, sliceIndex, bindKey, selected, onImageClick}: LabelSliceProps) {
     const [brightness, setBrightness] = useState<number>(DEFAULT_BRIGHTNESS);
 
     function handleClick() {
@@ -106,7 +106,7 @@ function LabelSlice({datasetRootPath, imageRelPath, sliceIndex, orientation, bin
                 style={{width: '65vh', height: '65vh'}}
                 onClick={handleClick}
             >
-                <VolumeSlice imagePath={datasetRootPath + '/' + imageRelPath} sliceIndex={sliceIndex} brightness={brightness} />
+                <VolumeSlice imagePath={datasetRootPath + '/' + imageRelPath} sliceDim={sliceDim} sliceIndex={sliceIndex} brightness={brightness} />
             </div>
             <div className="mt-3 px-2 py-1 bg-gray-800 rounded flex items-center">
                 <SunIcon className="mr-2 w-6 h-6 text-gray-400" />
@@ -121,7 +121,7 @@ function LabelSlice({datasetRootPath, imageRelPath, sliceIndex, orientation, bin
             </div>
             <div className="mt-2 p-2 bg-gray-800 rounded text-gray-400 text-center">
                 <div className="flex justify-center items-center">
-                    <div className="ml-2 text-xl">{imageRelPath} {orientation} {sliceIndex}</div>
+                    <div className="ml-2 text-xl">{imageRelPath} {sliceDim} {sliceIndex}</div>
                 </div>
                 {bindKey && <div className="text-sm">Click or press "{bindKey}".</div>}
             </div>
@@ -179,8 +179,8 @@ function ClassificationControls({session, slice, labels, addLabel}: Classificati
                 <LabelSlice
                     datasetRootPath={slice.datasetRootPath}
                     imageRelPath={slice.imageRelPath}
+                    sliceDim={slice.sliceDim}
                     sliceIndex={slice.sliceIndex}
-                    orientation={slice.orientation}
                     bindKey={null}
                     selected={false}
                     onImageClick={null}
@@ -208,8 +208,8 @@ function ComparisonControls({session, comparison, labels, addLabel}: ComparisonC
                 <LabelSlice
                     datasetRootPath={comparison.datasetRootPath}
                     imageRelPath={comparison.imageRelPath1}
+                    sliceDim={comparison.sliceDim1}
                     sliceIndex={comparison.sliceIndex1}
-                    orientation={comparison.orientation1}
                     bindKey="1"
                     selected={curLabelValue === 'First'}
                     onImageClick={() => addLabel('First')}
@@ -217,8 +217,8 @@ function ComparisonControls({session, comparison, labels, addLabel}: ComparisonC
                 <LabelSlice
                     datasetRootPath={comparison.datasetRootPath}
                     imageRelPath={comparison.imageRelPath2}
+                    sliceDim={comparison.sliceDim2}
                     sliceIndex={comparison.sliceIndex2}
-                    orientation={comparison.orientation2}
                     bindKey="2"
                     selected={curLabelValue === 'Second'}
                     onImageClick={() => addLabel('Second')}
