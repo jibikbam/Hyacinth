@@ -15,7 +15,7 @@ function Datasets() {
                 <div className="text-3xl">Datasets</div>
                 <LinkButton
                     to="/create-dataset/choose-directory"
-                    color="pink"
+                    color="fuchsia"
                 >
                     <PlusIcon className="w-5 h-5" />
                     <span className="ml-1.5 font-medium">Create</span>

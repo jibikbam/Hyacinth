@@ -143,7 +143,7 @@ function SlicesTable({sessionId, slices}: {sessionId: number, slices: Slice[]}) 
                             <td className="text-center">{s.sliceIndex}</td>
                             <td className="text-center">{s.elementLabel || '-'}</td>
                             <td>
-                                <Link to={`/label/${sessionId}/${s.elementIndex}`} className="text-pink-300 hover:text-pink-500 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors">Edit</Link>
+                                <Link to={`/label/${sessionId}/${s.elementIndex}`} className="text-fuchsia-300 hover:text-fuchsia-400 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors">Edit</Link>
                             </td>
                         </tr>
                     ))}
@@ -187,7 +187,7 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: number, comparis
                             <td>{c.sliceIndex2}</td>
                             <td className="text-center">{c.elementLabel || '-'}</td>
                             <td>
-                                <Link to={`/label/${sessionId}/${c.elementIndex}`} className="text-pink-300 hover:text-pink-500 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors">Edit</Link>
+                                <Link to={`/label/${sessionId}/${c.elementIndex}`} className="text-fuchsia-300 hover:text-fuchsia-400 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors">Edit</Link>
                             </td>
                         </tr>
                     ))}
@@ -265,16 +265,16 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: number
                 </div>
             </div>
             <div className="mt-6 self-start">
-                <LinkButton to={`/label/${sessionId}/0`} color="pink">
+                <LinkButton to={`/label/${sessionId}/0`} color="fuchsia">
                     <PlayIcon className="w-5 h-5" />
-                    <span className="mx-1 font-medium">Start Labeling</span>
+                    <span className="ml-2 mr-2 font-medium">Start Labeling</span>
                 </LinkButton>
             </div>
             <div className="mt-2">
                 <span>{elements.map(e => e.elementLabel ? 1 : 0).reduce((a, b) => a + b, 0)} / {elements.length}</span>
                 <span className="text-gray-400"> {session.sessionType === 'Classification' ? 'slices' : 'comparisons'} labeled</span>
             </div>
-            <div className="mt-1 p-2 bg-gray-800 rounded overflow-y-scroll">
+            <div className="mt-1 py-2 bg-gray-800 rounded overflow-y-scroll">
                 {session.sessionType === 'Classification'
                     ? <SlicesTable sessionId={sessionId} slices={elements as Slice[]} />
                     : <ComparisonsTable sessionId={sessionId} comparisons={elements as Comparison[]} />

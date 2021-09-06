@@ -9,7 +9,7 @@ import {CheckCircleIcon, FolderOpenIcon} from '@heroicons/react/solid';
 
 function ChooseDirectoryButton({onClick}: {onClick: Function}) {
     return (
-        <Button onClick={onClick} color="pink">
+        <Button onClick={onClick} color="fuchsia">
             <FolderOpenIcon className="w-6 h-6" />
             <span className="ml-2 text-lg font-medium">Choose Directory</span>
         </Button>
@@ -21,7 +21,10 @@ function DirectoryStatus({datasetRoot, chooseDatasetRoot}: {datasetRoot: string,
         <div className="flex items-center">
             <div className="flex-1 px-3 py-1.5 bg-gray-600 rounded-l text-gray-400" title={datasetRoot}>{datasetRoot}</div>
             <button
-                className="px-3 py-1.5 bg-pink-200 rounded-r text-black focus:outline-none focus:ring-4 ring-pink-200 ring-opacity-50"
+                className="px-3 py-1.5 rounded-r text-black
+                bg-fuchsia-300 hover:bg-fuchsia-400
+                focus:ring-4 ring-fuchsia-300 hover:ring-fuchsia-400 ring-opacity-50 hover:ring-opacity-50
+                focus:outline-none"
                 onClick={() => chooseDatasetRoot()}
             >Edit</button>
         </div>

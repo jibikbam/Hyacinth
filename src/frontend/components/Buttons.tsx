@@ -11,6 +11,7 @@ const COLOR_CLASSES = {
     darkGray: 'bg-gray-600 ring-gray-600 text-gray-300',
     pink: 'bg-pink-200 hover:bg-pink-300 ring-pink-200 hover:ring-pink-300 text-black',
     darkPink: 'bg-pink-900 ring-pink-900 text-gray-300',
+    fuchsia: 'bg-fuchsia-300 hover:bg-fuchsia-400 ring-fuchsia-300 hover:ring-fuchsia-400 text-black',
     darkRed: 'bg-red-700 ring-red-700 text-white',
 }
 
@@ -20,7 +21,7 @@ const DISABLED_CLASSES = FLEX_CLASSES + ' rounded bg-gray-600 text-gray-400';
 
 interface CommonButtonProps {
     size?: 'md' | 'lg';
-    color?: 'gray' | 'darkGray' | 'pink' | 'darkPink' | 'darkRed';
+    color?: 'gray' | 'darkGray' | 'pink' | 'darkPink' | 'fuchsia' | 'darkRed';
     disabled?: boolean;
     children?: any;
 }

@@ -12,13 +12,13 @@ function StepStatus({stepDescription, curStep, stepCount}: StepStatusProps) {
             <div className="w-40 flex items-center">
                 {Array.from(Array(stepCount - 1).keys()).map((i) => {
                     const circleColor = (i < curStep)
-                        ? 'bg-pink-300'
+                        ? 'bg-fuchsia-300'
                         : (i === curStep)
-                            ? 'bg-gray-700 border-2 border-pink-300'
+                            ? 'bg-gray-700 border-2 border-fuchsia-300'
                             : 'bg-gray-700 border-2 border-gray-500';
 
                     const lineColor = (i < curStep)
-                        ? 'bg-pink-300'
+                        ? 'bg-fuchsia-300'
                         : 'bg-gray-500';
 
                     return (
@@ -28,7 +28,7 @@ function StepStatus({stepDescription, curStep, stepCount}: StepStatusProps) {
                         </>
                     )
                 })}
-                <div className={'z-10 w-3 h-3 rounded-full ' + (curStep === stepCount - 1 ? 'bg-gray-700 border-2 border-pink-300' : 'bg-gray-700 border-2 border-gray-500')} />
+                <div className={'z-10 w-3 h-3 rounded-full ' + (curStep === stepCount - 1 ? 'bg-gray-700 border-2 border-fuchsia-300' : 'bg-gray-700 border-2 border-gray-500')} />
             </div>
             <div className="mt-1 text-sm text-gray-400">{stepDescription}</div>
         </div>
