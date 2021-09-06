@@ -7,17 +7,17 @@ const SIZE_CLASSES = {
 }
 
 const COLOR_CLASSES = {
-    gray: 'bg-gray-500 ring-gray-500 text-white',
-    darkGray: 'bg-gray-600 ring-gray-600 text-gray-300',
+    gray: 'bg-gray-400 hover:bg-gray-500 ring-gray-500 hover:ring-gray-600 text-black',
+    darkGray: 'bg-gray-600 hover:bg-gray-700 ring-gray-600 hover:ring-gray-700 text-gray-300',
     pink: 'bg-pink-200 hover:bg-pink-300 ring-pink-200 hover:ring-pink-300 text-black',
     darkPink: 'bg-pink-900 ring-pink-900 text-gray-300',
     fuchsia: 'bg-fuchsia-300 hover:bg-fuchsia-400 ring-fuchsia-300 hover:ring-fuchsia-400 text-black',
-    darkRed: 'bg-red-700 ring-red-700 text-white',
+    darkRed: 'bg-red-700 hover:bg-red-800 ring-red-700 hover:ring-red-800 text-gray-100',
 }
 
 const FLEX_CLASSES = 'flex justify-center items-center';
-const BUTTON_CLASSES = FLEX_CLASSES + ' rounded shadow focus:outline-none focus:ring-4 ring-opacity-50 hover:ring-opacity-50 transition';
-const DISABLED_CLASSES = FLEX_CLASSES + ' rounded bg-gray-600 text-gray-400';
+const BUTTON_CLASSES = FLEX_CLASSES + ' rounded shadow focus:outline-none focus:ring-4 ring-opacity-50 hover:ring-opacity-50 box-border transition';
+const DISABLED_CLASSES = FLEX_CLASSES + ' rounded bg-gray-600 text-gray-400 opacity-50';
 
 interface CommonButtonProps {
     size?: 'md' | 'lg';

@@ -61,7 +61,7 @@ function NewSessionDropdown({datasetId, startSessionImport}: {datasetId: number,
         <div className="relative w-full">
             {open && <div className="fixed top-0 left-0 w-screen h-screen" onClick={() => setOpen(false)} />}
             <button
-                className="relative w-full px-3 py-2 text-black font-medium rounded transition-all flex justify-between items-center
+                className="relative w-full px-3 py-1.5 text-black font-medium rounded transition-all flex justify-between items-center
                 bg-gray-300 hover:bg-gray-400
                 focus:ring-4 ring-gray-300 hover:ring-gray-400 ring-opacity-50 hover:ring-opacity-50
                 focus:outline-none"
@@ -74,13 +74,13 @@ function NewSessionDropdown({datasetId, startSessionImport}: {datasetId: number,
                 <ChevronDownIcon className="w-5 h-5" />
             </button>
             <div className={`absolute left-0 right-0 transition-all duration-100 transform origin-top ${!open ? 'invisible scale-75 opacity-0' : 'visible scale-100 opacity-100'}`}>
-                <div className="mt-2 py-1.5 w-full text-black font-medium bg-gray-300 rounded font-medium overflow-hidden">
-                    <Link className="block px-3 py-1.5 w-full text-black font-medium hover:bg-gray-400 focus:bg-gray-400 focus:outline-none flex items-center"
+                <div className="mt-2 px-2 py-1.5 w-full text-black font-medium bg-gray-300 rounded font-medium overflow-hidden">
+                    <Link className="block px-2 py-1.5 w-full text-black font-medium hover:bg-gray-400 focus:bg-gray-400 rounded focus:outline-none flex items-center"
                           to={`/create-session/${datasetId}/choose-type`}>
                         <PencilAltIcon className="w-5 h-5" />
                         <span className="ml-2">Create Session</span>
                     </Link>
-                    <button className="px-3 py-1.5 w-full text-black font-medium hover:bg-gray-400 focus:bg-gray-400 focus:outline-none flex items-center"
+                    <button className="px-2 py-1.5 w-full text-black font-medium hover:bg-gray-400 focus:bg-gray-400 rounded focus:outline-none flex items-center"
                             onClick={() => closeAndRun(startSessionImport)}>
                         <DocumentDownloadIcon className="w-5 h-5 opacity-80" />
                         <span className="ml-2">Import Session</span>
@@ -142,13 +142,13 @@ function DatasetOverview() {
     return (
         <main className="h-screen flex">
             {importData && <ImportSessionModal filePath={importData.path} sessionJson={importData.json} finishImport={finishSessionImport} cancelImport={cancelSessionImport} />}
-            <div className="px-4 py-3 w-80 bg-gray-800">
+            <div className="px-4 py-2 w-80 bg-gray-800">
                 <div>
                     <Link to="/" className="text-sm text-gray-400 hover:text-gray-200 transition inline-flex items-center">
                         <ArrowLeftIcon className="w-4 h-4" />
                         <span className="ml-1.5">Back to datasets</span>
                     </Link>
-                    <div className="mt-0.5 flex justify-between items-center">
+                    <div className="flex justify-between items-center">
                         <div className="text-3xl">{dataset ? dataset.datasetName : '...'}</div>
                         <div className="flex items-center space-x-3">
                             <Link className="text-gray-500 hover:text-white transition-all" to={`/debug-slice-viewer/${datasetId}`}>
@@ -159,17 +159,24 @@ function DatasetOverview() {
                             </Link>
                         </div>
                     </div>
-                    <div className="mt-2">
+                    <div className="mt-3">
                         <NewSessionDropdown datasetId={datasetId} startSessionImport={startSessionImport} />
                     </div>
                 </div>
-                <div className="mt-5">
-                    <h2 className="text-sm text-gray-400 font-medium">Labeling Sessions</h2>
-                    <div className="mt-1.5 space-y-1 flex flex-col items-start">
+                <div className="-mx-2 mt-6">
+                    <h2 className="ml-3 text-sm text-gray-400 font-medium">Labeling Sessions</h2>
+                    <div className="mt-1 text-lg space-y-0.5 flex flex-col items-start">
                         {sessions && sessions.map(s => {
                             return (
-                                <Link to={`/dataset/${datasetId}/session/${s.id}`} className="text-lg font-medium">
-                                    <span className={s.id === sessionId ? 'text-gray-100' : 'text-gray-400 hover:text-white focus:text-white'}>{s.sessionName}</span>
+                                <Link
+                                    to={`/dataset/${datasetId}/session/${s.id}`}
+                                    className={
+                                        (s.id === sessionId)
+                                            ? 'w-full px-3 py-1 text-gray-200 bg-gray-900 bg-opacity-70 rounded'
+                                            : 'w-full px-3 py-1 text-gray-400 hover:text-gray-200 hover:bg-gray-900 hover:bg-opacity-70 rounded'
+                                    }
+                                >
+                                    <span>{s.sessionName}</span>
                                 </Link>
                             )
                         })}

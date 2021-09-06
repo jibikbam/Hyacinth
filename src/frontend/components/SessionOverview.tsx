@@ -40,7 +40,7 @@ function DeleteSessionModal({sessionName, deleteSession, cancelDelete}: DeleteSe
                     <InputText id="delete-session-confirm" label={null} placeholder="Session name" value={confirmText} setValue={setConfirmText} />
                 </div>
                 <div className="pt-4 mt-6 border-t border-white border-opacity-10 flex justify-end items-center space-x-3">
-                    <Button onClick={cancelDelete} color="darkGray">Cancel</Button>
+                    <Button onClick={cancelDelete}>Cancel</Button>
                     <Button onClick={deleteSession} color="darkRed" disabled={confirmText !== sessionName}>Delete</Button>
                 </div>
             </div>
@@ -77,24 +77,24 @@ function ManageDropdown({exportSession, exportLabels, openDeleteModal}: ManageDr
                 <ChevronDownIcon className="ml-4 w-5 h-5" />
             </button>
             <div className={`absolute right-0 transition-all duration-100 transform origin-top ${!open ? 'invisible scale-75 opacity-0' : 'visible scale-100 opacity-100'}`}>
-                <div className="mt-2 py-1.5 w-56 bg-gray-300 rounded font-medium overflow-hidden">
-                    <button className="w-full px-4 py-1.5 hover:bg-gray-400 focus:bg-gray-400 text-black font-medium flex items-center focus:outline-none"
+                <div className="mt-2 px-2 py-1.5 w-56 bg-gray-300 rounded font-medium overflow-hidden">
+                    <button className="w-full px-2 py-1.5 hover:bg-gray-400 focus:bg-gray-400 rounded text-black font-medium flex items-center focus:outline-none"
                             onClick={() => closeAndRun(exportSession)}>
                         <ExternalLinkIcon className="w-5 h-5" />
                         <span className="ml-2">Export Session</span>
                     </button>
-                    <button className="w-full px-4 py-1.5 hover:bg-gray-400 focus:bg-gray-400 text-black font-medium flex items-center focus:outline-none"
+                    <button className="w-full px-2 py-1.5 hover:bg-gray-400 focus:bg-gray-400 rounded text-black font-medium flex items-center focus:outline-none"
                             onClick={() => closeAndRun(exportLabels)}>
                         <ExternalLinkIcon className="w-5 h-5" />
                         <span className="ml-2">Export Labels</span>
                     </button>
                     <div className="mt-1.5 pt-1.5 border-t border-gray-400" />
-                    <button className="w-full px-4 py-1.5 hover:bg-gray-400 focus:bg-gray-400 text-black font-medium flex items-center focus:outline-none">
+                    <button className="w-full px-2 py-1.5 hover:bg-gray-400 focus:bg-gray-400 rounded text-black font-medium flex items-center focus:outline-none">
                         <DuplicateIcon className="w-5 h-5" />
                         <span className="ml-2">Duplicate Session</span>
                     </button>
                     <button
-                        className="w-full px-4 py-1.5 hover:bg-red-700 focus:bg-red-700 text-red-700 hover:text-gray-200 focus:text-gray-200 font-medium flex items-center focus:outline-none"
+                        className="w-full px-2 py-1.5 hover:bg-red-700 focus:bg-red-700 rounded text-red-700 hover:text-gray-200 focus:text-gray-200 font-medium flex items-center focus:outline-none"
                         onClick={() => closeAndRun(openDeleteModal)}
                     >
                         <TrashIcon className="w-5 h-5" />
@@ -250,7 +250,7 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: number
     }
 
     return (
-        <div className="px-16 pt-12 pb-8 h-screen flex flex-col">
+        <div className="px-16 py-8 h-screen flex flex-col">
             {deleteModalOpen && <DeleteSessionModal sessionName={session.sessionName} deleteSession={deleteSession} cancelDelete={cancelDelete} />}
             <div className="flex justify-between items-start">
                 <div>
