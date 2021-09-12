@@ -38,3 +38,5 @@ jobs:
           npx electron-packager . --out dist --ignore .gitignore --ignore /src/frontend --ignore /src/backend
       - run: ls dist
       - run: ls dist/hyacinth-win32-x64
+      - run: ls dist/hyacinth-win32-x64/resources
+      - run: ls dist/hyacinth-win32-x64/resources/app
