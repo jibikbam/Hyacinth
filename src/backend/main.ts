@@ -25,6 +25,10 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
 
+ipcMain.on('get-user-data-dir', (event, arg) => {
+    event.returnValue = app.getPath('userData');
+});
+
 ipcMain.on('show-open-directory-dialog', (event, arg) => {
     event.returnValue = dialog.showOpenDialogSync(BrowserWindow.getFocusedWindow(), {
         properties: ['openDirectory'],

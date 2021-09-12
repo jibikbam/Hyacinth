@@ -1,12 +1,18 @@
 import * as Database from 'better-sqlite3';
+import * as path from 'path';
+import {ipcRenderer} from 'electron';
 
-const DATABASE_PATH = 'data/db/hyacinth.db';
 let dbConn;
 
 export function connect() {
-    dbConn = new Database(DATABASE_PATH);
+    const userDataDir: string = ipcRenderer.sendSync('get-user-data-dir');
+    const dbPath = (process.env.HYACINTH_DEV === 'true')
+        ? 'data/db/hyacinth.db'
+        : path.join(userDataDir, 'hyacinth.db');
+
+    dbConn = new Database(dbPath);
     dbConn.pragma('foreign_keys = ON;');
-    console.log('Connected to ' + DATABASE_PATH);
+    console.log('Connected to ' + dbPath);
 }
 
 export function createTables() {
