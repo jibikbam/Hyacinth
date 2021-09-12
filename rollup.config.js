@@ -6,7 +6,7 @@ import typescript from '@rollup/plugin-typescript';
 export default {
     input: 'src/frontend/index.tsx',
     output: {
-        file: 'dist/js/bundle.js',
+        file: 'built/js/bundle.js',
         format: 'iife'
     },
     plugins: [

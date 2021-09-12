@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "dist/js/backend",
+    "outDir": "built/js/backend",
     "target": "ES6",
     "module": "CommonJS",
     "moduleResolution": "Node",
