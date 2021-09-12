@@ -8,7 +8,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '16'
-      - run: ls
       - run: |
           npm install
           npm run elrebuild
@@ -16,9 +15,10 @@ jobs:
           npm run buildjsback
           npm run buildcss
           npx electron-packager . --out dist --ignore .gitignore --ignore "/src/(frontend|backend)"
-      - run: ls dist/hyacinth-darwin-x64
-      - run: ls dist/hyacinth-darwin-x64/hyacinth.app
+      - run: |
+          cd dist
+          zip -r hyacinth.app.zip hyacinth.app
       - uses: actions/upload-artifact@v2
         with:
           name: packaged-app-macos
-          path: dist/hyacinth-darwin-x64/hyacinth.app
+          path: dist/hyacinth-darwin-x64/hyacinth.app.zip
