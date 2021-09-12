@@ -22,3 +22,19 @@ jobs:
         with:
           name: packaged-app-macos
           path: dist/hyacinth-darwin-x64/hyacinth.app.zip
+  package-win32:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - run: |
+          npm install
+          npm run elrebuild
+          npm run buildjsfront
+          npm run buildjsback
+          npm run buildcss
+          npx electron-packager . --out dist --ignore .gitignore --ignore "/src/(frontend|backend)"
+      - run: ls dist
+      - run: ls dist/hyacinth-win32-x64
