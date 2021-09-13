@@ -5,7 +5,9 @@ import {dbapi, fileapi} from '../backend';
 import {Button} from './Buttons';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
-import {CheckCircleIcon, FolderOpenIcon} from '@heroicons/react/solid';
+import {FolderOpenIcon} from '@heroicons/react/solid';
+import {InputText} from './Inputs';
+import {CheckCircleIcon, InformationCircleIcon} from '@heroicons/react/outline';
 
 function ChooseDirectoryButton({onClick}: {onClick: Function}) {
     return (
@@ -19,9 +21,9 @@ function ChooseDirectoryButton({onClick}: {onClick: Function}) {
 function DirectoryStatus({datasetRoot, chooseDatasetRoot}: {datasetRoot: string, chooseDatasetRoot: Function}) {
     return (
         <div className="flex items-center">
-            <div className="flex-1 px-3 py-1.5 bg-gray-600 rounded-l text-gray-400" title={datasetRoot}>{datasetRoot}</div>
+            <div className="flex-1 pl-4 pr-6 py-1.5 bg-gray-800 rounded-l text-gray-400" title={datasetRoot}>{datasetRoot}</div>
             <button
-                className="px-3 py-1.5 rounded-r text-black
+                className="px-3 py-1.5 rounded-r text-black transition
                 bg-fuchsia-300 hover:bg-fuchsia-400
                 focus:ring-4 ring-fuchsia-300 hover:ring-fuchsia-400 ring-opacity-50 hover:ring-opacity-50
                 focus:outline-none"
@@ -38,7 +40,7 @@ function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}: {datasetRoot: str
                 ? <ChooseDirectoryButton onClick={chooseDatasetRoot} />
                 : <DirectoryStatus datasetRoot={datasetRoot} chooseDatasetRoot={chooseDatasetRoot} />
             }
-            <div className="mt-4 w-96 text-sm text-gray-400 text-center">
+            <div className="mt-4 w-3/4 text-sm text-gray-400 text-center">
                 <div>The chosen directory will be scanned for nifti files to be added to this dataset. Any collaborators will have to use the same directory structure.</div>
             </div>
         </div>
@@ -47,14 +49,11 @@ function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}: {datasetRoot: str
 
 function FilePreviewStep({datasetRoot, filePaths}: {datasetRoot: string, filePaths: string[]}) {
     return (
-        <div className="mt-6">
-            <div className="text-gray-400">
-                <span>Found</span>
-                <span className="text-white"> {filePaths.length}</span>
-                <span> nifti files under</span>
-                <span className="text-gray-200"> {datasetRoot}</span>
+        <div className="mt-4">
+            <div className="text-sm text-gray-300">
+                <div>Found {filePaths.length} nifti files under {datasetRoot}</div>
             </div>
-            <div className="mt-1 px-4 py-3 h-96 bg-gray-800 rounded text-sm leading-relaxed text-gray-400 font-mono overflow-y-scroll">
+            <div className="mt-2 px-4 py-3 h-96 bg-gray-800 rounded text-xs leading-relaxed text-gray-400 font-mono overflow-y-scroll">
                 {filePaths.map(p => <div key={p}>{p}</div>)}
             </div>
         </div>
@@ -70,28 +69,17 @@ interface ChooseNameStepProps {
 
 function ChooseNameStep({datasetName, setDatasetName, datasetRoot, numFiles}: ChooseNameStepProps) {
     return (
-        <div className="mt-32">
-            <div className="flex flex-col items-center">
-                <div className="flex flex-col">
-                    <label className="text-xs text-gray-400 font-medium">Dataset Name</label>
-                    <input
-                        className="mt-0.5 px-3 py-1 w-96 bg-gray-400 rounded text-lg text-black placeholder-gray-600 focus:outline-none focus:ring-2 ring-gray-300"
-                        type="text"
-                        placeholder="My Dataset"
-                        value={datasetName}
-                        onInput={ev => setDatasetName(ev.currentTarget.value)}
-                    />
+        <div className="mt-16">
+            <div className="mx-auto w-3/4">
+                <div>
+                    <InputText id="dataset-name" label="Dataset Name" placeholder="My Dataset" value={datasetName} setValue={setDatasetName} />
                 </div>
-                <div className="mt-2 text-sm text-gray-400">Choose a name for this dataset. Dataset names must be unique.</div>
-                <div className="mt-8 flex items-center text-gray-400">
-                    <CheckCircleIcon className="w-5 h-5 text-gray-400" />
-                    <div className="ml-1 text-sm">
-                        <span className="text-white">{datasetName ? datasetName : 'Dataset'}</span>
-                        <span> will be created with</span>
-                        <span className="text-white"> {numFiles}</span>
-                        <span> files at</span>
-                        <span className="text-gray-200"> {datasetRoot}</span>
-                        <span>.</span>
+                <div className="mt-2 text-xs text-gray-400">Choose a name for this dataset. Dataset names must be unique.</div>
+                <div className="mt-12 px-3 py-2 text-xs text-gray-400 rounded border border-gray-500 flex items-center">
+                    <InformationCircleIcon className="w-6 h-6 text-gray-400 opacity-80" />
+                    <div className="ml-3">
+                        <div>{datasetName ? `"${datasetName}"` : 'Dataset'} will be created with {numFiles} files at</div>
+                        <div>{datasetRoot}</div>
                     </div>
                 </div>
             </div>

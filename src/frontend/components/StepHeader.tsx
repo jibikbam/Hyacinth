@@ -45,7 +45,7 @@ interface StepHeaderProps {
 function StepHeader({title, stepDescription, curStep, stepCount}: StepHeaderProps) {
     return (
         <div className="pb-2 border-b border-gray-600 flex justify-between items-center">
-            <h1 className="text-3xl text-gray-200">{title}</h1>
+            <h1 className="text-3xl text-gray-300">{title}</h1>
             <StepStatus stepDescription={stepDescription} curStep={curStep} stepCount={stepCount} />
         </div>
     )

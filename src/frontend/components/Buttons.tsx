@@ -12,7 +12,7 @@ const COLOR_CLASSES = {
     pink: 'bg-pink-200 hover:bg-pink-300 ring-pink-200 hover:ring-pink-300 text-black',
     darkPink: 'bg-pink-900 ring-pink-900 text-gray-300',
     fuchsia: 'bg-fuchsia-300 hover:bg-fuchsia-400 ring-fuchsia-300 hover:ring-fuchsia-400 text-black',
-    darkRed: 'bg-red-700 hover:bg-red-800 ring-red-700 hover:ring-red-800 text-gray-100',
+    darkRed: 'bg-red-700 hover:bg-red-800 ring-red-700 hover:ring-red-800 text-red-50',
 }
 
 const FLEX_CLASSES = 'flex justify-center items-center';

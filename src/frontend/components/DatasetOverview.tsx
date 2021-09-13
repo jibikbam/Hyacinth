@@ -34,14 +34,23 @@ function ImportSessionModal({filePath, sessionJson, finishImport, cancelImport}:
                     <h1 className="text-xl text-white font-medium">Import Session</h1>
                     <h2 className="text-sm text-gray-400">{filePath}</h2>
                 </div>
-                <div className="mt-6">
-                    <InputText id="import-session-name" label="Session Name" placeholder="My Session" value={sessionName} setValue={setSessionName} />
+                <div className="mt-4">
+                    <div className="text-sm text-gray-400">Session Name</div>
+                    <input
+                        className="mt-0.5 px-3 py-1 w-full bg-gray-900 rounded text-gray-400 placeholder-gray-500 transition
+                        border border-gray-900 hover:border-gray-500 focus:border-gray-400
+                        focus:outline-none"
+                        type="text"
+                        placeholder="My Session"
+                        value={sessionName}
+                        onInput={ev => setSessionName(ev.currentTarget.value)}
+                    />
                     <div className="mt-2 text-xs text-gray-400">
                         <span>Choose a name for the imported session. Session names must be unique per dataset.</span>
                     </div>
                 </div>
-                <div className="pt-6 mt-20 border-t border-white border-opacity-10 flex justify-end items-center space-x-3">
-                    <Button onClick={cancelImport} color="darkGray">Cancel</Button>
+                <div className="pt-6 mt-12 border-t border-white border-opacity-10 flex justify-end items-center space-x-3">
+                    <Button onClick={cancelImport} color="gray">Cancel</Button>
                     <Button onClick={() => finishImport(sessionName)} color="fuchsia" disabled={sessionName.length === 0}>Import</Button>
                 </div>
             </div>
@@ -180,7 +189,7 @@ function DatasetOverview() {
                                 </Link>
                             )
                         })}
-                        {sessions && sessions.length === 0 && <span className="mt-1 text-xs text-gray-400">No sessions created yet.</span>}
+                        {sessions && sessions.length === 0 && <span className="mt-2 ml-3 text-xs text-gray-400">No sessions created yet.</span>}
                     </div>
                 </div>
             </div>

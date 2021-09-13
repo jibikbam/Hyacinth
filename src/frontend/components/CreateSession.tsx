@@ -13,13 +13,14 @@ import {getInitialComparison} from '../sort';
 
 function TypeOption({text, highlight, onClick, children}: {text: string, highlight: boolean, onClick: Function, children?: any}) {
     const borderColor = highlight ? 'border-gray-300' : 'border-gray-500 hover:border-gray-400';
+    const iconColor = highlight ? 'text-gray-800' : 'text-gray-700';
     const circleColor = highlight ? 'bg-gray-300' : 'bg-gray-400';
     const textColor = highlight ? 'text-gray-100' : 'text-gray-400';
 
     return (
         <div className="flex flex-col items-center">
             <button onClick={() => onClick()} className={`pt-2 w-48 h-48 border-2 ${borderColor} rounded flex flex-col justify-center items-center transition`}>
-                <span className={`w-20 h-20 ${circleColor} rounded-full flex justify-center items-center`}>
+                <span className={`w-20 h-20 ${iconColor} ${circleColor} rounded-full flex justify-center items-center`}>
                     {children}
                 </span>
                 <span className={`mt-4 px-4 text-lg ${textColor} text-center`}>{text}</span>
@@ -33,10 +34,10 @@ function ChooseTypeStep({sessionType, setSessionType}: {sessionType: SessionType
     return (
         <div className="mt-24 flex justify-center items-start space-x-6">
             <TypeOption text="Classification Session" highlight={sessionType === 'Classification'} onClick={() => setSessionType('Classification')}>
-                <CollectionIcon className="text-gray-800 w-8 h-8" />
+                <CollectionIcon className="w-8 h-8" />
             </TypeOption>
             <TypeOption text="Comparison Session" highlight={sessionType === 'Comparison'} onClick={() => setSessionType('Comparison')}>
-                <ScaleIcon className="text-gray-800 w-8 h-8" />
+                <ScaleIcon className="w-8 h-8" />
             </TypeOption>
         </div>
     )
@@ -74,16 +75,16 @@ function SessionInfoStep({sessionName, setSessionName, prompt, setPrompt, labelO
 
 function SamplingButtonGroup({sampling, setSampling}: {sampling: SamplingType, setSampling: Function}) {
     return (
-        <div className="flex items-center">
+        <div className="text-gray-400 font-medium border border-gray-600 rounded overflow-hidden inline-flex items-center">
             <button
-                className={'px-3 py-1.5 rounded-l border border-gray-400 text-xl transition flex items-center ' + (sampling === 'Random' ? 'bg-gray-400 text-black' : 'text-gray-400 hover:text-black hover:bg-gray-400')}
+                className={'px-3 py-1.5 transition flex items-center ' + (sampling === 'Random' ? 'bg-gray-800' : 'hover:bg-gray-800')}
                 onClick={() => setSampling('Random')}
             >
                 <ChartPieIcon className="w-5 h-5" />
                 <span className="ml-1">Random</span>
             </button>
             <button
-                className={'px-3 py-1.5 rounded-r border border-gray-400 text-xl transition flex items-center ' + (sampling === 'Sort' ? 'bg-gray-400 text-black' : 'text-gray-400 hover:text-black hover:bg-gray-400')}
+                className={'px-3 py-1.5 transition flex items-center ' + (sampling === 'Sort' ? 'bg-gray-800' : 'hover:bg-gray-800')}
                 onClick={() => setSampling('Sort')}
             >
                 <ChartBarIcon className="w-5 h-5" />
@@ -137,7 +138,7 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
             {props.sessionType === 'Comparison' && (
                 <div className="w-64">
                     <div>
-                        <div className="text-sm text-gray-400 font-medium">Comparison Sampling</div>
+                        <div className="text-sm text-gray-400">Comparison Sampling</div>
                         <div className="mt-1">
                             <SamplingButtonGroup sampling={props.sampling} setSampling={props.setSampling} />
                         </div>

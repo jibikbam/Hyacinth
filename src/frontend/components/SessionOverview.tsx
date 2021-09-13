@@ -14,7 +14,6 @@ import {
 } from '@heroicons/react/solid';
 import {sessionLabelsToCsv, sessionToJson} from '../collaboration';
 import {Modal} from './Modal';
-import {InputText} from './Inputs';
 
 interface DeleteSessionModalProps {
     sessionName: string;
@@ -28,16 +27,24 @@ function DeleteSessionModal({sessionName, deleteSession, cancelDelete}: DeleteSe
     return (
         <Modal closeModal={cancelDelete}>
             <div className="mt-48 p-4 w-full max-w-lg bg-gray-800 rounded">
-                <div>
-                    <h1 className="text-lg text-gray-100">
-                        <span>Really delete session </span>
-                        <span className="text-red-400 font-bold">{sessionName}</span>
-                        <span>?</span>
+                <div className="ml-1">
+                    <h1 className="text-xl text-gray-300">
+                        <span>Really delete "</span>
+                        <span className="text-red-400">{sessionName}</span>
+                        <span>"?</span>
                     </h1>
-                    <h2 className="text-sm text-gray-400">Type the name of the session below to confirm.</h2>
+                    <h2 className="mt-1 text-sm text-gray-400">All labels and metadata for this session will be permanently deleted. Type the name of the session below to confirm.</h2>
                 </div>
-                <div className="mt-2">
-                    <InputText id="delete-session-confirm" label={null} placeholder="Session name" value={confirmText} setValue={setConfirmText} />
+                <div>
+                    <input
+                        className="mt-4 px-3 py-1 w-full bg-gray-900 rounded text-gray-400 placeholder-gray-500 transition
+                        border border-gray-900 hover:border-gray-500 focus:border-gray-400
+                        focus:outline-none"
+                        type="text"
+                        placeholder="Type session name here"
+                        value={confirmText}
+                        onInput={ev => setConfirmText(ev.currentTarget.value)}
+                    />
                 </div>
                 <div className="pt-4 mt-6 border-t border-white border-opacity-10 flex justify-end items-center space-x-3">
                     <Button onClick={cancelDelete}>Cancel</Button>

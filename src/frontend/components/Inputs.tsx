@@ -12,10 +12,10 @@ interface InputTextProps {
 function InputText({id, label, placeholder, value, setValue}: InputTextProps) {
     return (
         <div>
-            {label && <label className="text-sm text-gray-400 font-medium" htmlFor={id}>{label}</label>}
+            {label && <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>}
             <input
-                className="px-3 py-1 w-full bg-gray-400 rounded text-lg text-black placeholder-gray-700 transition
-                hover:ring-2 focus:ring-2 hover:ring-gray-300 focus:ring-gray-100
+                className="mt-0.5 px-3 py-1 w-full bg-gray-800 rounded text-gray-300 placeholder-gray-500 transition
+                border border-gray-800 hover:border-gray-500 focus:border-gray-400
                 focus:outline-none"
                 id={id}
                 type="text"
@@ -39,10 +39,10 @@ interface InputNumberProps {
 function InputNumber({id, label, value, min, max, setValue}: InputNumberProps) {
     return (
         <div className="flex-1 flex flex-col items-start">
-            <label className="text-sm text-gray-400 font-medium" htmlFor={id}>{label}</label>
+            <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>
             <input
-                className="mt-0.5 px-3 py-1 w-full bg-gray-400 rounded shadow text-xl text-black transition
-                hover:ring-2 focus:ring-2 hover:ring-gray-300 focus:ring-gray-100
+                className="mt-1 px-3 py-1 w-full bg-gray-800 rounded shadow text-xl text-gray-300 transition
+                border border-gray-800 hover:border-gray-400 focus:border-gray-400
                 focus:outline-none"
                 id={id}
                 type="number"
@@ -90,11 +90,11 @@ interface SelectProps {
 function Select({id, label, options, value, setValue}: SelectProps) {
     return (
         <div className="flex flex-col items-start">
-            <label className="text-sm text-gray-400 font-medium" htmlFor={id}>{label}</label>
+            <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>
             <div className="relative w-full">
                 <select
-                    className="appearance-none mt-0.5 px-3 py-1 w-full bg-gray-400 rounded text-black font-medium transition
-                    hover:ring-2 focus:ring-2 hover:ring-gray-300 focus:ring-gray-100
+                    className="appearance-none mt-1 px-3 py-1 w-full bg-gray-800 rounded text-gray-300 transition
+                    border border-gray-800 hover:border-gray-400 focus:border-gray-400
                     focus:outline-none"
                     id={id}
                     value={value}
@@ -103,7 +103,7 @@ function Select({id, label, options, value, setValue}: SelectProps) {
                     {options.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
                 <div className="absolute mr-1 inset-y-0 right-0 flex items-center">
-                    <SelectorIcon className="w-5 h-5 text-gray-700" />
+                    <SelectorIcon className="w-5 h-5 text-gray-500" />
                 </div>
             </div>
         </div>
