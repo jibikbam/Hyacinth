@@ -81,7 +81,7 @@ function InputRange({min, max, step, value, setValue}: InputRangeProps) {
 
 interface SelectProps {
     id: string;
-    label: string;
+    label: string | null;
     options: string[];
     value: string;
     setValue: Function;
@@ -90,7 +90,7 @@ interface SelectProps {
 function Select({id, label, options, value, setValue}: SelectProps) {
     return (
         <div className="flex flex-col items-start">
-            <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>
+            {label && <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>}
             <div className="relative w-full">
                 <select
                     className="appearance-none mt-1 px-3 py-1 w-full bg-gray-800 rounded text-gray-300 transition

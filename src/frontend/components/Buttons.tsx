@@ -4,6 +4,7 @@ import {Link} from 'react-router-dom';
 const SIZE_CLASSES = {
     md: 'px-4 py-1.5',
     lg: 'px-4 py-2',
+    icon: 'p-1.5',
 }
 
 const COLOR_CLASSES = {
@@ -20,7 +21,7 @@ const BUTTON_CLASSES = FLEX_CLASSES + ' rounded shadow focus:outline-none focus:
 const DISABLED_CLASSES = FLEX_CLASSES + ' rounded bg-gray-600 text-gray-400 opacity-50';
 
 interface CommonButtonProps {
-    size?: 'md' | 'lg';
+    size?: 'md' | 'lg' | 'icon';
     color?: 'gray' | 'darkGray' | 'pink' | 'darkPink' | 'fuchsia' | 'darkRed';
     disabled?: boolean;
     children?: any;

@@ -1,8 +1,15 @@
 import * as React from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {volumeapi} from '../backend';
 
-function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: number, sliceIndex: number, brightness: number) {
+function flip(shouldFlip: boolean, val: number, valMax: number) {
+    return (shouldFlip)
+        ? valMax - val - 1
+        : val;
+}
+
+function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: number, sliceIndex: number, brightness: number,
+                   hFlip: boolean, vFlip: boolean) {
     // Get image dims 1-3 (dim[0] in the Nifti format stores the number of dimensions)
     const dims: number[] = imageHeader.dims.slice(1, 4);
 
@@ -43,14 +50,25 @@ function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: 
             let ijk: number[];
             switch (sliceDim) {
                 case 0:
-                    ijk = [sliceMax - sliceIndex - 1, x, yMax - y - 1];
+                    ijk = [
+                        sliceMax - sliceIndex - 1,
+                        flip(hFlip, x, xMax),
+                        flip(!vFlip, y, yMax),
+                    ];
                     break;
                 case 1:
-                    ijk = [xMax - x - 1, sliceIndex, yMax - y - 1];
+                    ijk = [
+                        flip(!hFlip, x, xMax),
+                        sliceIndex,
+                        flip(!vFlip, y, yMax),
+                    ];
                     break;
                 case 2:
-                    ijk = [xMax - x - 1, yMax - y - 1, sliceIndex];
-                    break;
+                    ijk = [
+                        flip(!hFlip, x, xMax),
+                        flip(!vFlip, y, yMax),
+                        sliceIndex,
+                    ];
             }
 
             // Map i / j / k to the Nifti 1D data array
@@ -84,25 +102,33 @@ function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: 
     context.putImageData(canvasImageData, 0, 0);
 }
 
-function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness}: {imagePath: string, sliceDim: number, sliceIndex: number, brightness: number}) {
-    const [image, setImage] = useState(null);
+interface VolumeSliceProps {
+    imagePath: string;
+    sliceDim: number;
+    sliceIndex: number;
+    brightness: number;
+    hFlip?: boolean;
+    vFlip?: boolean;
+}
+
+function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false, vFlip = false}: VolumeSliceProps) {
     const canvasRef = useRef(null);
 
-    useEffect(() => {
+    const image = useMemo(() => {
         const [imageHeader, imageData] = volumeapi.readNifti(imagePath);
-        setImage({
+        return {
             header: imageHeader,
             data: imageData
-        })
-    }, []);
+        };
+    }, [imagePath]);
 
     useEffect(() => {
         if (image) {
-            drawSlice(canvasRef.current, image.header, image.data, sliceDim, sliceIndex, brightness);
+            drawSlice(canvasRef.current, image.header, image.data, sliceDim, sliceIndex, brightness, hFlip, vFlip);
         }
-    }, [image, sliceDim, sliceIndex, brightness]);
+    }, [image, sliceDim, sliceIndex, brightness, hFlip, vFlip]);
 
-    return <canvas style={{height: '80vh'}} ref={canvasRef} width={0} height={0} />
+    return <canvas className="w-full h-full" ref={canvasRef} width={0} height={0} />
 }
 
 export {VolumeSlice};
