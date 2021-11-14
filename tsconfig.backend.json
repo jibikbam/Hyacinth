@@ -4,6 +4,7 @@
     "target": "ES6",
     "module": "CommonJS",
     "moduleResolution": "Node",
+    "skipLibCheck": true, // Fixes issue with conflicting webgl types in some library
   },
   "include": ["src/backend/**/*.ts"]
 }
