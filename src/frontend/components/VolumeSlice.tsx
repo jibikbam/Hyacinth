@@ -1,6 +1,8 @@
 import * as React from 'react';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {volumeapi} from '../backend';
+import * as tf from '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-cpu';
 
 function flip(shouldFlip: boolean, val: number, valMax: number) {
     return (shouldFlip)
@@ -13,22 +15,34 @@ function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: 
     // Get image dims 1-3 (dim[0] in the Nifti format stores the number of dimensions)
     const dims: number[] = imageHeader.dims.slice(1, 4);
 
-    // Map x / y / sliceIndex sizes (from 2D output space) to i / j / k dimension sizes
-    // sliceDim is the dimension which will be varied (sliceIndex / sliceMax)
-    // i.e. when sliceDim is 0, dims[0] (left to Right) is varied, producing Sagittal slices
-    // This function assumes RAS+ Nifti data, and displays this data raw (affine is NOT used!)
-    let xMax: number, yMax: number, sliceMax: number;
-    switch(sliceDim) {
-        case 0:
-            [xMax, yMax, sliceMax] = [dims[2], dims[1], dims[0]];
-            break;
-        case 1:
-            [xMax, yMax, sliceMax] = [dims[0], dims[2], dims[1]];
-            break;
-        case 2:
-            [xMax, yMax, sliceMax] = [dims[0], dims[1], dims[2]];
-            break;
+    // Flip scrubbing direction for sagittal
+    if (sliceDim === 0) sliceIndex = dims[0] - sliceIndex - 1;
+    // Clamp out of bounds slice index
+    sliceIndex = Math.max(Math.min(sliceIndex, dims[sliceDim] - 1), 0);
+
+    // Convert to Int32 because TF tensors do not accept Int16
+    const imageData32 = new Int32Array(imageData);
+    // Create tensor and reshape to 3D (need to reverse dims for correct order)
+    const image1d = tf.tensor1d(imageData32);
+    const image3d = tf.reshape(image1d, dims.reverse());
+
+    // Slice RAS+ data along sliceDim
+    let imSlice;
+    switch (sliceDim) {
+        case 0: imSlice = tf.slice(image3d, [0, 0, sliceIndex], [-1, -1, 1]); break;
+        case 1: imSlice = tf.slice(image3d, [0, sliceIndex, 0], [-1, 1, -1]); break;
+        case 2: imSlice = tf.slice(image3d, [sliceIndex, 0, 0], [1, -1, -1]); break;
     }
+    imSlice = tf.squeeze(imSlice);
+    // Flip as needed to display RAS+
+    if (hFlip !== (sliceDim === 1 || sliceDim === 2)) imSlice = tf.reverse(imSlice, 1);
+    if (!vFlip) imSlice = tf.reverse(imSlice, 0);
+    // Convert to JS array for indexing
+    const sliceData = imSlice.arraySync() as number[][];
+
+    // Define xMax and yMax (#cols and #rows)
+    // Note that dims were reversed at tensor creation
+    const xMax = imSlice.shape[1], yMax = imSlice.shape[0];
 
     // Update canvas size and initialize ImageData array
     canvas.width = xMax;
@@ -37,49 +51,15 @@ function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: 
     const canvasImageData = context.createImageData(canvas.width, canvas.height);
 
     // Compute max value of image for tone mapping (and adjust for brightness)
-    let maxValue: number = 0;
-    for (const v of imageData) {
-        if (v > maxValue) maxValue = v;
-    }
+    let maxValue = tf.max(image3d).arraySync() as number;
     maxValue = maxValue * ((100 - brightness) / 100);
 
     // x and y are in 2D output space
     for (let x = 0; x < xMax; x++) {
         for (let y = 0; y < yMax; y++) {
-            // Map x / y / sliceIndex to i / j / k space
-            let ijk: number[];
-            switch (sliceDim) {
-                case 0:
-                    ijk = [
-                        sliceMax - sliceIndex - 1,
-                        flip(hFlip, x, xMax),
-                        flip(!vFlip, y, yMax),
-                    ];
-                    break;
-                case 1:
-                    ijk = [
-                        flip(!hFlip, x, xMax),
-                        sliceIndex,
-                        flip(!vFlip, y, yMax),
-                    ];
-                    break;
-                case 2:
-                    ijk = [
-                        flip(!hFlip, x, xMax),
-                        flip(!vFlip, y, yMax),
-                        sliceIndex,
-                    ];
-            }
-
-            // Map i / j / k to the Nifti 1D data array
-            const dim1Offset = ijk[0];
-            const dim2Offset = ijk[1] * dims[0];
-            const dim3Offset = ijk[2] * dims[0] * dims[1];
-            const volOffset = dim1Offset + dim2Offset + dim3Offset;
-
             // Get value and tone map to 8 bits (0-255)
             // (uses maxValue computed earlier with brightness)
-            let value = imageData[volOffset];
+            let value = sliceData[y][x];  // Note reversed dims as mentioned above
             value = (value / maxValue) * 255;
             value = Math.min(value, 255);
 

@@ -17,7 +17,7 @@ function SliceWithControls({imagePath, sliceDim}: {imagePath: string, sliceDim: 
             <VolumeSlice imagePath={imagePath} sliceIndex={Math.round(sliceIndex)} sliceDim={sliceDim} brightness={50} hFlip={hFlip} vFlip={vFlip} />
             <div className="mt-4 p-2 bg-gray-800 rounded flex justify-between items-center">
                 <div className="ml-1 flex-1 flex items-center">
-                    <InputRange min={0} max={256} step={1} value={sliceIndex} setValue={setSliceIndex} />
+                    <InputRange min={0} max={255} step={1} value={sliceIndex} setValue={setSliceIndex} />
                     <div className="ml-3 py-0.5 w-16 bg-gray-700 rounded text-gray-400 text-center">{sliceIndex}</div>
                 </div>
                 <div className="ml-8 flex items-center space-x-2">
