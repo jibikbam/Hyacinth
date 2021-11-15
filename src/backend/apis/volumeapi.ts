@@ -1,5 +1,9 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import * as niftiReader from 'nifti-reader-js';
+import * as daikon from 'daikon';
+
+const DICOM_FILE_EXT = '.dcm';
 
 function readNiftiData(imagePath) {
     const fileData = fs.readFileSync(imagePath);
@@ -20,4 +24,48 @@ export function readNifti(imagePath) {
     const imgData = new Int16Array(imgDataUntyped);
 
     return [imgHeader, imgData];
+}
+
+export function readDicomSeries(seriesDirPath: string) {
+    // TODO: sanity check path is dir and handle empty
+    const imageNames = fs.readdirSync(seriesDirPath).filter(n => n.endsWith(DICOM_FILE_EXT));
+
+    const series = new daikon.Series();
+
+    for (const imageName of imageNames) {
+        const fileData = fs.readFileSync(path.join(seriesDirPath, imageName));
+        const image = daikon.Series.parseImage(new DataView(daikon.Utils.toArrayBuffer(fileData)));
+        if (image === null) {
+            console.log(`DICOM parsing error for file ${imageName} in ${seriesDirPath}`);
+        }
+        else if (!image.hasPixelData()) {
+            console.log(`DICOM has no pixel data - file ${imageName} in ${seriesDirPath}`);
+        }
+        else if (series.images.length > 0 && series.images[0].getSeriesId() !== image.getSeriesId()) {
+            console.log(`DICOM series does not match for file ${imageName} in ${seriesDirPath}`);
+        }
+        else {
+            series.addImage(image);
+        }
+    }
+
+    series.buildSeries();
+
+    const dims = [
+        series.images.length,
+        series.images[0].getRows(),
+        series.images[0].getCols(),
+    ];
+
+    const numImagePixels = dims[1] * dims[2];
+    const numVoxels = numImagePixels * dims[0];
+
+    const finalArray = new Float32Array(numVoxels);
+    let offset = 0;
+    for (const image of series.images) {
+        finalArray.set(image.getInterpretedData(false, false), offset);
+        offset += numImagePixels;
+    }
+
+    return [dims, finalArray];
 }

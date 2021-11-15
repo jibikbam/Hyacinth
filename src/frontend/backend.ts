@@ -104,6 +104,7 @@ export interface FileApiType {
 export interface VolumeApiType {
     readNiftiHeader: (imagePath: string) => any;
     readNifti: (imagePath: string) => any;
+    readDicomSeries: (seriesDirPath: string) => [number[], Float32Array];
 }
 
 export const dbapi = (window as any).dbapi as DBApiType;

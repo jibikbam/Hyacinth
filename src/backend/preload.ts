@@ -34,4 +34,5 @@ contextBridge.exposeInMainWorld('fileapi', {
 contextBridge.exposeInMainWorld('volumeapi', {
     readNiftiHeader: volumeapi.readNiftiHeader,
     readNifti: volumeapi.readNifti,
+    readDicomSeries: volumeapi.readDicomSeries,
 });

@@ -10,20 +10,31 @@ function flip(shouldFlip: boolean, val: number, valMax: number) {
         : val;
 }
 
-function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: number, sliceIndex: number, brightness: number,
+function drawSliceNifti(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: number, sliceIndex: number, brightness: number,
                    hFlip: boolean, vFlip: boolean) {
     // Get image dims 1-3 (dim[0] in the Nifti format stores the number of dimensions)
     const dims: number[] = imageHeader.dims.slice(1, 4);
 
+    // Convert to Int32 because TF tensors do not accept Int16
+    imageData = new Int32Array(imageData);
+
+    drawSlice(canvas, dims, imageData, sliceDim, sliceIndex, brightness, hFlip, vFlip);
+}
+
+function drawSliceDicom(canvas: HTMLCanvasElement, dims: number[], imageData: Float32Array, sliceDim: number, sliceIndex: number, brightness: number,
+                        hFlip: boolean, vFlip: boolean) {
+    drawSlice(canvas, dims.reverse(), imageData, sliceDim, sliceIndex, brightness, hFlip, vFlip);
+}
+
+function drawSlice(canvas: HTMLCanvasElement, dims: number[], imageData, sliceDim: number, sliceIndex: number, brightness: number,
+                   hFlip: boolean, vFlip: boolean) {
     // Flip scrubbing direction for sagittal
     if (sliceDim === 0) sliceIndex = dims[0] - sliceIndex - 1;
     // Clamp out of bounds slice index
     sliceIndex = Math.max(Math.min(sliceIndex, dims[sliceDim] - 1), 0);
 
-    // Convert to Int32 because TF tensors do not accept Int16
-    const imageData32 = new Int32Array(imageData);
     // Create tensor and reshape to 3D (need to reverse dims for correct order)
-    const image1d = tf.tensor1d(imageData32);
+    const image1d = tf.tensor1d(imageData);
     const image3d = tf.reshape(image1d, dims.reverse());
 
     // Slice RAS+ data along sliceDim
@@ -51,7 +62,8 @@ function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: 
     const canvasImageData = context.createImageData(canvas.width, canvas.height);
 
     // Compute max value of image for tone mapping (and adjust for brightness)
-    let maxValue = tf.max(image3d).arraySync() as number;
+    let minValue = tf.min(image3d).arraySync() as number;
+    let maxValue = (tf.max(image3d).arraySync() as number) - minValue;
     maxValue = maxValue * ((100 - brightness) / 100);
 
     // x and y are in 2D output space
@@ -60,6 +72,7 @@ function drawSlice(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: 
             // Get value and tone map to 8 bits (0-255)
             // (uses maxValue computed earlier with brightness)
             let value = sliceData[y][x];  // Note reversed dims as mentioned above
+            value = value - minValue;
             value = (value / maxValue) * 255;
             value = Math.min(value, 255);
 
@@ -95,6 +108,15 @@ function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false
     const canvasRef = useRef(null);
 
     const image = useMemo(() => {
+        // TODO: clean this up
+        if (!imagePath.endsWith('.nii.gz')) {
+            const [dims, imageData] = volumeapi.readDicomSeries(imagePath);
+            return {
+                dicom: true,
+                dims: dims,
+                data: imageData,
+            }
+        }
         const [imageHeader, imageData] = volumeapi.readNifti(imagePath);
         return {
             header: imageHeader,
@@ -104,7 +126,9 @@ function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false
 
     useEffect(() => {
         if (image) {
-            drawSlice(canvasRef.current, image.header, image.data, sliceDim, sliceIndex, brightness, hFlip, vFlip);
+            // TODO: clean this up too
+            if (image.dicom) drawSliceDicom(canvasRef.current, image.dims, image.data, sliceDim, sliceIndex, brightness, hFlip, vFlip);
+            else drawSliceNifti(canvasRef.current, image.header, image.data, sliceDim, sliceIndex, brightness, hFlip, vFlip);
         }
     }, [image, sliceDim, sliceIndex, brightness, hFlip, vFlip]);
 
