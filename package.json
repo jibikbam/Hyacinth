@@ -34,6 +34,7 @@
     "better-sqlite3": "^7.4.4",
     "cornerstone-core": "^2.6.0",
     "cornerstone-wado-image-loader": "^4.0.4",
+    "daikon": "^1.2.42",
     "dicom-parser": "^1.8.11",
     "nifti-reader-js": "^0.5.4",
     "react": "^17.0.2",
