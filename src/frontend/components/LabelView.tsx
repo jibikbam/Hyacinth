@@ -67,7 +67,7 @@ function PastLabelsModal({labels, closeModal}: {labels: ElementLabel[], closeMod
                             const minutes = Math.floor(secondsTaken / 60);
                             const seconds = (secondsTaken % 60).toString().padStart(2, '0');
                             return (
-                                <tr>
+                                <tr key={label.id}>
                                     <td>{label.labelValue}</td>
                                     <td>{new Date(label.finishTimestamp).toLocaleDateString('en-US', {hour: '2-digit', minute: '2-digit'})}</td>
                                     <td>{minutes}:{seconds}</td>
@@ -154,6 +154,7 @@ function LabelControls({additional, labelOptions, labels, addLabel, bindStart}: 
                 {labelOptions.map((labelOption, i) => {
                     return (
                         <Button
+                            key={i}
                             size="lg"
                             color={labelOption === curLabelValue ? 'darkPink' : 'darkGray'}
                             onClick={() => addLabel(labelOption)}
@@ -162,7 +163,7 @@ function LabelControls({additional, labelOptions, labels, addLabel, bindStart}: 
                         </Button>
                     )
                 })}
-                {skeletonLabels.map(i => <div className="bg-gray-800 rounded h-10" />)}
+                {skeletonLabels.map(i => <div key={i} className="bg-gray-800 rounded h-10" />)}
             </div>
         </div>
     )

@@ -143,7 +143,7 @@ function SlicesTable({sessionId, slices}: {sessionId: string, slices: Slice[]}) 
                 </thead>
                 <tbody className="text-gray-400">
                     {slices.map((s, i) => (
-                        <tr className="group hover:text-white">
+                        <tr key={s.id} className="group hover:text-white">
                             <td className="pr-8 text-sm text-gray-500 group-hover:text-white text-right">#{i + 1}</td>
                             <td>{s.imageRelPath}</td>
                             <td className="text-center">{s.sliceDim}</td>
@@ -184,7 +184,7 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: string, comparis
                 </thead>
                 <tbody className="text-gray-400">
                     {comparisons.map((c, i) => (
-                        <tr className="group hover:text-white">
+                        <tr key={c.id} className="group hover:text-white">
                             <td className="pr-8 text-sm text-gray-500 group-hover:text-white text-right">#{i + 1}</td>
                             <td>{c.imageRelPath1}</td>
                             <td className="text-center">{c.sliceDim1}</td>

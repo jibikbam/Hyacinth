@@ -27,7 +27,7 @@ function Datasets() {
                 )}
                 {datasets.map(d => {
                     return (
-                        <Link className="block focus:outline-none group" to={`/dataset/${d.id}`}>
+                        <Link key={d.id} className="block focus:outline-none group" to={`/dataset/${d.id}`}>
                             <div
                                 className="px-3 py-2 rounded transition-all flex justify-between items-center
                                 bg-gray-700 hover:bg-gray-800 group-focus:bg-gray-800

@@ -22,10 +22,10 @@ function StepStatus({stepDescription, curStep, stepCount}: StepStatusProps) {
                         : 'bg-gray-500';
 
                     return (
-                        <>
+                        <React.Fragment key={i}>
                             <div className={'z-10 w-3 h-3 rounded-full ' + circleColor} />
                             <div className={'-mx-1 flex-1 h-0.5 ' + lineColor} />
-                        </>
+                        </React.Fragment>
                     )
                 })}
                 <div className={'z-10 w-3 h-3 rounded-full ' + (curStep === stepCount - 1 ? 'bg-gray-700 border-2 border-fuchsia-300' : 'bg-gray-700 border-2 border-gray-500')} />

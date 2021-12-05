@@ -175,6 +175,7 @@ function DatasetOverview() {
                         {sessions && sessions.map(s => {
                             return (
                                 <Link
+                                    key={s.id}
                                     to={`/dataset/${datasetId}/session/${s.id}`}
                                     className={
                                         (s.id === parseInt(sessionId))
