@@ -8,8 +8,8 @@
     "start": "electron .",
     "buildcss": "npx tailwindcss -i ./css/tailwind.css -o ./built/css/style.css",
     "watchcss": "npx tailwindcss -i ./css/tailwind.css -o ./built/css/style.css --watch",
-    "buildjsfront": "rollup -c",
-    "buildjsback": "tsc --project tsconfig.backend.json",
+    "buildjsfront": "esbuild src/frontend/index.tsx --outfile=built/js/bundle.js --bundle --target=chrome91",
+    "buildjsback": "esbuild src/backend/*.ts src/backend/apis/*.ts --outdir=built/js/backend --platform=node --format=cjs --target=node14",
     "wf": "rollup -c -w",
     "wb": "tsc --project tsconfig.backend.json --watch",
     "elrebuild": "electron-rebuild"
