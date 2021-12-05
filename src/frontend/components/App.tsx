@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useState} from 'react';
-import {BrowserRouter as Router, Link, Switch, Route} from 'react-router-dom';
+import {BrowserRouter as Router, Link, Routes, Route, useLocation} from 'react-router-dom';
 
 import {VolumeSlice} from './VolumeSlice';
 import {Datasets} from './Datasets';
@@ -13,29 +13,15 @@ import {DebugSliceViewer} from './DebugSliceViewer';
 function App() {
     return (
         <Router>
-            <Switch>
-                <Route path="/create-dataset">
-                    <CreateDataset />
-                </Route>
-                <Route path="/create-session/:datasetId">
-                    <CreateSession />
-                </Route>
-                <Route path="/dataset/:datasetId/session/:sessionId">
-                    <DatasetOverview />
-                </Route>
-                <Route path="/dataset/:datasetId">
-                    <DatasetOverview />
-                </Route>
-                <Route path="/label/:sessionId/:elementIndex">
-                    <LabelView />
-                </Route>
-                <Route path="/debug-slice-viewer/:datasetId">
-                    <DebugSliceViewer />
-                </Route>
-                <Route path="/">
-                    <Datasets />
-                </Route>
-            </Switch>
+            <Routes>
+                <Route path="/create-dataset/*" element={<CreateDataset />} />
+                <Route path="/create-session/:datasetId/*" element={<CreateSession />} />
+                <Route path="/dataset/:datasetId/session/:sessionId" element={<DatasetOverview />} />
+                <Route path="/dataset/:datasetId" element={<DatasetOverview />} />
+                <Route path="/label/:sessionId/:elementIndex" element={<LabelView />} />
+                <Route path="/debug-slice-viewer/:datasetId" element={<DebugSliceViewer />} />
+                <Route path="/*" element={<Datasets />} />
+            </Routes>
         </Router>
     )
 }

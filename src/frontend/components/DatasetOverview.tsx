@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {Link, useParams, useHistory} from 'react-router-dom';
+import {Link, useParams, useNavigate} from 'react-router-dom';
 import {Dataset, LabelingSession, dbapi, fileapi} from '../backend';
 import {Button, LinkButton} from './Buttons';
 import {
@@ -105,7 +105,7 @@ function DatasetOverview() {
     datasetId = parseInt(datasetId);
     if (sessionId) sessionId = parseInt(sessionId);
 
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const [dataset, setDataset] = useState<Dataset | null>(null);
     const [sessions, setSessions] = useState<LabelingSession[] | null>(null);
@@ -145,7 +145,7 @@ function DatasetOverview() {
 
         setImportData(null);
         refreshSessions();
-        history.push(`/dataset/${datasetId}/session/${newSessionId}`);
+        navigate(`/dataset/${datasetId}/session/${newSessionId}`);
     }
 
     return (
@@ -163,7 +163,7 @@ function DatasetOverview() {
                             <Link className="text-gray-500 hover:text-white transition-all" to={`/debug-slice-viewer/${datasetId}`}>
                                 <BeakerIcon className="w-6 h-6" />
                             </Link>
-                            <Link className="text-gray-500 hover:text-white transition-all">
+                            <Link to="" className="text-gray-500 hover:text-white transition-all">
                                 <CogIcon className="w-6 h-6" />
                             </Link>
                         </div>

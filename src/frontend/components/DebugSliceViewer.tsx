@@ -38,7 +38,7 @@ function DebugSliceViewer() {
 
     const images = useMemo(() => {
         return dbapi.selectDatasetImages(parseInt(datasetId));
-    }, datasetId);
+    }, [datasetId]);
 
     const [curImage, setCurImage] = useState(images[0]);
 

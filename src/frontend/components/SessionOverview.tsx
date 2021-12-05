@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
-import {Link, useHistory} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {Comparison, dbapi, fileapi, LabelingSession, SessionElement, Slice} from '../backend';
 import {Button, LinkButton} from './Buttons';
 import {
@@ -205,7 +205,7 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: number, comparis
 }
 
 function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: number, refreshDatasetSessions: () => void}) {
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const [session, setSession] = useState<LabelingSession | null>(null);
     const [elements, setElements] = useState<SessionElement[] | null>(null);
@@ -253,7 +253,7 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: number
         dbapi.deleteLabelingSession(session.id);
         setDeleteModalOpen(false);
         refreshDatasetSessions();
-        history.push(`/dataset/${datasetId}`);
+        navigate(`/dataset/${datasetId}`);
     }
 
     return (

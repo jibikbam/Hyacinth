@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useMemo, useState} from 'react';
-import {Switch, Route, useParams, useHistory} from 'react-router-dom';
+import {Routes, Route, useParams, useNavigate} from 'react-router-dom';
 import {SessionType, SamplingType, dbapi} from '../backend';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
@@ -156,7 +156,7 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
 
 function CreateSession() {
     const {datasetId} = useParams();
-    const history = useHistory();
+    const navigate = useNavigate();
 
     const [dataset, datasetImages] = useMemo(() => {
         return [dbapi.selectDataset(datasetId), dbapi.selectDatasetImages(datasetId)];
@@ -199,63 +199,69 @@ function CreateSession() {
         const metadataJson = JSON.stringify(metadata);
 
         const newSessionId = dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, sampling, metadataJson, slices, comparisons);
-        history.push(`/dataset/${datasetId}/session/${newSessionId}`);
+        navigate(`/dataset/${datasetId}/session/${newSessionId}`);
     }
 
     const infoValid = sessionName.length > 0 && (sessionType !== 'Classification' || labelOptions.length > 0);
 
     return (
         <StepContainer>
-            <Switch>
-                <Route path="/create-session/:datasetId/choose-type">
-                    <div>
-                        <StepHeader title="Create Labeling Session" stepDescription="Choose Session Type" curStep={0} stepCount={3} />
-                        <ChooseTypeStep sessionType={sessionType} setSessionType={setSessionType} />
-                    </div>
-                    <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={null} nextTo={sessionType && `/create-session/${datasetId}/session-info`} />
-                </Route>
-                <Route path="/create-session/:datasetId/session-info">
-                    <div>
-                        <StepHeader title="Create Labeling Session" stepDescription="Session Info" curStep={1} stepCount={3} />
-                        <SessionInfoStep
-                            sessionName={sessionName}
-                            setSessionName={setSessionName}
-                            prompt={prompt}
-                            setPrompt={setPrompt}
-                            labelOptions={labelOptions}
-                            setLabelOptions={setLabelOptions}
-                            sessionType={sessionType}
-                        />
-                    </div>
-                    <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={`/create-session/${datasetId}/choose-type`} nextTo={infoValid && `/create-session/${datasetId}/sampling-options`} />
-                </Route>
-                <Route path="/create-session/:datasetId/sampling-options">
-                    <div>
-                        <StepHeader title="Create Labeling Session" stepDescription="Sampling Options" curStep={2} stepCount={3} />
-                        <SamplingOptionsStep
-                            slicesFrom={slicesFrom}
-                            setSlicesFrom={setSlicesFrom}
-                            imageCount={imageCount}
-                            setImageCount={setImageCount}
-                            sliceCount={sliceCount}
-                            setSliceCount={setSliceCount}
-                            sliceDim={sliceDim}
-                            setSliceDim={setSliceDim}
-                            sliceMinPct={sliceMinPct}
-                            setSliceMinPct={setSliceMinPct}
-                            sliceMaxPct={sliceMaxPct}
-                            setSliceMaxPct={setSliceMaxPct}
-                            sampling={sampling}
-                            setSampling={setSampling}
-                            comparisonCount={comparisonCount}
-                            setComparisonCount={setComparisonCount}
-                            sessionType={sessionType}
-                            maxImageCount={dataset.imageCount}
-                        />
-                    </div>
-                    <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={`/create-session/${datasetId}/session-info`} nextTo={null} finishText="Create" finishClicked={createSession} finishDisabled={false} />
-                </Route>
-            </Switch>
+            <Routes>
+                <Route path="/choose-type" element={
+                    <>
+                        <div>
+                            <StepHeader title="Create Labeling Session" stepDescription="Choose Session Type" curStep={0} stepCount={3}/>
+                            <ChooseTypeStep sessionType={sessionType} setSessionType={setSessionType}/>
+                        </div>
+                        <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={null} nextTo={sessionType && `/create-session/${datasetId}/session-info`} />
+                    </>
+                } />
+                <Route path="/session-info" element={
+                    <>
+                        <div>
+                            <StepHeader title="Create Labeling Session" stepDescription="Session Info" curStep={1} stepCount={3}/>
+                            <SessionInfoStep
+                                sessionName={sessionName}
+                                setSessionName={setSessionName}
+                                prompt={prompt}
+                                setPrompt={setPrompt}
+                                labelOptions={labelOptions}
+                                setLabelOptions={setLabelOptions}
+                                sessionType={sessionType}
+                            />
+                        </div>
+                        <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={`/create-session/${datasetId}/choose-type`} nextTo={infoValid && `/create-session/${datasetId}/sampling-options`} />
+                    </>
+                } />
+                <Route path="/sampling-options" element={
+                    <>
+                        <div>
+                            <StepHeader title="Create Labeling Session" stepDescription="Sampling Options" curStep={2} stepCount={3}/>
+                            <SamplingOptionsStep
+                                slicesFrom={slicesFrom}
+                                setSlicesFrom={setSlicesFrom}
+                                imageCount={imageCount}
+                                setImageCount={setImageCount}
+                                sliceCount={sliceCount}
+                                setSliceCount={setSliceCount}
+                                sliceDim={sliceDim}
+                                setSliceDim={setSliceDim}
+                                sliceMinPct={sliceMinPct}
+                                setSliceMinPct={setSliceMinPct}
+                                sliceMaxPct={sliceMaxPct}
+                                setSliceMaxPct={setSliceMaxPct}
+                                sampling={sampling}
+                                setSampling={setSampling}
+                                comparisonCount={comparisonCount}
+                                setComparisonCount={setComparisonCount}
+                                sessionType={sessionType}
+                                maxImageCount={dataset.imageCount}
+                            />
+                        </div>
+                        <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={`/create-session/${datasetId}/session-info`} nextTo={null} finishText="Create" finishClicked={createSession} finishDisabled={false} />
+                    </>
+                } />
+            </Routes>
         </StepContainer>
     )
 }
