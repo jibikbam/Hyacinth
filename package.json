@@ -6,7 +6,7 @@
   "main": "./built/js/backend/main.js",
   "scripts": {
     "start": "electron .",
-    "buildstart": "npm run buildjsfront && npm run buildjsback && HYACINTH_DEV=true npm run start",
+    "buildstart": "npm run buildjsfront && npm run buildjsback && ELECTRON_ENABLE_LOGGING=true HYACINTH_DEV=true npm run start",
     "buildcss": "npx tailwindcss -i ./css/tailwind.css -o ./built/css/style.css",
     "buildjsfront": "esbuild src/frontend/index.tsx --outfile=built/js/bundle.js --bundle --target=chrome91",
     "buildjsback": "esbuild src/backend/*.ts src/backend/apis/*.ts --outdir=built/js/backend --platform=node --format=cjs --target=node14",
