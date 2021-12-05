@@ -2,7 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {ipcRenderer} from 'electron';
 
-const IMAGE_FILE_EXT = '.nii.gz';
+const NIFTI_EXT = '.nii.gz';
+const DICOM_EXT = '.dcm';
 
 export function showFolderDialog() {
     return ipcRenderer.sendSync('show-open-directory-dialog');
@@ -16,8 +17,19 @@ export function showSaveDialog(defaultName: string) {
     return ipcRenderer.sendSync('show-save-file-dialog', defaultName);
 }
 
-function isImage(imagePath) {
-    return imagePath.endsWith(IMAGE_FILE_EXT);
+function isNiftiFile(filePath) {
+    return filePath.endsWith(NIFTI_EXT);
+}
+
+function isDicomDir(filePath) {
+    // Checks if filePath is a directory which contains only dicom slices
+    // We assume this directory represents a dicom volume when the slices are combined
+    const fileNames = fs.readdirSync(filePath);
+    if (fileNames.length === 0) return false;
+    for (const fileName of fileNames) {
+        if (!fileName.endsWith(DICOM_EXT)) return false;
+    }
+    return true;
 }
 
 function getImageFullPathsRecursive(dirPath): string[] {
@@ -26,10 +38,15 @@ function getImageFullPathsRecursive(dirPath): string[] {
         const filePath = dirPath + '/' + fileName;
 
         if (fs.statSync(filePath).isDirectory()) {
-            for (const p of getImageFullPathsRecursive(filePath)) imageFullPaths.push(p);
+            if (isDicomDir(filePath)) {
+                imageFullPaths.push(filePath);
+            }
+            else {
+                for (const p of getImageFullPathsRecursive(filePath)) imageFullPaths.push(p);
+            }
         }
         else {
-            if (isImage(filePath)) imageFullPaths.push(filePath);
+            if (isNiftiFile(filePath)) imageFullPaths.push(filePath);
         }
     }
     return imageFullPaths;
