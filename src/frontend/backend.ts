@@ -74,22 +74,22 @@ export interface DBApiType {
     connect: () => void;
     createTables: () => void;
     insertDataset: (datasetName: string, rootPath: string, imageRelPaths: string[]) => void;
-    insertLabelingSession: (datasetId: number, sessionType: string, name: string,
+    insertLabelingSession: (datasetId: number | string, sessionType: string, name: string,
                             prompt: string, labelOptions: string, comparisonSampling: SamplingType | null, metadataJson: string,
                             slices: SliceAttributes[], comparisons: number[][] | null) => number;
-    insertElementLabel: (elementId: number, labelValue: string,
+    insertElementLabel: (elementId: number | string, labelValue: string,
                          startTimestamp: number, finishTimestamp: number) => void;
-    insertComparison: (sessionId: number, elementIndex: number, slice1: Slice, slice2: Slice) => void;
-    deleteLabelingSession: (sessionId: number) => void;
+    insertComparison: (sessionId: number | string, elementIndex: number, slice1: Slice, slice2: Slice) => void;
+    deleteLabelingSession: (sessionId: number | string) => void;
     selectAllDatasets: () => Dataset[];
-    selectDataset: (datasetId: number) => Dataset;
-    selectDatasetImages: (datasetId: number) => DatasetImage[];
-    selectDatasetSessions: (datasetId: number) => LabelingSession[];
-    selectLabelingSession: (sessionId: number) => LabelingSession;
-    selectSessionSlices: (sessionId: number) => Slice[];
-    selectSessionComparisons: (sessionId: number) => Comparison[];
-    selectElementLabels: (elementId: number) => ElementLabel[];
-    selectSessionLatestComparisonLabels: (sessionId: number) => (string | null)[];
+    selectDataset: (datasetId: number | string) => Dataset;
+    selectDatasetImages: (datasetId: number | string) => DatasetImage[];
+    selectDatasetSessions: (datasetId: number | string) => LabelingSession[];
+    selectLabelingSession: (sessionId: number | string) => LabelingSession;
+    selectSessionSlices: (sessionId: number | string) => Slice[];
+    selectSessionComparisons: (sessionId: number | string) => Comparison[];
+    selectElementLabels: (elementId: number | string) => ElementLabel[];
+    selectSessionLatestComparisonLabels: (sessionId: number | string) => (string | null)[];
 }
 
 export interface FileApiType {

@@ -107,7 +107,7 @@ export function insertDataset(datasetName, rootPath, imageRelPaths) {
     console.log(`Inserted dataset ${datasetName}`);
 }
 
-export function insertLabelingSession(datasetId: number, sessionType: string, name: string,
+export function insertLabelingSession(datasetId: number | string, sessionType: string, name: string,
                                prompt: string, labelOptions: string, comparisonSampling: string | null, metadataJson: string,
                                slices: any, comparisons: any) {
     labelOptions = labelOptions.split(',').map(s => s.trim()).join(',');
@@ -167,7 +167,7 @@ export function insertLabelingSession(datasetId: number, sessionType: string, na
     return insertedSessionId;
 }
 
-export function insertElementLabel(elementId: number, labelValue: string, startTimestamp: number, finishTimestamp: number) {
+export function insertElementLabel(elementId: number | string, labelValue: string, startTimestamp: number, finishTimestamp: number) {
     const insertTransaction = dbConn.transaction(() => {
         dbConn.prepare(`
             INSERT INTO element_labels (elementId, labelValue, startTimestamp, finishTimestamp)
@@ -179,7 +179,7 @@ export function insertElementLabel(elementId: number, labelValue: string, startT
     console.log(`Inserted label "${labelValue}" for element ${elementId}`);
 }
 
-export function insertComparison(sessionId: number, elementIndex: number, slice1, slice2) {
+export function insertComparison(sessionId: number | string, elementIndex: number, slice1, slice2) {
     const insertTransaction = dbConn.transaction(() => {
         const insertStatement = dbConn.prepare(`
             INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceDim1, sliceIndex1, imageId2, sliceDim2, sliceIndex2)
@@ -203,7 +203,7 @@ export function insertComparison(sessionId: number, elementIndex: number, slice1
     console.log(`Inserted additional comparison for session ${sessionId}`);
 }
 
-export function deleteLabelingSession(sessionId: number) {
+export function deleteLabelingSession(sessionId: number | string) {
     const deleteTransaction = dbConn.transaction(() => {
         dbConn.prepare(`
             DELETE FROM labeling_sessions WHERE id = :sessionId;
@@ -226,7 +226,7 @@ export function selectAllDatasets() {
     return datasetRows;
 }
 
-export function selectDataset(datasetId: number) {
+export function selectDataset(datasetId: number | string) {
     const datasetRow = dbConn.prepare(`
         SELECT d.id, d.datasetName, d.rootPath, count(di.id) AS imageCount
         FROM datasets d
@@ -237,7 +237,7 @@ export function selectDataset(datasetId: number) {
     return datasetRow;
 }
 
-export function selectDatasetImages(datasetId: number) {
+export function selectDatasetImages(datasetId: number | string) {
     const imageRows = dbConn.prepare(`
         SELECT di.id, di.datasetId, di.relPath, d.rootPath as datasetRootPath FROM dataset_images di
         INNER JOIN datasets d on di.datasetId = d.id
@@ -247,7 +247,7 @@ export function selectDatasetImages(datasetId: number) {
     return imageRows;
 }
 
-export function selectDatasetSessions(datasetId: number) {
+export function selectDatasetSessions(datasetId: number | string) {
     const sessionRows = dbConn.prepare(`
         SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson
         FROM labeling_sessions
@@ -257,7 +257,7 @@ export function selectDatasetSessions(datasetId: number) {
     return sessionRows;
 }
 
-export function selectLabelingSession(sessionId: number) {
+export function selectLabelingSession(sessionId: number | string) {
     const sessionRow = dbConn.prepare(`
         SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson FROM labeling_sessions
         WHERE id = :sessionId;
@@ -266,7 +266,7 @@ export function selectLabelingSession(sessionId: number) {
     return sessionRow;
 }
 
-export function selectSessionSlices(sessionId: number) {
+export function selectSessionSlices(sessionId: number | string) {
     const sliceRows = dbConn.prepare(`
         SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1 as imageId, se.sliceDim1 as sliceDim, se.sliceIndex1 as sliceIndex,
                d.rootPath as datasetRootPath, di.relPath as imageRelPath,
@@ -281,7 +281,7 @@ export function selectSessionSlices(sessionId: number) {
     return sliceRows;
 }
 
-export function selectSessionComparisons(sessionId: number) {
+export function selectSessionComparisons(sessionId: number | string) {
     const comparisonRows = dbConn.prepare(`
         SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1, se.sliceDim1, se.sliceIndex1, se.imageId2, se.sliceDim2, se.sliceIndex2,
                d.rootPath AS datasetRootPath, di1.relPath AS imageRelPath1, di2.relPath AS imageRelPath2,
@@ -297,7 +297,7 @@ export function selectSessionComparisons(sessionId: number) {
     return comparisonRows;
 }
 
-export function selectElementLabels(elementId: number) {
+export function selectElementLabels(elementId: number | string) {
     const labelRows = dbConn.prepare(`
         SELECT id, elementId, labelValue, startTimestamp, finishTimestamp
         FROM element_labels
@@ -308,7 +308,7 @@ export function selectElementLabels(elementId: number) {
     return labelRows;
 }
 
-export function selectSessionLatestComparisonLabels(sessionId: number) {
+export function selectSessionLatestComparisonLabels(sessionId: number | string) {
     const labelRows = dbConn.prepare(`
         SELECT (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
         FROM session_elements se

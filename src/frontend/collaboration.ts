@@ -42,7 +42,7 @@ export function sessionToJson(sessionId: number): string {
 const SESSION_TYPES = ['Classification', 'Comparison'];
 const COMPARISON_SAMPLINGS = ['Random', 'Sort', null];
 
-export function importSessionFromJson(sessionJson: any, newSessionName: string, datasetId: number): number {
+export function importSessionFromJson(sessionJson: any, newSessionName: string, datasetId: number | string): number {
     if (!SESSION_TYPES.includes(sessionJson.sessionType)) throw new Error(`Invalid sessionType ${sessionJson.sessionType}`);
     if (!COMPARISON_SAMPLINGS.includes(sessionJson.comparisonSampling)) throw new Error(`Invalid comparisonSampling ${sessionJson.comparisonSampling}`);
     if (typeof sessionJson.sessionName !== 'string') throw new Error(`Invalid sessionName ${sessionJson.sessionName}`);

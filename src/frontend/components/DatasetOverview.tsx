@@ -58,7 +58,7 @@ function ImportSessionModal({filePath, sessionJson, finishImport, cancelImport}:
     )
 }
 
-function NewSessionDropdown({datasetId, startSessionImport}: {datasetId: number, startSessionImport: () => void}) {
+function NewSessionDropdown({datasetId, startSessionImport}: {datasetId: string, startSessionImport: () => void}) {
     const [open, setOpen] = useState<boolean>(false);
 
     function closeAndRun(runFunc: () => any) {
@@ -102,9 +102,6 @@ function NewSessionDropdown({datasetId, startSessionImport}: {datasetId: number,
 
 function DatasetOverview() {
     let {datasetId, sessionId} = useParams();
-    datasetId = parseInt(datasetId);
-    if (sessionId) sessionId = parseInt(sessionId);
-
     const navigate = useNavigate();
 
     const [dataset, setDataset] = useState<Dataset | null>(null);
@@ -113,7 +110,7 @@ function DatasetOverview() {
     const [importData, setImportData] = useState<{path: string, json: object} | null>(null);
 
     // Default to first session if no sessionId is passed via route url
-    if (!sessionId && sessions && sessions.length > 0) sessionId = sessions[0].id;
+    if (!sessionId && sessions && sessions.length > 0) sessionId = sessions[0].id.toString();
 
     useEffect(() => {
         setDataset(dbapi.selectDataset(datasetId));
@@ -180,7 +177,7 @@ function DatasetOverview() {
                                 <Link
                                     to={`/dataset/${datasetId}/session/${s.id}`}
                                     className={
-                                        (s.id === sessionId)
+                                        (s.id === parseInt(sessionId))
                                             ? 'w-full px-3 py-1 text-gray-200 bg-gray-900 bg-opacity-70 rounded'
                                             : 'w-full px-3 py-1 text-gray-400 hover:text-gray-200 hover:bg-gray-900 hover:bg-opacity-70 rounded'
                                     }

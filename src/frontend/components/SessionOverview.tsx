@@ -122,7 +122,7 @@ function SessionTag({children}: {children?: any}) {
     )
 }
 
-function SlicesTable({sessionId, slices}: {sessionId: number, slices: Slice[]}) {
+function SlicesTable({sessionId, slices}: {sessionId: string, slices: Slice[]}) {
     return (
         <div>
             <table className="w-full table-fixed">
@@ -160,7 +160,7 @@ function SlicesTable({sessionId, slices}: {sessionId: number, slices: Slice[]}) 
     )
 }
 
-function ComparisonsTable({sessionId, comparisons}: {sessionId: number, comparisons: Comparison[]}) {
+function ComparisonsTable({sessionId, comparisons}: {sessionId: string, comparisons: Comparison[]}) {
     return (
         <div>
             <table className="w-full">
@@ -204,7 +204,7 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: number, comparis
     )
 }
 
-function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: number, refreshDatasetSessions: () => void}) {
+function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: string, refreshDatasetSessions: () => void}) {
     const navigate = useNavigate();
 
     const [session, setSession] = useState<LabelingSession | null>(null);
