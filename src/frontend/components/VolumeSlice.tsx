@@ -1,41 +1,48 @@
 import * as React from 'react';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef} from 'react';
 import {volumeapi} from '../backend';
 import * as tf from '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-backend-cpu';
+import '@tensorflow/tfjs-backend-webgl';
+import {Rank, Tensor3D} from '@tensorflow/tfjs';
 
-function flip(shouldFlip: boolean, val: number, valMax: number) {
-    return (shouldFlip)
-        ? valMax - val - 1
-        : val;
+interface ImageVolume {
+    dims: [number, number, number];
+    imageData: Tensor3D;
 }
 
-function drawSliceNifti(canvas: HTMLCanvasElement, imageHeader, imageData, sliceDim: number, sliceIndex: number, brightness: number,
+function imageDataTo3d(dims: [number, number, number], imageDataArray: Int32Array | Float32Array): Tensor3D {
+    // Create tensor and reshape to 3D (need to reverse dims for correct order)
+    const image1d = tf.tensor1d(imageDataArray);
+    return tf.reshape<Rank.R3>(image1d, dims.slice().reverse() as [number, number, number]);
+}
+
+function loadVolume(imagePath: string): ImageVolume {
+    if (imagePath.endsWith('.nii.gz')) {
+        // Load nifti
+        const [imageHeader, imageData] = volumeapi.readNifti(imagePath);
+
+        // Get image dims 1-3 (dim[0] in the Nifti format stores the number of dimensions)
+        const dims: [number, number, number] = imageHeader.dims.slice(1, 4);
+
+        // Convert to Int32 because TF tensors do not accept Int16
+        const imageDataArray = new Int32Array(imageData);
+        return {dims, imageData: imageDataTo3d(dims, imageDataArray)};
+    }
+    else {
+        // Load dicom series
+        const [dims, imageData] = volumeapi.readDicomSeries(imagePath);
+        dims.reverse();
+        return {dims, imageData: imageDataTo3d(dims, imageData)};
+    }
+}
+
+function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: number, sliceIndex: number, brightness: number,
                    hFlip: boolean, vFlip: boolean) {
-    // Get image dims 1-3 (dim[0] in the Nifti format stores the number of dimensions)
-    const dims: number[] = imageHeader.dims.slice(1, 4);
-
-    // Convert to Int32 because TF tensors do not accept Int16
-    imageData = new Int32Array(imageData);
-
-    drawSlice(canvas, dims, imageData, sliceDim, sliceIndex, brightness, hFlip, vFlip);
-}
-
-function drawSliceDicom(canvas: HTMLCanvasElement, dims: number[], imageData: Float32Array, sliceDim: number, sliceIndex: number, brightness: number,
-                        hFlip: boolean, vFlip: boolean) {
-    drawSlice(canvas, dims.reverse(), imageData, sliceDim, sliceIndex, brightness, hFlip, vFlip);
-}
-
-function drawSlice(canvas: HTMLCanvasElement, dims: number[], imageData, sliceDim: number, sliceIndex: number, brightness: number,
-                   hFlip: boolean, vFlip: boolean) {
+    const {dims, imageData: image3d} = image;
     // Flip scrubbing direction for sagittal
     if (sliceDim === 0) sliceIndex = dims[0] - sliceIndex - 1;
     // Clamp out of bounds slice index
     sliceIndex = Math.max(Math.min(sliceIndex, dims[sliceDim] - 1), 0);
-
-    // Create tensor and reshape to 3D (need to reverse dims for correct order)
-    const image1d = tf.tensor1d(imageData);
-    const image3d = tf.reshape(image1d, dims.reverse());
 
     // Slice RAS+ data along sliceDim
     let imSlice;
@@ -108,27 +115,12 @@ function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false
     const canvasRef = useRef(null);
 
     const image = useMemo(() => {
-        // TODO: clean this up
-        if (!imagePath.endsWith('.nii.gz')) {
-            const [dims, imageData] = volumeapi.readDicomSeries(imagePath);
-            return {
-                dicom: true,
-                dims: dims,
-                data: imageData,
-            }
-        }
-        const [imageHeader, imageData] = volumeapi.readNifti(imagePath);
-        return {
-            header: imageHeader,
-            data: imageData
-        };
+        return loadVolume(imagePath);
     }, [imagePath]);
 
     useEffect(() => {
         if (image) {
-            // TODO: clean this up too
-            if (image.dicom) drawSliceDicom(canvasRef.current, image.dims, image.data, sliceDim, sliceIndex, brightness, hFlip, vFlip);
-            else drawSliceNifti(canvasRef.current, image.header, image.data, sliceDim, sliceIndex, brightness, hFlip, vFlip);
+            drawSlice(canvasRef.current, image, sliceDim, sliceIndex, brightness, hFlip, vFlip);
         }
     }, [image, sliceDim, sliceIndex, brightness, hFlip, vFlip]);
 
