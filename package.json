@@ -15,17 +15,12 @@
     "elrebuild": "electron-rebuild"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^21.0.1",
-    "@rollup/plugin-node-resolve": "^13.0.0",
-    "@rollup/plugin-replace": "^3.0.0",
-    "@rollup/plugin-typescript": "^8.2.1",
     "@types/react": "^17.0.14",
     "@types/react-router": "^5.1.16",
     "electron": "^13.6.1",
     "electron-packager": "^15.4.0",
     "electron-rebuild": "^3.2.5",
     "esbuild": "^0.14.2",
-    "rollup": "^2.52.7",
     "tailwindcss": "^2.2.4",
     "typescript": "^4.3.5"
   },
