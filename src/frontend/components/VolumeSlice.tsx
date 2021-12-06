@@ -37,7 +37,7 @@ function loadVolume(imagePath: string): ImageVolume {
 }
 
 function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: number, sliceIndex: number, brightness: number,
-                   hFlip: boolean, vFlip: boolean) {
+                   hFlip: boolean, vFlip: boolean, transpose: boolean) {
     const {dims, imageData: image3d} = image;
     // Flip scrubbing direction for sagittal
     if (sliceDim === 0) sliceIndex = dims[0] - sliceIndex - 1;
@@ -55,6 +55,7 @@ function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: numb
     // Flip as needed to display RAS+
     if (hFlip !== (sliceDim === 1 || sliceDim === 2)) imSlice = tf.reverse(imSlice, 1);
     if (!vFlip) imSlice = tf.reverse(imSlice, 0);
+    if (transpose) imSlice = tf.transpose(imSlice);
     // Convert to JS array for indexing
     const sliceData = imSlice.arraySync() as number[][];
 
@@ -109,9 +110,10 @@ interface VolumeSliceProps {
     brightness: number;
     hFlip?: boolean;
     vFlip?: boolean;
+    transpose?: boolean;
 }
 
-function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false, vFlip = false}: VolumeSliceProps) {
+function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false, vFlip = false, transpose = false}: VolumeSliceProps) {
     const canvasRef = useRef(null);
 
     const image = useMemo(() => {
@@ -120,9 +122,9 @@ function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false
 
     useEffect(() => {
         if (image) {
-            drawSlice(canvasRef.current, image, sliceDim, sliceIndex, brightness, hFlip, vFlip);
+            drawSlice(canvasRef.current, image, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose);
         }
-    }, [image, sliceDim, sliceIndex, brightness, hFlip, vFlip]);
+    }, [image, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose]);
 
     return <canvas className="w-full h-full" ref={canvasRef} width={0} height={0} />
 }

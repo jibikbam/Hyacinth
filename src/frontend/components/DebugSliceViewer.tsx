@@ -11,10 +11,11 @@ function SliceWithControls({imagePath, sliceDim}: {imagePath: string, sliceDim: 
     const [sliceIndex, setSliceIndex] = useState(100);
     const [hFlip, setHFlip] = useState(false);
     const [vFlip, setVFlip] = useState(false);
+    const [transpose, setTranspose] = useState(false);
 
     return (
         <div className="flex-1 flex flex-col">
-            <VolumeSlice imagePath={imagePath} sliceIndex={Math.round(sliceIndex)} sliceDim={sliceDim} brightness={50} hFlip={hFlip} vFlip={vFlip} />
+            <VolumeSlice imagePath={imagePath} sliceIndex={Math.round(sliceIndex)} sliceDim={sliceDim} brightness={50} hFlip={hFlip} vFlip={vFlip} transpose={transpose} />
             <div className="mt-4 p-2 bg-gray-800 rounded flex justify-between items-center">
                 <div className="ml-1 flex-1 flex items-center">
                     <InputRange min={0} max={255} step={1} value={sliceIndex} setValue={setSliceIndex} />
@@ -26,6 +27,9 @@ function SliceWithControls({imagePath, sliceDim}: {imagePath: string, sliceDim: 
                     </Button>
                     <Button size="icon" color={vFlip ? 'darkPink' : 'gray'} onClick={() => setVFlip(!vFlip)}>
                         <SwitchVerticalIcon className="w-5 h-5" />
+                    </Button>
+                    <Button size="icon" color={transpose ? 'darkPink' : 'gray'} onClick={() => setTranspose(!transpose)}>
+                        <SwitchVerticalIcon className="w-5 h-5 transform rotate-45" />
                     </Button>
                 </div>
             </div>
@@ -69,7 +73,7 @@ function DebugSliceViewer() {
                 <div className="w-1/3" />
             </header>
             <div className="p-8 w-full space-x-8 flex items-end">
-                {[0, 1, 2].map(sliceDim => <SliceWithControls imagePath={imagePath} sliceDim={sliceDim} />)}
+                {[0, 1, 2].map(sliceDim => <SliceWithControls key={sliceDim} imagePath={imagePath} sliceDim={sliceDim} />)}
             </div>
         </div>
     )
