@@ -31,7 +31,6 @@ function loadVolume(imagePath: string): ImageVolume {
     else {
         // Load dicom series
         const [dims, imageData] = volumeapi.readDicomSeries(imagePath);
-        dims.reverse();
         return {dims, imageData: imageDataTo3d(dims, imageData)};
     }
 }

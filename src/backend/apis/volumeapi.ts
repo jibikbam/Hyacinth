@@ -27,8 +27,10 @@ export function readNifti(imagePath) {
 }
 
 export function readDicomSeries(seriesDirPath: string) {
-    // TODO: sanity check path is dir and handle empty
+    if (!fs.statSync(seriesDirPath).isDirectory()) throw new Error(`Dicom seriesDirPath is not a directory: ${seriesDirPath}`);
+
     const imageNames = fs.readdirSync(seriesDirPath).filter(n => n.endsWith(DICOM_FILE_EXT));
+    if (imageNames.length === 0) throw new Error(`Dicom series dir is empty: ${seriesDirPath}`);
 
     const series = new daikon.Series();
 
@@ -52,13 +54,13 @@ export function readDicomSeries(seriesDirPath: string) {
     series.buildSeries();
 
     const dims = [
-        series.images.length,
-        series.images[0].getRows(),
         series.images[0].getCols(),
+        series.images[0].getRows(),
+        series.images.length,
     ];
 
-    const numImagePixels = dims[1] * dims[2];
-    const numVoxels = numImagePixels * dims[0];
+    const numImagePixels = dims[0] * dims[1];
+    const numVoxels = numImagePixels * dims[2];
 
     const finalArray = new Float32Array(numVoxels);
     let offset = 0;
