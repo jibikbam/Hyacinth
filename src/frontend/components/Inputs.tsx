@@ -1,28 +1,31 @@
 import * as React from 'react';
 import {SelectorIcon} from '@heroicons/react/solid';
+import {InputValidator} from '../hooks/validators';
 
 interface InputTextProps {
     id: string;
     label: string | null;
     placeholder: string;
-    value: string;
-    setValue: Function;
+    value?: string;
+    setValue?: Function;
+    validator?: InputValidator<string>;
 }
 
-function InputText({id, label, placeholder, value, setValue}: InputTextProps) {
+function InputText({id, label, placeholder, value, setValue, validator}: InputTextProps) {
     return (
         <div>
             {label && <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>}
             <input
-                className="mt-0.5 px-3 py-1 w-full bg-gray-800 rounded text-gray-300 placeholder-gray-500 transition
-                border border-gray-800 hover:border-gray-500 focus:border-gray-400
-                focus:outline-none"
+                className={`mt-0.5 px-3 py-1 w-full bg-gray-800 rounded text-gray-300 placeholder-gray-500 transition
+                border ${(validator && validator.showErrors) ? 'border-red-400' : 'border-gray-800 hover:border-gray-500 focus:border-gray-400'}
+                focus:outline-none`}
                 id={id}
                 type="text"
                 placeholder={placeholder}
-                value={value}
-                onInput={ev => setValue(ev.currentTarget.value)}
+                value={validator ? validator.value : value}
+                onInput={ev => (validator ? validator.setValue : setValue)(ev.currentTarget.value)}
             />
+            {validator && validator.showErrors && validator.errors.map(e => <div key={e} className="mt-1.5 text-xs text-red-400">{e}</div>)}
         </div>
     )
 }

@@ -10,6 +10,12 @@ import {CheckCircleIcon, CollectionIcon, ScaleIcon} from '@heroicons/react/outli
 import {ChartBarIcon, ChartPieIcon} from '@heroicons/react/solid';
 import {sampleComparisons, sampleSlices} from '../sampling';
 import {getInitialComparison} from '../sort';
+import {
+    InputValidator,
+    useSessionLabelOptionsValidator,
+    useSessionNameValidator,
+    useStringLengthValidator
+} from '../hooks/validators';
 
 function TypeOption({text, highlight, onClick, children}: {text: string, highlight: boolean, onClick: Function, children?: any}) {
     const borderColor = highlight ? 'border-gray-300' : 'border-gray-500 hover:border-gray-400';
@@ -44,29 +50,26 @@ function ChooseTypeStep({sessionType, setSessionType}: {sessionType: SessionType
 }
 
 interface SessionInfoStepProps {
-    sessionName: string;
-    setSessionName: Function;
-    prompt: string;
-    setPrompt: Function;
-    labelOptions: string;
-    setLabelOptions: Function;
+    sessionName: InputValidator<string>;
+    prompt: InputValidator<string>;
+    labelOptions: InputValidator<string>;
     sessionType: SessionType;
 }
 
-function SessionInfoStep({sessionName, setSessionName, prompt, setPrompt, labelOptions, setLabelOptions, sessionType}: SessionInfoStepProps) {
+function SessionInfoStep({sessionName, prompt, labelOptions, sessionType}: SessionInfoStepProps) {
     const isCompare = sessionType === 'Comparison';
     return (
         <div className="mx-auto mt-10 w-2/3 flex flex-col space-y-8">
             <div>
-                <InputText id="session-name" label="Session Name *" placeholder="My Session" value={sessionName} setValue={setSessionName} />
+                <InputText id="session-name" label="Session Name *" placeholder="My Session" validator={sessionName} />
                 <div className="mt-2 text-xs text-gray-400">Choose a name for this {sessionType.toLowerCase()} session. Session names must be unique per dataset.</div>
             </div>
             <div>
-                <InputText id="prompt" label="Session Prompt" placeholder={isCompare ? 'Which of these slices is better?' : 'What do you think of this slice?'} value={prompt} setValue={setPrompt} />
+                <InputText id="prompt" label="Session Prompt" placeholder={isCompare ? 'Which of these slices is better?' : 'What do you think of this slice?'} validator={prompt} />
                 <div className="mt-2 text-xs text-gray-400">The session prompt tells the labeler what criteria to use when choosing a label.</div>
             </div>
             <div>
-                <InputText id="label-options" label={isCompare ? 'Additional Labels' : 'Labels *'} placeholder="Label 1, Label 2, Label 3" value={labelOptions} setValue={setLabelOptions} />
+                <InputText id="label-options" label={isCompare ? 'Additional Labels' : 'Labels *'} placeholder="Label 1, Label 2, Label 3" validator={labelOptions} />
                 <div className="mt-2 text-xs text-gray-400">Comma-separated list of {isCompare && 'additional'} labels for this {sessionType.toLowerCase()} session.</div>
             </div>
         </div>
@@ -163,9 +166,9 @@ function CreateSession() {
     }, []);
 
     const [sessionType, setSessionType] = useState<SessionType | null>(null);
-    const [sessionName, setSessionName] = useState<string>('');
-    const [prompt, setPrompt] = useState<string>('');
-    const [labelOptions, setLabelOptions] = useState<string>('');
+    const sessionName = useSessionNameValidator('', datasetId);
+    const prompt = useStringLengthValidator('');
+    const labelOptions = useSessionLabelOptionsValidator('', sessionType);
 
     const [slicesFrom, setSlicesFrom] = useState<string>('Create New');
     const [imageCount, setImageCount] = useState<number>(1);
@@ -198,11 +201,11 @@ function CreateSession() {
         if (sessionType === 'Comparison' && sampling === 'Random') metadata['Comparison Count'] = comparisonCount;
         const metadataJson = JSON.stringify(metadata);
 
-        const newSessionId = dbapi.insertLabelingSession(datasetId, sessionType, sessionName, prompt, labelOptions, sampling, metadataJson, slices, comparisons);
+        const newSessionId = dbapi.insertLabelingSession(datasetId, sessionType, sessionName.value, prompt.value, labelOptions.value, sampling, metadataJson, slices, comparisons);
         navigate(`/dataset/${datasetId}/session/${newSessionId}`);
     }
 
-    const infoValid = sessionName.length > 0 && (sessionType !== 'Classification' || labelOptions.length > 0);
+    const infoValid = sessionName.valid && labelOptions.valid;
 
     return (
         <StepContainer>
@@ -222,11 +225,8 @@ function CreateSession() {
                             <StepHeader title="Create Labeling Session" stepDescription="Session Info" curStep={1} stepCount={3}/>
                             <SessionInfoStep
                                 sessionName={sessionName}
-                                setSessionName={setSessionName}
                                 prompt={prompt}
-                                setPrompt={setPrompt}
                                 labelOptions={labelOptions}
-                                setLabelOptions={setLabelOptions}
                                 sessionType={sessionType}
                             />
                         </div>

@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('dbapi', {
     selectDataset: dbapi.selectDataset,
     selectDatasetImages: dbapi.selectDatasetImages,
     selectDatasetSessions: dbapi.selectDatasetSessions,
+    isLabelingSessionNameAvailable: dbapi.isLabelingSessionNameAvailable,
     selectLabelingSession: dbapi.selectLabelingSession,
     selectSessionSlices: dbapi.selectSessionSlices,
     selectSessionComparisons: dbapi.selectSessionComparisons,

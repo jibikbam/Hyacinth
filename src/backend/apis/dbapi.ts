@@ -46,12 +46,13 @@ export function createTables() {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 datasetId INTEGER NOT NULL,
                 sessionType TEXT NOT NULL,
-                sessionName TEXT UNIQUE NOT NULL,
+                sessionName TEXT NOT NULL,
                 prompt TEXT NOT NULL,
                 labelOptions TEXT NOT NULL,
                 comparisonSampling TEXT,
                 metadataJson TEXT NOT NULL,
-                FOREIGN KEY (datasetId) REFERENCES datasets (id) ON UPDATE CASCADE ON DELETE CASCADE
+                FOREIGN KEY (datasetId) REFERENCES datasets (id) ON UPDATE CASCADE ON DELETE CASCADE,
+                UNIQUE (datasetId, sessionName)
             )
         `).run();
 
@@ -255,6 +256,15 @@ export function selectDatasetSessions(datasetId: number | string) {
     `).all({datasetId});
     console.log(`Selected ${sessionRows.length} sessions for dataset ${datasetId}`);
     return sessionRows;
+}
+
+export function isLabelingSessionNameAvailable(datasetId: number | string, sessionName: string): boolean {
+    const resultRow = dbConn.prepare(`
+        SELECT COUNT(*) AS sessionCount FROM labeling_sessions
+        WHERE datasetId = :datasetId AND sessionName = :sessionName;
+    `).get({datasetId, sessionName});
+    console.log(`Selected sessionCount ${resultRow.sessionCount} for datasetId ${datasetId} and sessionName ${sessionName}`)
+    return resultRow.sessionCount === 0;
 }
 
 export function selectLabelingSession(sessionId: number | string) {
