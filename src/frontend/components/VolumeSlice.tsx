@@ -5,10 +5,8 @@ import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import {Rank, Tensor3D} from '@tensorflow/tfjs';
 
-function imageDataTo3d(dims: [number, number, number], imageDataArray: Int32Array | Float32Array): Tensor3D {
-    // Create tensor and reshape to 3D (need to reverse dims for correct order)
-    const image1d = tf.tensor1d(imageDataArray);
-    return tf.reshape<Rank.R3>(image1d, dims.slice().reverse() as [number, number, number]);
+function reverseDims(dims: [number, number, number]): [number, number, number] {
+    return dims.slice().reverse() as [number, number, number];
 }
 
 function loadVolume(imagePath: string): Tensor3D {
@@ -21,21 +19,33 @@ function loadVolume(imagePath: string): Tensor3D {
 
         // Convert to Int32 because TF tensors do not accept Int16
         const imageDataArray = new Int32Array(imageData);
-        let image3d = imageDataTo3d(dims, imageDataArray);
-        // Reorder axes
-        image3d = tf.transpose(image3d, [2, 1, 0])
-        // Flip for display
-        image3d = tf.reverse(image3d, 1);
-        image3d = tf.reverse(image3d, 2);
-        return image3d;
+
+        return tf.tidy(() => {
+            // Convert to 3D
+            const image1d = tf.tensor1d(imageDataArray);
+            let image3d = tf.reshape<Rank.R3>(image1d, reverseDims(dims));
+
+            // Reorder axes
+            image3d = tf.transpose(image3d, [2, 1, 0])
+            // Flip for display
+            image3d = tf.reverse(image3d, 1);
+            image3d = tf.reverse(image3d, 2);
+            return image3d;
+        });
     }
     else {
         // Load dicom series
-        const [dims, imageData] = volumeapi.readDicomSeries(imagePath);
-        let image3d = imageDataTo3d(dims, imageData);
-        // Reorder axes
-        image3d = tf.transpose(image3d, [0, 2, 1]);
-        return image3d;
+        const [dims, imageDataArray] = volumeapi.readDicomSeries(imagePath);
+
+        return tf.tidy(() => {
+            // Convert to 3D
+            const image1d = tf.tensor1d(imageDataArray);
+            let image3d = tf.reshape<Rank.R3>(image1d, reverseDims(dims));
+
+            // Reorder axes
+            image3d = tf.transpose(image3d, [0, 2, 1]);
+            return image3d;
+        });
     }
 }
 
@@ -51,7 +61,10 @@ function loadVolumeCached(imagePath: string): Tensor3D {
     // Insert at index 0
     IMAGE_CACHE.splice(0, 0, [imagePath, image3d]);
     // Pop from end until queue is of correct length
-    while (IMAGE_CACHE.length > IMAGE_CACHE_SIZE) IMAGE_CACHE.pop();
+    while (IMAGE_CACHE.length > IMAGE_CACHE_SIZE) {
+        const [_, img] = IMAGE_CACHE.pop();
+        tf.dispose(img); // Dispose of old tensors
+    }
 
     return image3d;
 }
@@ -62,23 +75,25 @@ function drawSlice(canvas: HTMLCanvasElement, image3d: Tensor3D, sliceDim: numbe
     // Clamp out of bounds slice index
     sliceIndex = Math.max(Math.min(sliceIndex, dims[sliceDim] - 1), 0);
 
-    // Slice RAS+ data along sliceDim
-    let imSlice;
-    switch (sliceDim) {
-        case 0: imSlice = tf.slice(image3d, [sliceIndex, 0, 0], [1, -1, -1]); break;
-        case 1: imSlice = tf.slice(image3d, [0, sliceIndex, 0], [-1, 1, -1]); break;
-        case 2: imSlice = tf.slice(image3d, [0, 0, sliceIndex], [-1, -1, 1]); break;
-    }
-    imSlice = tf.squeeze(imSlice);
-    // Apply flips
-    if (hFlip) imSlice = tf.reverse(imSlice, 1);
-    if (vFlip) imSlice = tf.reverse(imSlice, 0);
-    if (tFlip) imSlice = tf.transpose(imSlice);
-    // Convert to JS array for indexing
-    const sliceData = imSlice.arraySync() as number[][];
+    const sliceData = tf.tidy(() => {
+        // Slice RAS+ data along sliceDim
+        let imSlice;
+        switch (sliceDim) {
+            case 0: imSlice = tf.slice(image3d, [sliceIndex, 0, 0], [1, -1, -1]); break;
+            case 1: imSlice = tf.slice(image3d, [0, sliceIndex, 0], [-1, 1, -1]); break;
+            case 2: imSlice = tf.slice(image3d, [0, 0, sliceIndex], [-1, -1, 1]); break;
+        }
+        imSlice = tf.squeeze(imSlice);
+        // Apply flips
+        if (hFlip) imSlice = tf.reverse(imSlice, 1);
+        if (vFlip) imSlice = tf.reverse(imSlice, 0);
+        if (tFlip) imSlice = tf.transpose(imSlice);
+        // Convert to JS array for indexing
+        return imSlice.arraySync() as number[][];
+    });
 
     // Define xMax and yMax (#cols and #rows)
-    const xMax = imSlice.shape[0], yMax = imSlice.shape[1];
+    const xMax = sliceData.length, yMax = sliceData[0].length;
 
     // Update canvas size and initialize ImageData array
     canvas.width = xMax;
@@ -87,8 +102,11 @@ function drawSlice(canvas: HTMLCanvasElement, image3d: Tensor3D, sliceDim: numbe
     const canvasImageData = context.createImageData(canvas.width, canvas.height);
 
     // Compute max value of image for tone mapping (and adjust for brightness)
-    let minValue = tf.min(image3d).arraySync() as number;
-    let maxValue = (tf.max(image3d).arraySync() as number) - minValue;
+    let [minValue, maxValue] = tf.tidy(() => {
+        const minV = tf.min(image3d).arraySync() as number;
+        const maxV = (tf.max(image3d).arraySync() as number) - minV;
+        return [minV, maxV];
+    })
     maxValue = maxValue * ((100 - brightness) / 100);
 
     // x and y are in 2D output space
@@ -157,7 +175,7 @@ function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false
     }, [imagePath, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose]);
 
     return (
-        <div className="w-full h-full bg-black flex justify-center items-center">
+        <div className="w-full h-full bg-black">
             <canvas className="w-full h-full" ref={canvasRef} width={0} height={0} />
         </div>
     )
