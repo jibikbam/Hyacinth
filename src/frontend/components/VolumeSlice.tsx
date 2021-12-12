@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useMemo, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {volumeapi} from '../backend';
 import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
@@ -120,6 +120,11 @@ function drawSlice(canvas: HTMLCanvasElement, image3d: Tensor3D, sliceDim: numbe
     context.putImageData(canvasImageData, 0, 0);
 }
 
+function clearCanvas(canvasEl: HTMLCanvasElement) {
+    const context = canvasEl.getContext('2d');
+    context.clearRect(0, 0, canvasEl.width, canvasEl.height);
+}
+
 interface VolumeSliceProps {
     imagePath: string;
     sliceDim: number;
@@ -132,18 +137,31 @@ interface VolumeSliceProps {
 
 function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false, vFlip = false, transpose = false}: VolumeSliceProps) {
     const canvasRef = useRef(null);
+    const [curImagePath, setCurImagePath] = useState<string | null>(null);
 
-    const image = useMemo(() => {
-        return loadVolumeCached(imagePath);
-    }, [imagePath]);
+    function draw() {
+        const image3d = loadVolumeCached(imagePath);
+        drawSlice(canvasRef.current, image3d, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose);
+    }
 
     useEffect(() => {
-        if (image) {
-            drawSlice(canvasRef.current, image, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose);
+        // If we are loading a different image, clear the canvas to act as a simple loading indicator
+        if (curImagePath !== imagePath) {
+            clearCanvas(canvasRef.current);
+            setTimeout(draw, 100); // Timeout required so empty canvas is rendered
         }
-    }, [image, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose]);
+        else {
+            draw();
+        }
+        setCurImagePath(imagePath);
+    }, [imagePath, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose]);
 
-    return <canvas className="w-full h-full" ref={canvasRef} width={0} height={0} />
+    return (
+        <div className="w-full h-full bg-black flex justify-center items-center">
+            <canvas className="w-full h-full" ref={canvasRef} width={0} height={0} />
+        </div>
+    )
+
 }
 
 export {VolumeSlice};
