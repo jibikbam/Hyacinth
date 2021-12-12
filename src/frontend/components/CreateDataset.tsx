@@ -8,6 +8,7 @@ import {StepNavigation} from './StepNavigation';
 import {FolderOpenIcon} from '@heroicons/react/solid';
 import {InputText} from './Inputs';
 import {CheckCircleIcon, InformationCircleIcon} from '@heroicons/react/outline';
+import {InputValidator, useDatasetNameValidator} from '../hooks/validators';
 
 function ChooseDirectoryButton({onClick}: {onClick: Function}) {
     return (
@@ -61,24 +62,23 @@ function FilePreviewStep({datasetRoot, filePaths}: {datasetRoot: string, filePat
 }
 
 interface ChooseNameStepProps {
-    datasetName: string;
-    setDatasetName: Function;
+    datasetName: InputValidator<string>;
     datasetRoot: string;
     numFiles: number;
 }
 
-function ChooseNameStep({datasetName, setDatasetName, datasetRoot, numFiles}: ChooseNameStepProps) {
+function ChooseNameStep({datasetName, datasetRoot, numFiles}: ChooseNameStepProps) {
     return (
         <div className="mt-16">
             <div className="mx-auto w-3/4">
                 <div>
-                    <InputText id="dataset-name" label="Dataset Name" placeholder="My Dataset" value={datasetName} setValue={setDatasetName} />
+                    <InputText id="dataset-name" label="Dataset Name" placeholder="My Dataset" validator={datasetName} />
                 </div>
                 <div className="mt-2 text-xs text-gray-400">Choose a name for this dataset. Dataset names must be unique.</div>
                 <div className="mt-12 px-3 py-2 text-xs text-gray-400 rounded border border-gray-500 flex items-center">
                     <InformationCircleIcon className="w-6 h-6 text-gray-400 opacity-80" />
                     <div className="ml-3">
-                        <div>{datasetName ? `"${datasetName}"` : 'Dataset'} will be created with {numFiles} files at</div>
+                        <div>{datasetName.value ? `"${datasetName.value}"` : 'Dataset'} will be created with {numFiles} files at</div>
                         <div>{datasetRoot}</div>
                     </div>
                 </div>
@@ -89,7 +89,7 @@ function ChooseNameStep({datasetName, setDatasetName, datasetRoot, numFiles}: Ch
 
 function CreateDataset() {
     const [datasetRoot, setDatasetRoot] = useState<string | null>(null);
-    const [datasetName, setDatasetName] = useState<string>('');
+    const datasetName = useDatasetNameValidator('');
     const [filePaths, setFilePaths] = useState<string[]>([]);
 
     const navigate = useNavigate();
@@ -104,7 +104,7 @@ function CreateDataset() {
     }
 
     function createDataset() {
-        dbapi.insertDataset(datasetName, datasetRoot, filePaths);
+        dbapi.insertDataset(datasetName.value, datasetRoot, filePaths);
         navigate('/');
     }
 
@@ -134,9 +134,9 @@ function CreateDataset() {
                         <>
                             <div>
                                 <StepHeader title="Create Dataset" stepDescription="Choose Name" curStep={2} stepCount={3}/>
-                                <ChooseNameStep datasetName={datasetName} setDatasetName={setDatasetName} datasetRoot={datasetRoot} numFiles={filePaths.length}/>
+                                <ChooseNameStep datasetName={datasetName} datasetRoot={datasetRoot} numFiles={filePaths.length}/>
                             </div>
-                            <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} finishText="Create" finishClicked={createDataset} finishDisabled={datasetName.length === 0} />
+                            <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} finishText="Create" finishClicked={createDataset} finishDisabled={!datasetName.valid} />
                         </>
                     } />
                 </Routes>

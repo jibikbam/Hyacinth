@@ -82,6 +82,7 @@ export interface DBApiType {
     insertComparison: (sessionId: number | string, elementIndex: number, slice1: Slice, slice2: Slice) => void;
     deleteLabelingSession: (sessionId: number | string) => void;
     selectAllDatasets: () => Dataset[];
+    isDatasetNameAvailable: (datasetName: string) => boolean;
     selectDataset: (datasetId: number | string) => Dataset;
     selectDatasetImages: (datasetId: number | string) => DatasetImage[];
     selectDatasetSessions: (datasetId: number | string) => LabelingSession[];

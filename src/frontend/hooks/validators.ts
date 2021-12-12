@@ -35,6 +35,8 @@ function useValidator<T>(validate: ValidatorFunc<T>, initialValue: T, deps: Reac
     return {value, setValue, valid, errors, showErrors};
 }
 
+// ---------- GENERIC VALIDATORS ----------
+
 export function useStringLengthValidator(initialValue: string, min?: number, max?: number) {
     const validate: ValidatorFunc<string> = (value, errors) => {
         if (min !== undefined && value.length < min) {
@@ -53,6 +55,20 @@ export function useStringLengthValidator(initialValue: string, min?: number, max
 
     return useValidator(validate, initialValue, []);
 }
+
+// ---------- DATASET CREATION VALIDATORS ----------
+
+export function useDatasetNameValidator(initialValue: string): InputValidator<string> {
+    const validate: ValidatorFunc<string> = (value, errors) => {
+        if (value.length === 0) errors.push('Field cannot be empty.');
+        if (!dbapi.isDatasetNameAvailable(value)) errors.push('Dataset name is already taken.');
+        return errors;
+    };
+
+    return useValidator(validate, initialValue, []);
+}
+
+// ---------- SESSION CREATION VALIDATORS ----------
 
 export function useSessionNameValidator(initialValue: string, datasetId: number | string): InputValidator<string> {
     const validate: ValidatorFunc<string> = (value, errors) => {

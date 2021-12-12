@@ -227,6 +227,15 @@ export function selectAllDatasets() {
     return datasetRows;
 }
 
+export function isDatasetNameAvailable(datasetName: string): boolean {
+    const resultRow = dbConn.prepare(`
+        SELECT count(*) AS datasetCount FROM datasets
+        WHERE datasetName = :datasetName;
+    `).get({datasetName});
+    console.log(`Selected datasetCount ${resultRow.datasetCount} for datasetName ${datasetName}`);
+    return resultRow.datasetCount === 0;
+}
+
 export function selectDataset(datasetId: number | string) {
     const datasetRow = dbConn.prepare(`
         SELECT d.id, d.datasetName, d.rootPath, count(di.id) AS imageCount
@@ -260,10 +269,10 @@ export function selectDatasetSessions(datasetId: number | string) {
 
 export function isLabelingSessionNameAvailable(datasetId: number | string, sessionName: string): boolean {
     const resultRow = dbConn.prepare(`
-        SELECT COUNT(*) AS sessionCount FROM labeling_sessions
+        SELECT count(*) AS sessionCount FROM labeling_sessions
         WHERE datasetId = :datasetId AND sessionName = :sessionName;
     `).get({datasetId, sessionName});
-    console.log(`Selected sessionCount ${resultRow.sessionCount} for datasetId ${datasetId} and sessionName ${sessionName}`)
+    console.log(`Selected sessionCount ${resultRow.sessionCount} for datasetId ${datasetId} and sessionName ${sessionName}`);
     return resultRow.sessionCount === 0;
 }
 
