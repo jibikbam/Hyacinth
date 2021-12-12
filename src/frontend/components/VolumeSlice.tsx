@@ -5,18 +5,13 @@ import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import {Rank, Tensor3D} from '@tensorflow/tfjs';
 
-interface ImageVolume {
-    dims: [number, number, number];
-    imageData: Tensor3D;
-}
-
 function imageDataTo3d(dims: [number, number, number], imageDataArray: Int32Array | Float32Array): Tensor3D {
     // Create tensor and reshape to 3D (need to reverse dims for correct order)
     const image1d = tf.tensor1d(imageDataArray);
     return tf.reshape<Rank.R3>(image1d, dims.slice().reverse() as [number, number, number]);
 }
 
-function loadVolume(imagePath: string): ImageVolume {
+function loadVolume(imagePath: string): Tensor3D {
     if (imagePath.endsWith('.nii.gz')) {
         // Load nifti
         const [imageHeader, imageData] = volumeapi.readNifti(imagePath);
@@ -26,41 +21,47 @@ function loadVolume(imagePath: string): ImageVolume {
 
         // Convert to Int32 because TF tensors do not accept Int16
         const imageDataArray = new Int32Array(imageData);
-        return {dims, imageData: imageDataTo3d(dims, imageDataArray)};
+        let image3d = imageDataTo3d(dims, imageDataArray);
+        // Reorder axes
+        image3d = tf.transpose(image3d, [2, 1, 0])
+        // Flip for display
+        image3d = tf.reverse(image3d, 1);
+        image3d = tf.reverse(image3d, 2);
+        return image3d;
     }
     else {
         // Load dicom series
         const [dims, imageData] = volumeapi.readDicomSeries(imagePath);
-        return {dims, imageData: imageDataTo3d(dims, imageData)};
+        let image3d = imageDataTo3d(dims, imageData);
+        // Reorder axes
+        image3d = tf.transpose(image3d, [0, 2, 1]);
+        return image3d;
     }
 }
 
-function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: number, sliceIndex: number, brightness: number,
-                   hFlip: boolean, vFlip: boolean, transpose: boolean) {
-    const {dims, imageData: image3d} = image;
-    // Flip scrubbing direction for sagittal
-    if (sliceDim === 0) sliceIndex = dims[0] - sliceIndex - 1;
+function drawSlice(canvas: HTMLCanvasElement, image3d: Tensor3D, sliceDim: number, sliceIndex: number, brightness: number,
+                   hFlip: boolean, vFlip: boolean, tFlip: boolean) {
+    const dims = image3d.shape;
     // Clamp out of bounds slice index
     sliceIndex = Math.max(Math.min(sliceIndex, dims[sliceDim] - 1), 0);
 
     // Slice RAS+ data along sliceDim
     let imSlice;
     switch (sliceDim) {
-        case 0: imSlice = tf.slice(image3d, [0, 0, sliceIndex], [-1, -1, 1]); break;
+        case 0: imSlice = tf.slice(image3d, [sliceIndex, 0, 0], [1, -1, -1]); break;
         case 1: imSlice = tf.slice(image3d, [0, sliceIndex, 0], [-1, 1, -1]); break;
-        case 2: imSlice = tf.slice(image3d, [sliceIndex, 0, 0], [1, -1, -1]); break;
+        case 2: imSlice = tf.slice(image3d, [0, 0, sliceIndex], [-1, -1, 1]); break;
     }
     imSlice = tf.squeeze(imSlice);
-    // Flip as needed to display RAS+
-    if (hFlip !== (sliceDim === 1 || sliceDim === 2)) imSlice = tf.reverse(imSlice, 1);
-    if (!vFlip) imSlice = tf.reverse(imSlice, 0);
-    if (transpose) imSlice = tf.transpose(imSlice);
+    // Apply flips
+    if (hFlip) imSlice = tf.reverse(imSlice, 1);
+    if (vFlip) imSlice = tf.reverse(imSlice, 0);
+    if (tFlip) imSlice = tf.transpose(imSlice);
     // Convert to JS array for indexing
     const sliceData = imSlice.arraySync() as number[][];
 
     // Define xMax and yMax (#cols and #rows)
-    // Note that dims were reversed at tensor creation
-    const xMax = imSlice.shape[1], yMax = imSlice.shape[0];
+    const xMax = imSlice.shape[0], yMax = imSlice.shape[1];
 
     // Update canvas size and initialize ImageData array
     canvas.width = xMax;
@@ -78,7 +79,7 @@ function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: numb
         for (let y = 0; y < yMax; y++) {
             // Get value and tone map to 8 bits (0-255)
             // (uses maxValue computed earlier with brightness)
-            let value = sliceData[y][x];  // Note reversed dims as mentioned above
+            let value = sliceData[x][y];
             value = value - minValue;
             value = (value / maxValue) * 255;
             value = Math.min(value, 255);
