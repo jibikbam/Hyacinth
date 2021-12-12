@@ -39,6 +39,23 @@ function loadVolume(imagePath: string): Tensor3D {
     }
 }
 
+// Implements an LRU cache for image volumes
+const IMAGE_CACHE_SIZE = 3;
+const IMAGE_CACHE: [string, Tensor3D][] = [];
+function loadVolumeCached(imagePath: string): Tensor3D {
+    for (const [p, img] of IMAGE_CACHE) {
+        if (p === imagePath) return img;
+    }
+
+    const image3d = loadVolume(imagePath);
+    // Insert at index 0
+    IMAGE_CACHE.splice(0, 0, [imagePath, image3d]);
+    // Pop from end until queue is of correct length
+    while (IMAGE_CACHE.length > IMAGE_CACHE_SIZE) IMAGE_CACHE.pop();
+
+    return image3d;
+}
+
 function drawSlice(canvas: HTMLCanvasElement, image3d: Tensor3D, sliceDim: number, sliceIndex: number, brightness: number,
                    hFlip: boolean, vFlip: boolean, tFlip: boolean) {
     const dims = image3d.shape;
@@ -117,7 +134,7 @@ function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false
     const canvasRef = useRef(null);
 
     const image = useMemo(() => {
-        return loadVolume(imagePath);
+        return loadVolumeCached(imagePath);
     }, [imagePath]);
 
     useEffect(() => {
