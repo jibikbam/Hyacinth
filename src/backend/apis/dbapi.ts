@@ -186,7 +186,6 @@ export function insertElementLabel(elementId: number | string, labelValue: strin
 }
 
 // For internal use when appending the next sort comparison within the same transaction after labeling
-// Exposed publicly as insertComparison below
 function insertComparisonNoTransaction(sessionId: number | string, elementIndex: number, slice1, slice2) {
     const insertStatement = dbConn.prepare(`
         INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceDim1, sliceIndex1, imageId2, sliceDim2, sliceIndex2)
@@ -204,16 +203,6 @@ function insertComparisonNoTransaction(sessionId: number | string, elementIndex:
         sliceDim2: slice2.sliceDim,
         sliceIndex2: slice2.sliceIndex,
     });
-}
-
-
-export function insertComparison(sessionId: number | string, elementIndex: number, slice1, slice2) {
-    const insertTransaction = dbConn.transaction(() => {
-        insertComparisonNoTransaction(sessionId, elementIndex, slice1, slice2);
-    });
-
-    insertTransaction();
-    console.log(`Inserted additional comparison for session ${sessionId}`);
 }
 
 export function deleteLabelingSession(sessionId: number | string) {

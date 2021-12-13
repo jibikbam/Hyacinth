@@ -9,7 +9,6 @@ contextBridge.exposeInMainWorld('dbapi', {
     insertDataset: dbapi.insertDataset,
     insertLabelingSession: dbapi.insertLabelingSession,
     insertElementLabel: dbapi.insertElementLabel,
-    insertComparison: dbapi.insertComparison,
     deleteLabelingSession: dbapi.deleteLabelingSession,
     selectAllDatasets: dbapi.selectAllDatasets,
     isDatasetNameAvailable: dbapi.isDatasetNameAvailable,
