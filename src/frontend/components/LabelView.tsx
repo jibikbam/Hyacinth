@@ -267,6 +267,8 @@ function LabelView() {
                 element: _curElement,
                 labels: _labels,
             });
+
+            resetTimer();
         }
     }, [elementIndex, session]);
 
