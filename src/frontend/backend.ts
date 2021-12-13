@@ -78,7 +78,8 @@ export interface DBApiType {
                             prompt: string, labelOptions: string, comparisonSampling: SamplingType | null, metadataJson: string,
                             slices: SliceAttributes[], comparisons: number[][] | null) => number;
     insertElementLabel: (elementId: number | string, labelValue: string,
-                         startTimestamp: number, finishTimestamp: number) => void;
+                         startTimestamp: number, finishTimestamp: number,
+                         appendComparisonArgs?: {sessionId: number | string, elementIndex: number, slice1: Slice, slice2: Slice}) => void;
     insertComparison: (sessionId: number | string, elementIndex: number, slice1: Slice, slice2: Slice) => void;
     deleteLabelingSession: (sessionId: number | string) => void;
     selectAllDatasets: () => Dataset[];

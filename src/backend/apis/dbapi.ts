@@ -168,36 +168,48 @@ export function insertLabelingSession(datasetId: number | string, sessionType: s
     return insertedSessionId;
 }
 
-export function insertElementLabel(elementId: number | string, labelValue: string, startTimestamp: number, finishTimestamp: number) {
+export function insertElementLabel(elementId: number | string, labelValue: string, startTimestamp: number, finishTimestamp: number, appendComparisonArgs = null) {
     const insertTransaction = dbConn.transaction(() => {
         dbConn.prepare(`
             INSERT INTO element_labels (elementId, labelValue, startTimestamp, finishTimestamp)
                 VALUES (:elementId, :labelValue, :startTimestamp, :finishTimestamp);
         `).run({elementId, labelValue, startTimestamp, finishTimestamp});
+
+        if (appendComparisonArgs) {
+            insertComparisonNoTransaction(appendComparisonArgs.sessionId, appendComparisonArgs.elementIndex,
+                appendComparisonArgs.slice1, appendComparisonArgs.slice2);
+        }
     });
 
     insertTransaction();
     console.log(`Inserted label "${labelValue}" for element ${elementId}`);
 }
 
+// For internal use when appending the next sort comparison within the same transaction after labeling
+// Exposed publicly as insertComparison below
+function insertComparisonNoTransaction(sessionId: number | string, elementIndex: number, slice1, slice2) {
+    const insertStatement = dbConn.prepare(`
+        INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceDim1, sliceIndex1, imageId2, sliceDim2, sliceIndex2)
+            VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceDim1, :sliceIndex1, :imageId2, :sliceDim2, :sliceIndex2);
+    `);
+
+    insertStatement.run({
+        sessionId: sessionId,
+        elementIndex: elementIndex,
+        elementType: 'Comparison',
+        imageId1: slice1.imageId,
+        sliceDim1: slice1.sliceDim,
+        sliceIndex1: slice1.sliceIndex,
+        imageId2: slice2.imageId,
+        sliceDim2: slice2.sliceDim,
+        sliceIndex2: slice2.sliceIndex,
+    });
+}
+
+
 export function insertComparison(sessionId: number | string, elementIndex: number, slice1, slice2) {
     const insertTransaction = dbConn.transaction(() => {
-        const insertStatement = dbConn.prepare(`
-            INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceDim1, sliceIndex1, imageId2, sliceDim2, sliceIndex2)
-                VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceDim1, :sliceIndex1, :imageId2, :sliceDim2, :sliceIndex2);
-        `);
-
-        insertStatement.run({
-            sessionId: sessionId,
-            elementIndex: elementIndex,
-            elementType: 'Comparison',
-            imageId1: slice1.imageId,
-            sliceDim1: slice1.sliceDim,
-            sliceIndex1: slice1.sliceIndex,
-            imageId2: slice2.imageId,
-            sliceDim2: slice2.sliceDim,
-            sliceIndex2: slice2.sliceIndex,
-        });
+        insertComparisonNoTransaction(sessionId, elementIndex, slice1, slice2);
     });
 
     insertTransaction();

@@ -273,31 +273,42 @@ function LabelView() {
     function addLabel(labelValue: string) {
         if (curElement.labels.length > 0 && curElement.labels[0].labelValue === labelValue) return;
         if (session.comparisonSampling === 'Sort' && parseInt(elementIndex) < elements.length - 1) return; //TODO: allow changing past labels
-        const element = curElement.element;
-        const finishTimestamp = Date.now();
-        dbapi.insertElementLabel(element.id, labelValue, startTimestamp, finishTimestamp);
 
-        const newLabels = dbapi.selectElementLabels(element.id);
-        setCurElement({
-            element: element,
-            labels: newLabels,
-        });
-        resetTimer();
-
+        // Handle sort
+        let appendComparisonArgs: {sessionId: number | string, elementIndex: number, slice1: Slice, slice2: Slice} = null;
         if (session.comparisonSampling === 'Sort') {
+            // Get current labels and add new labelValue for the current comparison
             const comparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
-            const matrix = buildSortMatrix(elements as Comparison[], comparisonLabels);
-            const slices = dbapi.selectSessionSlices(session.id);
+            comparisonLabels[comparisonLabels.length - 1] = labelValue;
 
-            const sortResult = sortSlices(matrix, slices);
+            const sortResult = sortSlices(
+                buildSortMatrix(elements as Comparison[], comparisonLabels),
+                dbapi.selectSessionSlices(session.id)
+            );
+
             if (!Array.isArray(sortResult)) {
-                dbapi.insertComparison(session.id, elements.length, sortResult.slice1, sortResult.slice2);
-                setElements(dbapi.selectSessionComparisons(session.id));
+                appendComparisonArgs = {
+                    sessionId: session.id,
+                    elementIndex: elements.length,
+                    slice1: sortResult.slice1,
+                    slice2: sortResult.slice2,
+                }
             }
             else {
                 console.log('Sort Results:', sortResult.map(r => r.elementIndex));
             }
         }
+
+        dbapi.insertElementLabel(curElement.element.id, labelValue, startTimestamp, Date.now(), appendComparisonArgs);
+
+        // Update labels for current element
+        setCurElement({
+            element: curElement.element,
+            labels: dbapi.selectElementLabels(curElement.element.id)
+        });
+        // Update elements with new comparison if sorting
+        if (session.comparisonSampling === 'Sort') setElements(dbapi.selectSessionComparisons(session.id));
+        resetTimer();
     }
 
     function closeModal() {
