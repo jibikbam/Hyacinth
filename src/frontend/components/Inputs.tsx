@@ -1,6 +1,6 @@
 import * as React from 'react';
-import {SelectorIcon} from '@heroicons/react/solid';
 import {InputValidator} from '../hooks/validators';
+import {QuestionMarkCircleIcon, SelectorIcon} from '@heroicons/react/solid';
 
 interface InputTextProps {
     id: string;
@@ -33,27 +33,33 @@ function InputText({id, label, placeholder, value, setValue, validator}: InputTe
 interface InputNumberProps {
     id: string;
     label: string;
+    help?: string;
     min?: number;
     max?: number;
-    value: number;
-    setValue: Function;
+    value?: number;
+    setValue?: Function;
+    validator?: InputValidator<number>;
 }
 
-function InputNumber({id, label, value, min, max, setValue}: InputNumberProps) {
+function InputNumber({id, label, help, value, min, max, setValue, validator}: InputNumberProps) {
     return (
-        <div className="flex-1 flex flex-col items-start">
-            <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>
+        <div className="flex-1 flex flex-col">
+            <div className="pr-0.5 flex justify-between items-center">
+                <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>
+                {help && <div title={help}><QuestionMarkCircleIcon className="w-4 h-4 text-gray-500" /></div>}
+            </div>
             <input
-                className="mt-1 px-3 py-1 w-full bg-gray-800 rounded shadow text-xl text-gray-300 transition
-                border border-gray-800 hover:border-gray-400 focus:border-gray-400
-                focus:outline-none"
+                className={`mt-1 px-3 py-1 w-full bg-gray-800 rounded shadow text-xl text-gray-300 transition
+                border ${(validator && validator.showErrors) ? 'border-red-400' : 'border-gray-800 hover:border-gray-400 focus:border-gray-400'}
+                focus:outline-none`}
                 id={id}
                 type="number"
-                value={value.toString()}
+                value={validator ? validator.value.toString() : value.toString()}
                 min={min}
                 max={max}
-                onInput={ev => setValue(parseInt(ev.currentTarget.value) || 0)}
+                onInput={ev => (validator ? validator.setValue : setValue)(parseInt(ev.currentTarget.value) || 0)}
             />
+            {validator && validator.showErrors && validator.errors.map(e => <div key={e} className="mt-1.5 text-xs text-red-400">{e}</div>)}
         </div>
     )
 }

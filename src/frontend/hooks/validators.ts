@@ -56,6 +56,16 @@ export function useStringLengthValidator(initialValue: string, min?: number, max
     return useValidator(validate, initialValue, []);
 }
 
+export function useNumberBoundsValidator(initialValue: number, min?: number, max?: number) {
+    const validate: ValidatorFunc<number> = (value, errors) => {
+        if (min !== undefined && value < min) errors.push(`Min value is ${min}.`);
+        if (max !== undefined && value > max) errors.push(`Max value is ${max}.`);
+        return errors;
+    }
+
+    return useValidator(validate, initialValue, []);
+}
+
 // ---------- DATASET CREATION VALIDATORS ----------
 
 export function useDatasetNameValidator(initialValue: string): InputValidator<string> {

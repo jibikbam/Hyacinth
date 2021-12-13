@@ -11,7 +11,7 @@ import {ChartBarIcon, ChartPieIcon} from '@heroicons/react/solid';
 import {sampleComparisons, sampleSlices} from '../sampling';
 import {getInitialComparison} from '../sort';
 import {
-    InputValidator,
+    InputValidator, useNumberBoundsValidator,
     useSessionLabelOptionsValidator,
     useSessionNameValidator,
     useStringLengthValidator
@@ -100,20 +100,15 @@ function SamplingButtonGroup({sampling, setSampling}: {sampling: SamplingType, s
 interface SamplingOptionsStepProps {
     slicesFrom: string;
     setSlicesFrom: Function;
-    imageCount: number;
-    setImageCount: Function;
-    sliceCount: number;
-    setSliceCount: Function;
+    imageCount: InputValidator<number>;
+    sliceCount: InputValidator<number>;
     sliceDim: number;
     setSliceDim: Function;
-    sliceMinPct: number;
-    setSliceMinPct: Function;
-    sliceMaxPct: number;
-    setSliceMaxPct: Function;
+    sliceMinPct: InputValidator<number>;
+    sliceMaxPct: InputValidator<number>;
     sampling: SamplingType;
     setSampling: Function;
-    comparisonCount: number;
-    setComparisonCount: Function;
+    comparisonCount: InputValidator<number>;
 
     sessionType: SessionType;
     maxImageCount: number;
@@ -127,15 +122,15 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                     <Select id="slices-from" label="Slices From" options={['Create New']} value={props.slicesFrom} setValue={props.setSlicesFrom} />
                 </div>
                 <div className="mt-3 flex space-x-4">
-                    <InputNumber id="image-count" label="Images" min={1} max={props.maxImageCount} value={props.imageCount} setValue={props.setImageCount} />
-                    <InputNumber id="slice-count" label="Slices" min={2} value={props.sliceCount} setValue={props.setSliceCount} />
+                    <InputNumber id="image-count" label="Images" help="Number of images to sample slices from." min={1} validator={props.imageCount} />
+                    <InputNumber id="slice-count" label="Slices" help="Number of slices to sample." min={2} validator={props.sliceCount} />
                 </div>
                 <div className="mt-3">
                     <Select id="slice-dim" label="Slice Dimension" options={['0', '1', '2']} value={props.sliceDim.toString()} setValue={(val: string) => props.setSliceDim(parseInt(val))} />
                 </div>
                 <div className="mt-3 flex space-x-4">
-                    <InputNumber id="slice-min-pct" label="Slice Min (%)" min={0} max={100} value={props.sliceMinPct} setValue={props.setSliceMinPct} />
-                    <InputNumber id="slice-max-pct" label="Slice Max (%)" min={0} max={100} value={props.sliceMaxPct} setValue={props.setSliceMaxPct} />
+                    <InputNumber id="slice-min-pct" label="Slice Min (%)" help="Min slice index to sample as a percentage of all slices." min={0} validator={props.sliceMinPct} />
+                    <InputNumber id="slice-max-pct" label="Slice Max (%)" help="Max slice index to sample as a percentage of all slices." min={0} validator={props.sliceMaxPct} />
                 </div>
             </div>
             {props.sessionType === 'Comparison' && (
@@ -148,7 +143,7 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                     </div>
                     {props.sampling === 'Random' && (
                         <div className="mt-3 w-1/2 pr-2">
-                            <InputNumber id="comparison-count" label="Comparisons" value={props.comparisonCount} setValue={props.setComparisonCount} />
+                            <InputNumber id="comparison-count" label="Comparisons" help="Number of comparisons to sample." validator={props.comparisonCount} />
                         </div>
                     )}
                 </div>
@@ -171,34 +166,34 @@ function CreateSession() {
     const labelOptions = useSessionLabelOptionsValidator('', sessionType);
 
     const [slicesFrom, setSlicesFrom] = useState<string>('Create New');
-    const [imageCount, setImageCount] = useState<number>(1);
-    const [sliceCount, setSliceCount] = useState<number>(2);
+    const imageCount = useNumberBoundsValidator(1, 1, datasetImages.length);
+    const sliceCount = useNumberBoundsValidator(2, 2);
     const [sliceDim, setSliceDim] = useState<number>(0);
-    const [sliceMinPct, setSliceMinPct] = useState<number>(20);
-    const [sliceMaxPct, setSliceMaxPct] = useState<number>(80);
+    const sliceMinPct = useNumberBoundsValidator(20, 0, 100);
+    const sliceMaxPct = useNumberBoundsValidator(80, 0, 100);
 
     const [sampling, setSampling] = useState<SamplingType>('Random');
-    const [comparisonCount, setComparisonCount] = useState<number>(0);
+    const comparisonCount = useNumberBoundsValidator(1, 1);
 
     function createSession() {
-        const slices = sampleSlices(datasetImages, imageCount, sliceCount, sliceDim, sliceMinPct, sliceMaxPct);
+        const slices = sampleSlices(datasetImages, imageCount.value, sliceCount.value, sliceDim, sliceMinPct.value, sliceMaxPct.value);
 
         let comparisons = null;
         if (sessionType === 'Comparison') {
             comparisons = sampling === 'Random'
-                ? sampleComparisons(sliceCount, comparisonCount)
+                ? sampleComparisons(sliceCount.value, comparisonCount.value)
                 : [getInitialComparison(slices)];
         }
 
-        const metadata = {
+        const metadata: {[key: string]: number | string} = {
             'Slices From': slicesFrom,
-            'Image Count': imageCount,
-            'Slice Count': sliceCount,
+            'Image Count': imageCount.value,
+            'Slice Count': sliceCount.value,
             'Slice Dim': sliceDim,
-            'Slice Min Pct': sliceMinPct,
-            'Slice Max Pct': sliceMaxPct,
+            'Slice Min Pct': sliceMinPct.value,
+            'Slice Max Pct': sliceMaxPct.value,
         }
-        if (sessionType === 'Comparison' && sampling === 'Random') metadata['Comparison Count'] = comparisonCount;
+        if (sessionType === 'Comparison' && sampling === 'Random') metadata['Comparison Count'] = comparisonCount.value;
         const metadataJson = JSON.stringify(metadata);
 
         const newSessionId = dbapi.insertLabelingSession(datasetId, sessionType, sessionName.value, prompt.value, labelOptions.value, sampling, metadataJson, slices, comparisons);
@@ -241,19 +236,14 @@ function CreateSession() {
                                 slicesFrom={slicesFrom}
                                 setSlicesFrom={setSlicesFrom}
                                 imageCount={imageCount}
-                                setImageCount={setImageCount}
                                 sliceCount={sliceCount}
-                                setSliceCount={setSliceCount}
                                 sliceDim={sliceDim}
                                 setSliceDim={setSliceDim}
                                 sliceMinPct={sliceMinPct}
-                                setSliceMinPct={setSliceMinPct}
                                 sliceMaxPct={sliceMaxPct}
-                                setSliceMaxPct={setSliceMaxPct}
                                 sampling={sampling}
                                 setSampling={setSampling}
                                 comparisonCount={comparisonCount}
-                                setComparisonCount={setComparisonCount}
                                 sessionType={sessionType}
                                 maxImageCount={dataset.imageCount}
                             />
