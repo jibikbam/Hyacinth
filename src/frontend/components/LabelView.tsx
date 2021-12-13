@@ -46,13 +46,13 @@ function PastLabelsModal({labels, closeModal}: {labels: ElementLabel[], closeMod
     return (
         <Modal closeModal={closeModal}>
             <div className="mt-32 w-1/3 h-144 bg-gray-800 rounded flex flex-col">
-                <div className="px-3 py-1 bg-gray-700 rounded-t flex justify-between items-center">
-                    <div className="text-lg text-gray-200 font-medium">Label History</div>
+                <div className="px-3 py-2 bg-gray-700 rounded-t flex justify-between items-center">
+                    <div className="text-gray-400 font-medium">Label History</div>
                     <button className="rounded text-gray-400 hover:text-gray-100 focus:ring-2 ring-gray-400 transition focus:outline-none" onClick={() => closeModal()}>
                         <XIcon className="w-5 h-5" />
                     </button>
                 </div>
-                <div className="mt-2 px-3 overflow-y-scroll">
+                <div className="mt-3 px-3 overflow-y-scroll">
                     <table className="w-full">
                         <thead className="text-xs text-gray-400 font-medium">
                             <tr>

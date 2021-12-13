@@ -16,42 +16,36 @@ import {SessionOverview} from './SessionOverview';
 import {Modal} from './Modal';
 import {InputText} from './Inputs';
 import {importSessionFromJson} from '../collaboration';
+import {useSessionNameValidator} from '../hooks/validators';
 
 interface ImportSessionModalProps {
     filePath: string;
+    datasetId: number | string;
     sessionJson: object;
     finishImport: (newSessionName: string) => void;
     cancelImport: () => void;
 }
 
-function ImportSessionModal({filePath, sessionJson, finishImport, cancelImport}: ImportSessionModalProps) {
-    const [sessionName, setSessionName] = useState('');
+function ImportSessionModal({filePath, datasetId, sessionJson, finishImport, cancelImport}: ImportSessionModalProps) {
+    const sessionName = useSessionNameValidator('', datasetId);
 
+    // TODO: Fix InputText color
     return (
         <Modal closeModal={cancelImport}>
             <div className="mt-48 p-4 w-full max-w-lg bg-gray-800 rounded flex flex-col justify-start">
                 <div className="pb-2 border-b border-white border-opacity-10">
                     <h1 className="text-xl text-white font-medium">Import Session</h1>
-                    <h2 className="text-sm text-gray-400">{filePath}</h2>
+                    <h2 className="text-sm text-gray-400 break-all">{filePath}</h2>
                 </div>
                 <div className="mt-4">
-                    <div className="text-sm text-gray-400">Session Name</div>
-                    <input
-                        className="mt-0.5 px-3 py-1 w-full bg-gray-900 rounded text-gray-400 placeholder-gray-500 transition
-                        border border-gray-900 hover:border-gray-500 focus:border-gray-400
-                        focus:outline-none"
-                        type="text"
-                        placeholder="My Session"
-                        value={sessionName}
-                        onInput={ev => setSessionName(ev.currentTarget.value)}
-                    />
+                    <InputText id="import-session-name" label="Session Name" placeholder="My session" validator={sessionName} />
                     <div className="mt-2 text-xs text-gray-400">
                         <span>Choose a name for the imported session. Session names must be unique per dataset.</span>
                     </div>
                 </div>
                 <div className="pt-6 mt-12 border-t border-white border-opacity-10 flex justify-end items-center space-x-3">
                     <Button onClick={cancelImport} color="gray">Cancel</Button>
-                    <Button onClick={() => finishImport(sessionName)} color="fuchsia" disabled={sessionName.length === 0}>Import</Button>
+                    <Button onClick={() => finishImport(sessionName.value)} color="fuchsia" disabled={!sessionName.valid}>Import</Button>
                 </div>
             </div>
         </Modal>
@@ -147,7 +141,7 @@ function DatasetOverview() {
 
     return (
         <main className="h-screen flex">
-            {importData && <ImportSessionModal filePath={importData.path} sessionJson={importData.json} finishImport={finishSessionImport} cancelImport={cancelSessionImport} />}
+            {importData && <ImportSessionModal filePath={importData.path} datasetId={dataset.id} sessionJson={importData.json} finishImport={finishSessionImport} cancelImport={cancelSessionImport} />}
             <div className="px-4 py-2 w-80 bg-gray-800">
                 <div>
                     <Link to="/" className="text-sm text-gray-400 hover:text-gray-200 transition inline-flex items-center">
