@@ -14,6 +14,7 @@ import {
 } from '@heroicons/react/solid';
 import {sessionLabelsToCsv, sessionToJson} from '../collaboration';
 import {Modal} from './Modal';
+import {truncateStart} from '../utils';
 
 interface DeleteSessionModalProps {
     sessionName: string;
@@ -128,15 +129,14 @@ function SlicesTable({sessionId, slices}: {sessionId: string, slices: Slice[]}) 
             <table className="w-full table-fixed">
                 <colgroup>
                     <col className="w-1/12" />
-                    <col className="w-1/12" />
-                    <col className="w-1/12" />
+                    <col className="w-5/12" />
                     <col className="w-1/12" />
                     <col className="w-2/12" />
                 </colgroup>
                 <thead className="text-sm text-gray-400 font-medium">
                     <tr>
                         <td className="pb-1 pr-8" />
-                        <td className="pb-1" colSpan={3}>Slice</td>
+                        <td className="pb-1" colSpan={2}>Slice</td>
                         <td className="pb-1 text-center">Label</td>
                         <td />
                     </tr>
@@ -145,9 +145,14 @@ function SlicesTable({sessionId, slices}: {sessionId: string, slices: Slice[]}) 
                     {slices.map((s, i) => (
                         <tr key={s.id} className="group hover:text-white">
                             <td className="pr-8 text-sm text-gray-500 group-hover:text-white text-right">#{i + 1}</td>
-                            <td>{s.imageRelPath}</td>
-                            <td className="text-center">{s.sliceDim}</td>
-                            <td className="text-center">{s.sliceIndex}</td>
+                            <td title={s.imageRelPath}>{truncateStart(s.imageRelPath, 50)}</td>
+                            <td className="text-gray-500">
+                                (
+                                <span className="text-gray-400">{s.sliceDim} </span>
+                                /
+                                <span className="text-gray-400"> {s.sliceIndex}</span>
+                                )
+                            </td>
                             <td className="text-center">{s.elementLabel || '-'}</td>
                             <td>
                                 <Link to={`/label/${sessionId}/${s.elementIndex}`} className="text-fuchsia-300 hover:text-fuchsia-400 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors">Edit</Link>
@@ -166,18 +171,16 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: string, comparis
             <table className="w-full">
                 <colgroup>
                     <col className="w-1/12" />
+                    <col className="w-3/12" />
                     <col className="w-1/12" />
-                    <col className="w-1/12" />
-                    <col className="w-1/12" />
-                    <col className="w-1/12" />
-                    <col className="w-1/12" />
+                    <col className="w-3/12" />
                     <col className="w-1/12" />
                 </colgroup>
                 <thead className="text-sm text-gray-400 font-medium">
                     <tr>
                         <td className="pb-1 pr-8" />
-                        <td className="pb-1" colSpan={3}>Slice 1</td>
-                        <td className="pb-1" colSpan={3}>Slice 2</td>
+                        <td className="pb-1" colSpan={2}>Slice 1</td>
+                        <td className="pb-1" colSpan={2}>Slice 2</td>
                         <td className="pb-1 text-center">Label</td>
                         <td />
                     </tr>
@@ -186,12 +189,22 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: string, comparis
                     {comparisons.map((c, i) => (
                         <tr key={c.id} className="group hover:text-white">
                             <td className="pr-8 text-sm text-gray-500 group-hover:text-white text-right">#{i + 1}</td>
-                            <td>{c.imageRelPath1}</td>
-                            <td className="text-center">{c.sliceDim1}</td>
-                            <td>{c.sliceIndex1}</td>
-                            <td>{c.imageRelPath2}</td>
-                            <td className="text-center">{c.sliceDim2}</td>
-                            <td>{c.sliceIndex2}</td>
+                            <td title={c.imageRelPath1}>{truncateStart(c.imageRelPath1, 30)}</td>
+                            <td className="text-gray-500">
+                                (
+                                <span className="text-gray-400">{c.sliceDim1} </span>
+                                /
+                                <span className="text-gray-400"> {c.sliceIndex1}</span>
+                                )
+                            </td>
+                            <td title={c.imageRelPath2}>{truncateStart(c.imageRelPath2, 30)}</td>
+                            <td className="text-gray-500">
+                                (
+                                <span className="text-gray-400">{c.sliceDim2} </span>
+                                /
+                                <span className="text-gray-400"> {c.sliceIndex2}</span>
+                                )
+                            </td>
                             <td className="text-center">{c.elementLabel || '-'}</td>
                             <td>
                                 <Link to={`/label/${sessionId}/${c.elementIndex}`} className="text-fuchsia-300 hover:text-fuchsia-400 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors">Edit</Link>
