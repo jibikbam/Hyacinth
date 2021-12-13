@@ -10,6 +10,7 @@ function reverseDims(dims: [number, number, number]): [number, number, number] {
 }
 
 function loadVolume(imagePath: string): Tensor3D {
+    // TODO: better way to distinguish nifti and dicom
     if (imagePath.endsWith('.nii.gz')) {
         // Load nifti
         const [imageHeader, imageData] = volumeapi.readNifti(imagePath);

@@ -26,7 +26,7 @@ export function readNifti(imagePath) {
     return [imgHeader, imgData];
 }
 
-export function readDicomSeries(seriesDirPath: string) {
+function buildDicomSeries(seriesDirPath: string) {
     if (!fs.statSync(seriesDirPath).isDirectory()) throw new Error(`Dicom seriesDirPath is not a directory: ${seriesDirPath}`);
 
     const imageNames = fs.readdirSync(seriesDirPath).filter(n => n.endsWith(DICOM_FILE_EXT));
@@ -58,6 +58,17 @@ export function readDicomSeries(seriesDirPath: string) {
         series.images[0].getRows(),
         series.images.length,
     ];
+
+    return [dims, series];
+}
+
+export function readDicomSeriesDims(seriesDirPath: string) {
+    const [dims, _] = buildDicomSeries(seriesDirPath);
+    return dims;
+}
+
+export function readDicomSeries(seriesDirPath: string) {
+    const [dims, series] = buildDicomSeries(seriesDirPath);
 
     const numImagePixels = dims[0] * dims[1];
     const numVoxels = numImagePixels * dims[2];
