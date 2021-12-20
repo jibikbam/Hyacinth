@@ -15,6 +15,7 @@ import {
 import {sessionLabelsToCsv, sessionToJson} from '../collaboration';
 import {Modal} from './Modal';
 import {truncateStart} from '../utils';
+import {InputText} from './Inputs';
 
 interface DeleteSessionModalProps {
     sessionName: string;
@@ -36,16 +37,8 @@ function DeleteSessionModal({sessionName, deleteSession, cancelDelete}: DeleteSe
                     </h1>
                     <h2 className="mt-2 text-xs text-gray-400">All labels and metadata for this session will be permanently deleted. Type the name of the session below to confirm.</h2>
                 </div>
-                <div>
-                    <input
-                        className="mt-3 px-3 py-1 w-full bg-gray-900 rounded text-gray-400 placeholder-gray-500 transition
-                        border border-gray-900 hover:border-gray-500 focus:border-gray-400
-                        focus:outline-none"
-                        type="text"
-                        placeholder="Type session name here"
-                        value={confirmText}
-                        onInput={ev => setConfirmText(ev.currentTarget.value)}
-                    />
+                <div className="mt-3">
+                    <InputText id="delete-session-confirm-name" label={null} placeholder="Type session name here" dark={true} value={confirmText} setValue={setConfirmText} />
                 </div>
                 <div className="pt-4 mt-4 border-t border-white border-opacity-10 flex justify-end items-center space-x-3">
                     <Button onClick={cancelDelete}>Cancel</Button>

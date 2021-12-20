@@ -32,18 +32,18 @@ function ImportSessionModal({filePath, datasetId, sessionJson, finishImport, can
     // TODO: Fix InputText color
     return (
         <Modal closeModal={cancelImport}>
-            <div className="mt-48 p-4 w-full max-w-lg bg-gray-800 rounded flex flex-col justify-start">
+            <div className="mt-48 p-4 w-full max-w-xl bg-gray-800 rounded flex flex-col justify-start">
                 <div className="pb-2 border-b border-white border-opacity-10">
                     <h1 className="text-xl text-white font-medium">Import Session</h1>
-                    <h2 className="text-sm text-gray-400 break-all">{filePath}</h2>
+                    <h2 className="mt-0.5 text-xs text-gray-400 break-all">{filePath}</h2>
                 </div>
-                <div className="mt-4">
-                    <InputText id="import-session-name" label="Session Name" placeholder="My session" validator={sessionName} />
+                <div className="mt-2">
+                    <InputText id="import-session-name" label="Session Name" placeholder="My imported session" dark={true} validator={sessionName} />
                     <div className="mt-2 text-xs text-gray-400">
                         <span>Choose a name for the imported session. Session names must be unique per dataset.</span>
                     </div>
                 </div>
-                <div className="pt-6 mt-12 border-t border-white border-opacity-10 flex justify-end items-center space-x-3">
+                <div className="pt-4 mt-6 border-t border-white border-opacity-10 flex justify-end items-center space-x-3">
                     <Button onClick={cancelImport} color="gray">Cancel</Button>
                     <Button onClick={() => finishImport(sessionName.value)} color="fuchsia" disabled={!sessionName.valid}>Import</Button>
                 </div>
