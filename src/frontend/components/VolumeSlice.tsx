@@ -2,14 +2,22 @@ import * as React from 'react';
 import {useEffect, useRef, useState} from 'react';
 import {volumeapi} from '../backend';
 import * as tf from '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-backend-webgl';
 import {Rank, Tensor3D} from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-backend-webgl';
+
+type ImageType = 'Nifti' | 'DICOM';
+
+interface ImageVolume {
+    image3d: Tensor3D;
+    imageType: ImageType;
+}
+
 
 function reverseDims(dims: [number, number, number]): [number, number, number] {
     return dims.slice().reverse() as [number, number, number];
 }
 
-function loadVolume(imagePath: string): Tensor3D {
+function loadVolume(imagePath: string): ImageVolume {
     // TODO: better way to distinguish nifti and dicom
     if (imagePath.endsWith('.nii.gz')) {
         // Load nifti
@@ -21,63 +29,72 @@ function loadVolume(imagePath: string): Tensor3D {
         // Convert to Int32 because TF tensors do not accept Int16
         const imageDataArray = new Int32Array(imageData);
 
-        return tf.tidy(() => {
+        const image3d = tf.tidy(() => {
             // Convert to 3D
-            const image1d = tf.tensor1d(imageDataArray);
-            let image3d = tf.reshape<Rank.R3>(image1d, reverseDims(dims));
-
-            // Reorder axes
-            image3d = tf.transpose(image3d, [2, 1, 0])
-            // Flip for display
-            image3d = tf.reverse(image3d, 1);
-            image3d = tf.reverse(image3d, 2);
-            return image3d;
+            const im1d = tf.tensor1d(imageDataArray);
+            let im3d = tf.reshape<Rank.R3>(im1d, reverseDims(dims));
+            // Reorder axes (undoes dim reversal which is needed for reshape)
+            im3d = tf.transpose(im3d, [2, 1, 0]);
+            return im3d;
         });
+        return {image3d, imageType: 'Nifti'};
     }
     else {
         // Load dicom series
         const [dims, imageDataArray] = volumeapi.readDicomSeries(imagePath);
 
-        return tf.tidy(() => {
+        const image3d = tf.tidy(() => {
             // Convert to 3D
-            const image1d = tf.tensor1d(imageDataArray);
-            let image3d = tf.reshape<Rank.R3>(image1d, reverseDims(dims));
-
+            const im1d = tf.tensor1d(imageDataArray);
+            let im3d = tf.reshape<Rank.R3>(im1d, reverseDims(dims));
             // Reorder axes
-            image3d = tf.transpose(image3d, [0, 2, 1]);
-            return image3d;
+            // Note that axes are flipped BEFORE reordering, so we are doing
+            // 0, 1, 2 -> 2, 1, 0 THEN 0, 1, 2 -> 0, 2, 1
+            // which is equivalent to
+            // 0, 1, 2 -> 2, 0, 1
+            // i.e. a right-rotation of 1 on the original dims array
+            // TODO: this assumes sagittal dicom slices (probably?)
+            im3d = tf.transpose(im3d, [0, 2, 1]);
+            return im3d;
         });
+        return {image3d, imageType: 'DICOM'};
     }
 }
 
 // Implements an LRU cache for image volumes
 const IMAGE_CACHE_SIZE = 3;
-const IMAGE_CACHE: [string, Tensor3D][] = [];
-function loadVolumeCached(imagePath: string): Tensor3D {
+const IMAGE_CACHE: [string, ImageVolume][] = [];
+function loadVolumeCached(imagePath: string): ImageVolume {
     for (const [p, img] of IMAGE_CACHE) {
         if (p === imagePath) return img;
     }
 
-    const image3d = loadVolume(imagePath);
+    const image = loadVolume(imagePath);
     // Insert at index 0
-    IMAGE_CACHE.splice(0, 0, [imagePath, image3d]);
+    IMAGE_CACHE.splice(0, 0, [imagePath, image]);
     // Pop from end until queue is of correct length
     while (IMAGE_CACHE.length > IMAGE_CACHE_SIZE) {
         const [_, img] = IMAGE_CACHE.pop();
-        tf.dispose(img); // Dispose of old tensors
+        tf.dispose(img.image3d); // Dispose of old tensors
     }
 
-    return image3d;
+    return image;
 }
 
-function drawSlice(canvas: HTMLCanvasElement, image3d: Tensor3D, sliceDim: number, sliceIndex: number, brightness: number,
+function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: number, sliceIndex: number, brightness: number,
                    hFlip: boolean, vFlip: boolean, tFlip: boolean) {
+    const {image3d, imageType} = image;
     const dims = image3d.shape;
-    // Clamp out of bounds slice index
+
+    // Nifti pixel data is stored bottom-up instead of top-down, so we vertically flip the 2D slices
+    // (equivalent to drawing from the bottom up)
+    if (imageType === 'Nifti') vFlip = !vFlip;
+
+    // Clamp slice index to prevent any out of bounds errors
     sliceIndex = Math.max(Math.min(sliceIndex, dims[sliceDim] - 1), 0);
 
     const sliceData = tf.tidy(() => {
-        // Slice RAS+ data along sliceDim
+        // Slice RAS data along sliceDim
         let imSlice;
         switch (sliceDim) {
             case 0: imSlice = tf.slice(image3d, [sliceIndex, 0, 0], [1, -1, -1]); break;
@@ -86,8 +103,8 @@ function drawSlice(canvas: HTMLCanvasElement, image3d: Tensor3D, sliceDim: numbe
         }
         imSlice = tf.squeeze(imSlice);
         // Apply flips
-        if (hFlip) imSlice = tf.reverse(imSlice, 1);
-        if (vFlip) imSlice = tf.reverse(imSlice, 0);
+        if (hFlip) imSlice = tf.reverse(imSlice, 0);
+        if (vFlip) imSlice = tf.reverse(imSlice, 1);
         if (tFlip) imSlice = tf.transpose(imSlice);
         // Convert to JS array for indexing
         return imSlice.arraySync() as number[][];
