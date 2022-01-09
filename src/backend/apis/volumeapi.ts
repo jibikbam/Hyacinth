@@ -58,8 +58,9 @@ function buildDicomSeries(seriesDirPath: string) {
         series.images[0].getRows(),
         series.images.length,
     ];
+    const iop = series.images[0].getImageDirections(); // Image Orientation (Patient) - (0020, 0037)
 
-    return [dims, series];
+    return [dims, iop, series];
 }
 
 export function readDicomSeriesDims(seriesDirPath: string) {
@@ -68,7 +69,7 @@ export function readDicomSeriesDims(seriesDirPath: string) {
 }
 
 export function readDicomSeries(seriesDirPath: string) {
-    const [dims, series] = buildDicomSeries(seriesDirPath);
+    const [dims, iop, series] = buildDicomSeries(seriesDirPath);
 
     const numImagePixels = dims[0] * dims[1];
     const numVoxels = numImagePixels * dims[2];
@@ -80,5 +81,5 @@ export function readDicomSeries(seriesDirPath: string) {
         offset += numImagePixels;
     }
 
-    return [dims, finalArray];
+    return [dims, iop, finalArray];
 }

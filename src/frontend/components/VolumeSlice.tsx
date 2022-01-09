@@ -17,6 +17,23 @@ function reverseDims(dims: [number, number, number]): [number, number, number] {
     return dims.slice().reverse() as [number, number, number];
 }
 
+function computeDicomImagePlane(iop: [number, number, number, number, number, number]): number {
+    const iopRounded = iop.map(v => Math.round(v));
+    const [a1, a2, a3, b1, b2, b3] = iopRounded;
+    // Compute cross product of iopRounded[0:3] and iopRounded[3:6]
+    const iopCross = [
+        a2 * b3 - a3 * b2,
+        a3 * b1 - a1 * b3,
+        a1 * b2 - a2 * b1
+    ];
+    const iopCrossAbs = iopCross.map(v => Math.abs(v));
+
+    if (iopCrossAbs[0] === 1) return 0;  // Sagittal
+    else if (iopCrossAbs[1] === 1) return 1;  // Coronal
+    else if (iopCrossAbs[2] === 1) return 2;  // Axial
+    else throw Error(`Unknown dicom image plane: ${iopCrossAbs}`);
+}
+
 function loadVolume(imagePath: string): ImageVolume {
     // TODO: better way to distinguish nifti and dicom
     if (imagePath.endsWith('.nii.gz')) {
@@ -41,19 +58,26 @@ function loadVolume(imagePath: string): ImageVolume {
     }
     else {
         // Load dicom series
-        const [dims, imageDataArray] = volumeapi.readDicomSeries(imagePath);
+        const [dims, iop, imageDataArray] = volumeapi.readDicomSeries(imagePath);
+
+        const imagePlane = computeDicomImagePlane(iop);
+        console.log("imagePlane", imagePlane);
+        // TODO: use imagePlane to order slices correctly
 
         const image3d = tf.tidy(() => {
             // Convert to 3D
             const im1d = tf.tensor1d(imageDataArray);
             let im3d = tf.reshape<Rank.R3>(im1d, reverseDims(dims));
-            // Reorder axes
+            // Reorder axes (undoes dim reversal which is needed for reshape)
             // Note that axes are flipped BEFORE reordering, so we are doing
             // 0, 1, 2 -> 2, 1, 0 THEN 0, 1, 2 -> 0, 2, 1
             // which is equivalent to
             // 0, 1, 2 -> 2, 0, 1
             // i.e. a right-rotation of 1 on the original dims array
-            // TODO: this assumes sagittal dicom slices (probably?)
+            // TODO: this assumes sagittal dicom slices
+            // Slices are concatenated into a 1d volume array via the volumeapi DICOM loader,
+            // which means the slice image plane (sagittal) is last,
+            // so the right-rotation is needed to reorder dims with sagittal first
             im3d = tf.transpose(im3d, [0, 2, 1]);
             return im3d;
         });
