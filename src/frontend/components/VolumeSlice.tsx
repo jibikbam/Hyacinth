@@ -12,6 +12,15 @@ interface ImageVolume {
     imageType: ImageType;
 }
 
+function rightRotateArray(arr: any[], count: number) {
+    const newArr = new Array(arr.length);
+    for (let i = 0; i < arr.length; i++) {
+        const newIndex = (i + count) % arr.length;
+        newArr[newIndex] = arr[i];
+    }
+    return newArr;
+}
+
 
 function reverseDims(dims: [number, number, number]): [number, number, number] {
     return dims.slice().reverse() as [number, number, number];
@@ -59,26 +68,23 @@ function loadVolume(imagePath: string): ImageVolume {
     else {
         // Load dicom series
         const [dims, iop, imageDataArray] = volumeapi.readDicomSeries(imagePath);
-
         const imagePlane = computeDicomImagePlane(iop);
-        console.log("imagePlane", imagePlane);
-        // TODO: use imagePlane to order slices correctly
 
         const image3d = tf.tidy(() => {
             // Convert to 3D
             const im1d = tf.tensor1d(imageDataArray);
             let im3d = tf.reshape<Rank.R3>(im1d, reverseDims(dims));
             // Reorder axes (undoes dim reversal which is needed for reshape)
-            // Note that axes are flipped BEFORE reordering, so we are doing
-            // 0, 1, 2 -> 2, 1, 0 THEN 0, 1, 2 -> 0, 2, 1
-            // which is equivalent to
-            // 0, 1, 2 -> 2, 0, 1
-            // i.e. a right-rotation of 1 on the original dims array
-            // TODO: this assumes sagittal dicom slices
-            // Slices are concatenated into a 1d volume array via the volumeapi DICOM loader,
-            // which means the slice image plane (sagittal) is last,
-            // so the right-rotation is needed to reorder dims with sagittal first
-            im3d = tf.transpose(im3d, [0, 2, 1]);
+            im3d = tf.transpose(im3d, [2, 1, 0]);
+
+            // Right-rotate axes to correct order based on the image plane of the DICOM
+            // Ensures axes are always [Sagittal, Coronal, Axial]
+            // Not necessary if image is already axial (imagePlane == 2)
+            if (imagePlane < 2) {
+                const newOrder = rightRotateArray([0, 1, 2], imagePlane + 1);
+                im3d = tf.transpose(im3d, newOrder);
+            }
+
             return im3d;
         });
         return {image3d, imageType: 'DICOM'};
