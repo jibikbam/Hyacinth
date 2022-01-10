@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
 import {Comparison, dbapi, ElementLabel, LabelingSession, SessionElement, Slice} from '../backend';
 import {useTimer} from '../hooks/useTimer';
@@ -241,7 +241,7 @@ function LabelView() {
     let {sessionId, elementIndex} = useParams();
     const elementIndexInt = parseInt(elementIndex);
 
-    const [session, setSession] = useState<LabelingSession | null>(null);
+    const session = useMemo(() => dbapi.selectLabelingSession(sessionId), []);
     const [elements, setElements] = useState<SessionElement[] | null>(null);
     const [curElement, setCurElement] = useState<{element: SessionElement, labels: ElementLabel[]} | null>(null);
 
@@ -250,27 +250,21 @@ function LabelView() {
     const [startTimestamp, timerSeconds, resetTimer] = useTimer();
 
     useEffect(() => {
-        setSession(dbapi.selectLabelingSession(sessionId));
-    }, [sessionId]);
+        const _elements = (session.sessionType === 'Classification')
+            ? dbapi.selectSessionSlices(session.id)
+            : dbapi.selectSessionComparisons(session.id);
 
-    useEffect(() => {
-        if (session) {
-            const _elements = (session.sessionType === 'Classification')
-                ? dbapi.selectSessionSlices(session.id)
-                : dbapi.selectSessionComparisons(session.id);
+        setElements(_elements);
 
-            setElements(_elements);
+        const _curElement = _elements[parseInt(elementIndex)];
+        const _labels = dbapi.selectElementLabels(_curElement.id);
+        setCurElement({
+            element: _curElement,
+            labels: _labels,
+        });
 
-            const _curElement = _elements[parseInt(elementIndex)];
-            const _labels = dbapi.selectElementLabels(_curElement.id);
-            setCurElement({
-                element: _curElement,
-                labels: _labels,
-            });
-
-            resetTimer();
-        }
-    }, [elementIndex, session]);
+        resetTimer();
+    }, [session, elementIndex]);
 
     function addLabel(labelValue: string) {
         if (curElement.labels.length > 0 && curElement.labels[0].labelValue === labelValue) return;
@@ -317,7 +311,7 @@ function LabelView() {
         setModal(null);
     }
 
-    if (!session || !curElement) {
+    if (!curElement) {
         return <div className="w-screen h-screen text-2xl text-gray-400 font-medium flex justify-center items-center">Loading...</div>
     }
 
