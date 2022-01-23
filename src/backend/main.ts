@@ -1,5 +1,26 @@
 import {app, BrowserWindow, ipcMain, dialog} from 'electron';
+import * as fs from 'fs';
 import * as path from 'path';
+
+function setUpAppData() {
+    // Configure local appData/userData directories for ease of access
+    // and to prevent development from affecting actual app files
+    if (process.env.HYACINTH_DEV === 'true') {
+        const devAppPath = path.join(app.getAppPath(), 'dev_app_data');
+        if (!fs.existsSync(devAppPath)) fs.mkdirSync(devAppPath);
+
+        const devUserPath = path.join(devAppPath, app.getName());
+        if (!fs.existsSync(devUserPath)) fs.mkdirSync(devUserPath);
+
+        app.setPath('appData', devAppPath);
+        app.setPath('userData', devUserPath);
+
+        console.log('DEV appData path: ', app.getPath('appData'));
+        console.log('DEV userData path: ', app.getPath('userData'));
+    }
+}
+// This must happen BEFORE app ready event
+setUpAppData();
 
 function createWindow() {
     const win = new BrowserWindow({

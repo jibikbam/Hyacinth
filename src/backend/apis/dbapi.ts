@@ -6,9 +6,7 @@ let dbConn;
 
 export function connect() {
     const userDataDir: string = ipcRenderer.sendSync('get-user-data-dir');
-    const dbPath = (process.env.HYACINTH_DEV === 'true')
-        ? 'data/db/hyacinth.db'
-        : path.join(userDataDir, 'hyacinth.db');
+    const dbPath = path.join(userDataDir, 'hyacinth.db');
 
     dbConn = new Database(dbPath);
     dbConn.pragma('foreign_keys = ON;');
