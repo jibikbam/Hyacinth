@@ -170,7 +170,7 @@ function CreateDataset() {
                         <>
                             <div>
                                 <StepHeader title="Create Dataset" stepDescription="Choose Name" curStep={2} stepCount={3}/>
-                                <ChooseNameStep datasetName={datasetName} datasetRoot={datasetRoot} numFiles={filePaths.length}/>
+                                <ChooseNameStep datasetName={datasetName} datasetRoot={datasetRoot} numFiles={filePathsMatched.filter(([p, m]) => m).length}/>
                             </div>
                             <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} finishText="Create" finishClicked={createDataset} finishDisabled={!datasetName.valid} />
                         </>
