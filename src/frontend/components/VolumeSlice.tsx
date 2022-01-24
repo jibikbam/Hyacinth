@@ -186,6 +186,36 @@ function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: numb
     context.putImageData(canvasImageData, 0, 0);
 }
 
+function drawImage2d(dims: [number, number], imageData: Float32Array, canvas: HTMLCanvasElement) {
+    // TODO: clean up this function
+    // Update canvas size and initialize ImageData array
+    canvas.width = dims[0];
+    canvas.height = dims[1];
+    const context = canvas.getContext('2d');
+    const canvasImageData = context.createImageData(canvas.width, canvas.height);
+
+    let maxValue = 0;
+    for (let i = 0; i < imageData.length; i++) {
+        const v = imageData[i];
+        if (v > maxValue) maxValue = v;
+    }
+
+    for (let i = 0; i < imageData.length; i++) {
+        let value = imageData[i];
+        value = (value / maxValue) * 255;
+
+        const canvasOffset = i * 4;
+
+        // Write canvas image data (R G B A)
+        canvasImageData.data[canvasOffset] = value & 0xFF;
+        canvasImageData.data[canvasOffset + 1] = value & 0xFF;
+        canvasImageData.data[canvasOffset + 2] = value & 0xFF;
+        canvasImageData.data[canvasOffset + 3] = 0xFF;
+    }
+
+    context.putImageData(canvasImageData, 0, 0);
+}
+
 function clearCanvas(canvasEl: HTMLCanvasElement) {
     const context = canvasEl.getContext('2d');
     context.clearRect(0, 0, canvasEl.width, canvasEl.height);
@@ -206,6 +236,12 @@ function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false
     const [curImagePath, setCurImagePath] = useState<string | null>(null);
 
     function draw() {
+        // TODO: clean this up
+        if (imagePath.endsWith('.dcm')) {
+            const [dims, imageData] = volumeapi.readDicom2d(imagePath);
+            drawImage2d(dims, imageData, canvasRef.current);
+            return;
+        }
         const image3d = loadVolumeCached(imagePath);
         drawSlice(canvasRef.current, image3d, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose);
     }

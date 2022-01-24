@@ -83,3 +83,14 @@ export function readDicomSeries(seriesDirPath: string) {
 
     return [dims, iop, finalArray];
 }
+
+export function readDicom2d(imagePath: string): [[number, number], Float32Array] {
+    const fileData = fs.readFileSync(imagePath);
+    const image = daikon.Series.parseImage(new DataView(daikon.Utils.toArrayBuffer(fileData)));
+
+    const dims: [number, number] = [image.getCols(), image.getRows()];
+    const imageData = new Float32Array(dims[0] * dims[1]);
+    imageData.set(image.getInterpretedData(false, false), 0);
+
+    return [dims, imageData];
+}
