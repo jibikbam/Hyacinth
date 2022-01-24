@@ -17,9 +17,14 @@ export function showSaveDialog(defaultName: string) {
     return ipcRenderer.sendSync('show-save-file-dialog', defaultName);
 }
 
-function isImageFile(filePath: string) {
+function isNiftiFile(filePath: string) {
     // TODO: support more extensions
-    return filePath.endsWith(NIFTI_EXT) || filePath.endsWith(DICOM_EXT);
+    return filePath.endsWith(NIFTI_EXT);
+}
+
+function isDicomFile(filePath: string) {
+    // TODO: support more extensions
+    return filePath.endsWith(DICOM_EXT);
 }
 
 function isDicomSeriesDir(filePath: string) {
@@ -39,7 +44,7 @@ function getImageFullPathsRecursive(dirPath: string, dicomAsSeries: boolean): st
     for (const fileName of fs.readdirSync(dirPath)) {
         const filePath = dirPath + '/' + fileName;
 
-        if (isImageFile(filePath) || (dicomAsSeries && isDicomSeriesDir(filePath))) {
+        if (isNiftiFile(filePath) || (!dicomAsSeries && isDicomFile(filePath)) || (dicomAsSeries && isDicomSeriesDir(filePath))) {
             imageFullPaths.push(filePath);
         }
         else if (fs.statSync(filePath).isDirectory()) {
