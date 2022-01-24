@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Routes, Route, useNavigate} from 'react-router-dom';
 import {dbapi, fileapi} from '../backend';
 import {Button} from './Buttons';
@@ -42,20 +42,42 @@ function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}: {datasetRoot: str
                 : <DirectoryStatus datasetRoot={datasetRoot} chooseDatasetRoot={chooseDatasetRoot} />
             }
             <div className="mt-4 w-3/4 text-sm text-gray-400 text-center">
-                <div>The chosen directory will be scanned for nifti files to be added to this dataset. Any collaborators will have to use the same directory structure.</div>
+                <div>The chosen directory will be scanned for image files to be added to this dataset. Any collaborators will have to use the same directory structure.</div>
             </div>
         </div>
     )
 }
 
-function FilePreviewStep({datasetRoot, filePaths}: {datasetRoot: string, filePaths: string[]}) {
+interface FilePreviewStepProps {
+    datasetRoot: string;
+    filePathsMatched: [string, boolean][];
+    filterRegex: string;
+    setFilterRegex: React.Dispatch<React.SetStateAction<string>>;
+    dicomAsSeries: boolean;
+    setDicomAsSeries: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function FilePreviewStep({datasetRoot, filePathsMatched, filterRegex, setFilterRegex, dicomAsSeries, setDicomAsSeries}: FilePreviewStepProps) {
     return (
-        <div className="mt-4">
-            <div className="text-sm text-gray-300">
-                <div>Found {filePaths.length} nifti files under {datasetRoot}</div>
+        <div className="mt-4 min-h-0 flex flex-col">
+            <div className="flex items-center space-x-3">
+                <div className="flex-1">
+                    <InputText id="file-path-regex-text" label={null} placeholder="Filter regex" value={filterRegex} setValue={setFilterRegex} />
+                </div>
+                <div className="px-3 py-1 bg-gray-800 rounded border border-gray-500">
+                    <label className="text-gray-300 flex items-center space-x-2">
+                        <span>DICOM Series Mode</span>
+                        <input type="checkbox" checked={dicomAsSeries} onChange={() => setDicomAsSeries(!dicomAsSeries)} />
+                    </label>
+                </div>
             </div>
-            <div className="mt-2 px-4 py-3 h-96 bg-gray-800 rounded text-xs leading-relaxed text-gray-400 font-mono overflow-y-scroll">
-                {filePaths.map(p => <div key={p}>{p}</div>)}
+            <div className="ml-1 mt-3 text-sm text-gray-400">
+                {(filterRegex.length === 0)
+                    ? <div>Found {filePathsMatched.filter(t => t[1]).length} images under {datasetRoot}</div>
+                    : <div>Filtered {filePathsMatched.filter(t => t[1]).length} / {filePathsMatched.length} images under {datasetRoot}</div>}
+            </div>
+            <div className="flex-1 mt-1 px-4 py-3 bg-gray-800 rounded text-xs leading-relaxed font-mono break-words overflow-y-scroll">
+                {filePathsMatched.map(([p, m]) => <div key={p} className={m ? 'text-gray-200' : 'text-gray-500'}>{p}</div>)}
             </div>
         </div>
     )
@@ -89,14 +111,26 @@ function ChooseNameStep({datasetName, datasetRoot, numFiles}: ChooseNameStepProp
 
 function CreateDataset() {
     const [datasetRoot, setDatasetRoot] = useState<string | null>(null);
+    const [filterRegex, setFilterRegex] = useState<string>('');
+    const [dicomAsSeries, setDicomAsSeries] = useState<boolean>(false);
     const datasetName = useDatasetNameValidator('');
     const [filePaths, setFilePaths] = useState<string[]>([]);
 
     const navigate = useNavigate();
 
+    const filePathsMatched: [string, boolean][] = useMemo(() => {
+        if (filterRegex.length > 0) {
+            const filterRegexCompiled = new RegExp(filterRegex);
+            return filePaths.map(p => [p, filterRegexCompiled.test(p)])
+        }
+        else {
+            return filePaths.map(p => [p, true]);
+        }
+    }, [filePaths, filterRegex]);
+
     useEffect(() => {
-        if (datasetRoot) setFilePaths(fileapi.getDatasetImages(datasetRoot));
-    }, [datasetRoot]);
+        if (datasetRoot) setFilePaths(fileapi.getDatasetImages(datasetRoot, dicomAsSeries));
+    }, [datasetRoot, dicomAsSeries]);
 
     function chooseDatasetRoot() {
         const chosenPaths = fileapi.showFolderDialog();
@@ -104,7 +138,8 @@ function CreateDataset() {
     }
 
     function createDataset() {
-        dbapi.insertDataset(datasetName.value, datasetRoot, filePaths);
+        const filePathsFiltered = filePathsMatched.filter(([p, m]) => m).map(([p, m]) => p);
+        dbapi.insertDataset(datasetName.value, datasetRoot, filePathsFiltered);
         navigate('/');
     }
 
@@ -123,9 +158,10 @@ function CreateDataset() {
                     } />
                     <Route path="/file-preview" element={
                         <>
-                            <div>
+                            <div className="min-h-0 flex flex-col">
                                 <StepHeader title="Create Dataset" stepDescription="Review Files" curStep={1} stepCount={3}/>
-                                <FilePreviewStep datasetRoot={datasetRoot} filePaths={filePaths}/>
+                                <FilePreviewStep datasetRoot={datasetRoot} filePathsMatched={filePathsMatched} filterRegex={filterRegex} setFilterRegex={setFilterRegex}
+                                                 dicomAsSeries={dicomAsSeries} setDicomAsSeries={setDicomAsSeries} />
                             </div>
                             <StepNavigation cancelTo="/" backTo="/create-dataset/choose-directory" nextTo={filePaths.length > 0 && "/create-dataset/choose-name"} />
                         </>

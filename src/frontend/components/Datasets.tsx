@@ -35,7 +35,7 @@ function Datasets() {
                             >
                                 <div>
                                     <div className="text-xl">{d.datasetName}</div>
-                                    <div className="text-gray-400">{d.imageCount} volumes &bull; {d.sessionCount} labeling sessions</div>
+                                    <div className="text-gray-400">{d.imageCount} image{d.imageCount !== 1 && 's'} &bull; {d.sessionCount} labeling sessions</div>
                                 </div>
                                 <ChevronRightIcon className="text-gray-500 w-6 h-6" />
                             </div>

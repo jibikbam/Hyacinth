@@ -12,7 +12,7 @@ interface StepNavigationProps {
 
 function StepNavigation({cancelTo, backTo, nextTo, finishText, finishClicked, finishDisabled}: StepNavigationProps) {
     return (
-        <div className="flex justify-between items-center">
+        <div className="mt-2 flex justify-between items-center">
             <LinkButton to={cancelTo} disabled={!cancelTo}>Cancel</LinkButton>
             <div className="flex items-center space-x-3">
                 <LinkButton to={backTo} disabled={!backTo}>Back</LinkButton>

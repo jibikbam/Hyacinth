@@ -98,7 +98,7 @@ export interface FileApiType {
     showFolderDialog: () => string[] | undefined;
     showOpenJsonDialog: () => string[] | undefined;
     showSaveDialog: (defaultName: string) => string | undefined;
-    getDatasetImages: (datasetRootPath: string) => string[];
+    getDatasetImages: (datasetRootPath: string, dicomAsSeries: boolean) => string[];
     readJsonFile: (filePath: string) => string;
     writeTextFile: (savePath: string, contents: string) => void;
 }

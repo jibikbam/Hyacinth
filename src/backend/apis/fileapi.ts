@@ -17,13 +17,15 @@ export function showSaveDialog(defaultName: string) {
     return ipcRenderer.sendSync('show-save-file-dialog', defaultName);
 }
 
-function isNiftiFile(filePath) {
-    return filePath.endsWith(NIFTI_EXT);
+function isImageFile(filePath: string) {
+    // TODO: support more extensions
+    return filePath.endsWith(NIFTI_EXT) || filePath.endsWith(DICOM_EXT);
 }
 
-function isDicomDir(filePath) {
-    // Checks if filePath is a directory which contains only dicom slices
-    // We assume this directory represents a dicom volume when the slices are combined
+function isDicomSeriesDir(filePath: string) {
+    // This function checks if filePath is a directory which contains only dicom slices
+    if (!fs.statSync(filePath).isDirectory()) return false;
+
     const fileNames = fs.readdirSync(filePath);
     if (fileNames.length === 0) return false;
     for (const fileName of fileNames) {
@@ -32,29 +34,24 @@ function isDicomDir(filePath) {
     return true;
 }
 
-function getImageFullPathsRecursive(dirPath): string[] {
+function getImageFullPathsRecursive(dirPath: string, dicomAsSeries: boolean): string[] {
     const imageFullPaths = [];
     for (const fileName of fs.readdirSync(dirPath)) {
         const filePath = dirPath + '/' + fileName;
 
-        if (fs.statSync(filePath).isDirectory()) {
-            if (isDicomDir(filePath)) {
-                imageFullPaths.push(filePath);
-            }
-            else {
-                for (const p of getImageFullPathsRecursive(filePath)) imageFullPaths.push(p);
-            }
+        if (isImageFile(filePath) || (dicomAsSeries && isDicomSeriesDir(filePath))) {
+            imageFullPaths.push(filePath);
         }
-        else {
-            if (isNiftiFile(filePath)) imageFullPaths.push(filePath);
+        else if (fs.statSync(filePath).isDirectory()) {
+            for (const p of getImageFullPathsRecursive(filePath, dicomAsSeries)) imageFullPaths.push(p);
         }
     }
     return imageFullPaths;
 }
 
-export function getDatasetImages(datasetRootPath: string) {
+export function getDatasetImages(datasetRootPath: string, dicomAsSeries: boolean) {
     if (!fs.existsSync(datasetRootPath) || !fs.statSync(datasetRootPath).isDirectory()) return null;
-    const fullPaths = getImageFullPathsRecursive(datasetRootPath);
+    const fullPaths = getImageFullPathsRecursive(datasetRootPath, dicomAsSeries);
     return fullPaths.map(fp => fp.slice(datasetRootPath.length + 1));
 }
 
