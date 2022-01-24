@@ -124,7 +124,7 @@ function LabelSlice({datasetRootPath, imageRelPath, sliceDim, sliceIndex, bindKe
             </div>
             <div className="mt-2 p-2 bg-gray-800 rounded text-gray-400 text-center">
                 <div className="flex justify-center items-center">
-                    <div className="ml-2 text-xl">{imageRelPath} {sliceDim} {sliceIndex}</div>
+                    <div className="max-w-lg ml-2 text-xl break-words">{imageRelPath} {sliceDim} {sliceIndex}</div>
                 </div>
                 {bindKey && <div className="text-sm">Click or press "{bindKey}".</div>}
             </div>

@@ -1,4 +1,5 @@
 import {DatasetImage, SliceAttributes, volumeapi} from './backend';
+import {rotateDicomAxes} from './components/VolumeSlice';
 
 function randomInt(max: number) {
     return Math.floor(Math.random() * max);
@@ -33,15 +34,18 @@ function loadSliceCount(image: DatasetImage, sliceDim: number): number {
     if (sliceDim < 0 || sliceDim > 2) throw new Error(`Invalid sliceDim ${sliceDim}`);
 
     const imagePath = image.datasetRootPath + '/' + image.relPath;
-    // TODO: better way to distinguish nifti and dicom
-    if (imagePath.endsWith('.nii.gz')) {
+    // TODO: better way to distinguish image types
+    if (imagePath.endsWith('.dcm')) {
+        return 1;
+    }
+    else if (imagePath.endsWith('.nii.gz')) {
         const imageHeader = volumeapi.readNiftiHeader(image.datasetRootPath + '/' + image.relPath);
         return imageHeader.dims[sliceDim + 1]; // dim[0] in Nifti header stores number of dimensions
     }
     else {
-        let dims = volumeapi.readDicomSeriesDims(imagePath);
+        let [dims, iop] = volumeapi.readDicomSeriesDims(imagePath);
         // Correct dim order to match order when loading dicom (note that dims are reversed in loading code)
-        dims = [dims[2], dims[0], dims[1]]; // TODO: find a way to unify this with loading code
+        dims = rotateDicomAxes(dims, iop) as [number, number, number];
         return dims[sliceDim];
     }
 }

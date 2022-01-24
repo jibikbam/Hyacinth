@@ -12,7 +12,7 @@ interface ImageVolume {
     imageType: ImageType;
 }
 
-function rightRotateArray(arr: any[], count: number) {
+function rightRotateArray<T>(arr: T[], count: number): T[] {
     const newArr = new Array(arr.length);
     for (let i = 0; i < arr.length; i++) {
         const newIndex = (i + count) % arr.length;
@@ -43,6 +43,10 @@ function computeDicomImagePlane(iop: [number, number, number, number, number, nu
     else throw Error(`Unknown dicom image plane: ${iopCrossAbs}`);
 }
 
+export function rotateDicomAxes(axes: number[], iop: [number, number, number, number, number, number]): number[] {
+    return rightRotateArray(axes, computeDicomImagePlane(iop) + 1);
+}
+
 function loadVolume(imagePath: string): ImageVolume {
     // TODO: better way to distinguish nifti and dicom
     if (imagePath.endsWith('.nii.gz')) {
@@ -68,7 +72,6 @@ function loadVolume(imagePath: string): ImageVolume {
     else {
         // Load dicom series
         const [dims, iop, imageDataArray] = volumeapi.readDicomSeries(imagePath);
-        const imagePlane = computeDicomImagePlane(iop);
 
         const image3d = tf.tidy(() => {
             // Convert to 3D
@@ -79,11 +82,8 @@ function loadVolume(imagePath: string): ImageVolume {
 
             // Right-rotate axes to correct order based on the image plane of the DICOM
             // Ensures axes are always [Sagittal, Coronal, Axial]
-            // Not necessary if image is already axial (imagePlane == 2)
-            if (imagePlane < 2) {
-                const newOrder = rightRotateArray([0, 1, 2], imagePlane + 1);
-                im3d = tf.transpose(im3d, newOrder);
-            }
+            const newOrder = rotateDicomAxes([0, 1, 2], iop);
+            if (newOrder !== [0, 1, 2]) im3d = tf.transpose(im3d, newOrder);
 
             return im3d;
         });

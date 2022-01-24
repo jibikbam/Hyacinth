@@ -63,12 +63,12 @@ function buildDicomSeries(seriesDirPath: string) {
     return [dims, iop, series];
 }
 
-export function readDicomSeriesDims(seriesDirPath: string) {
-    const [dims, _] = buildDicomSeries(seriesDirPath);
-    return dims;
+export function readDicomSeriesDims(seriesDirPath: string): [[number, number, number], [number, number, number, number, number, number]] {
+    const [dims, iop, _] = buildDicomSeries(seriesDirPath);
+    return [dims, iop];
 }
 
-export function readDicomSeries(seriesDirPath: string) {
+export function readDicomSeries(seriesDirPath: string): [[number, number, number], [number, number, number, number, number, number], Float32Array] {
     const [dims, iop, series] = buildDicomSeries(seriesDirPath);
 
     const numImagePixels = dims[0] * dims[1];
@@ -89,8 +89,7 @@ export function readDicom2d(imagePath: string): [[number, number], Float32Array]
     const image = daikon.Series.parseImage(new DataView(daikon.Utils.toArrayBuffer(fileData)));
 
     const dims: [number, number] = [image.getCols(), image.getRows()];
-    const imageData = new Float32Array(dims[0] * dims[1]);
-    imageData.set(image.getInterpretedData(false, false), 0);
+    const imageData: Float32Array = image.getInterpretedData(false, false);
 
     return [dims, imageData];
 }
