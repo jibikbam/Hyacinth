@@ -83,7 +83,8 @@ function loadVolume(imagePath: string): ImageVolume {
             // Right-rotate axes to correct order based on the image plane of the DICOM
             // Ensures axes are always [Sagittal, Coronal, Axial]
             const newOrder = rotateDicomAxes([0, 1, 2], iop);
-            if (newOrder !== [0, 1, 2]) im3d = tf.transpose(im3d, newOrder);
+            // Optimization: if newOrder is [0, 1, 2], transpose would do nothing
+            if (newOrder[0] !== 0 || newOrder[1] !== 1 || newOrder[2] !== 2) im3d = tf.transpose(im3d, newOrder);
 
             return im3d;
         });
