@@ -112,8 +112,8 @@ function loadVolumeCached(imagePath: string): ImageVolume {
     return image;
 }
 
-function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: number, sliceIndex: number, brightness: number,
-                   hFlip: boolean, vFlip: boolean, tFlip: boolean) {
+function sliceVolume(image: ImageVolume, sliceDim: number, sliceIndex: number,
+                   hFlip: boolean, vFlip: boolean, tFlip: boolean): number[][] {
     const {image3d, imageType} = image;
     const dims = image3d.shape;
 
@@ -124,7 +124,7 @@ function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: numb
     // Clamp slice index to prevent any out of bounds errors
     sliceIndex = Math.max(Math.min(sliceIndex, dims[sliceDim] - 1), 0);
 
-    const sliceData = tf.tidy(() => {
+    return tf.tidy(() => {
         // Slice RAS data along sliceDim
         let imSlice;
         switch (sliceDim) {
@@ -140,9 +140,11 @@ function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: numb
         // Convert to JS array for indexing
         return imSlice.arraySync() as number[][];
     });
+}
 
+function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][], brightness: number) {
     // Define xMax and yMax (#cols and #rows)
-    const xMax = sliceData.length, yMax = sliceData[0].length;
+    const xMax = imageData.length, yMax = imageData[0].length;
 
     // Update canvas size and initialize ImageData array
     canvas.width = xMax;
@@ -150,22 +152,27 @@ function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: numb
     const context = canvas.getContext('2d');
     const canvasImageData = context.createImageData(canvas.width, canvas.height);
 
-    // Compute max value of image for tone mapping (and adjust for brightness)
-    let [minValue, maxValue] = tf.tidy(() => {
-        const minV = tf.min(image3d).arraySync() as number;
-        const maxV = (tf.max(image3d).arraySync() as number) - minV;
-        return [minV, maxV];
-    })
-    maxValue = maxValue * ((100 - brightness) / 100);
+    // Compute min and max imageData values for tone mapping
+    let minValue = imageData[0][0];
+    let maxValue = imageData[0][0];
+    for (let x = 0; x < xMax; x++) {
+        for (let y = 0; y < yMax; y++) {
+            const v = imageData[x][y];
+            if (v < minValue) minValue = v;
+            if (v > maxValue) maxValue = v;
+        }
+    }
+    const maxLessMin = maxValue - minValue;
+    const toneMapDivisor = maxLessMin * ((100 - brightness) / 100);
 
-    // x and y are in 2D output space
+    // Render imageData to canvas
     for (let x = 0; x < xMax; x++) {
         for (let y = 0; y < yMax; y++) {
             // Get value and tone map to 8 bits (0-255)
             // (uses maxValue computed earlier with brightness)
-            let value = sliceData[x][y];
+            let value = imageData[x][y];
             value = value - minValue;
-            value = (value / maxValue) * 255;
+            value = (value / toneMapDivisor) * 255;
             value = Math.min(value, 255);
 
             // Map x and y to 1D canvas array
@@ -182,8 +189,6 @@ function drawSlice(canvas: HTMLCanvasElement, image: ImageVolume, sliceDim: numb
             canvasImageData.data[canvasOffset + 3] = 0xFF;
         }
     }
-
-    // Write image data to canvas
     context.putImageData(canvasImageData, 0, 0);
 }
 
@@ -244,7 +249,8 @@ function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false
             return;
         }
         const image3d = loadVolumeCached(imagePath);
-        drawSlice(canvasRef.current, image3d, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose);
+        const slice = sliceVolume(image3d, sliceDim, sliceIndex, hFlip, vFlip, transpose);
+        renderToCanvas(canvasRef.current, slice, brightness);
     }
 
     useEffect(() => {
