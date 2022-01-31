@@ -18,8 +18,8 @@ export function RenderedImage({imagePath, sliceDim, sliceIndex, brightness, hFli
 
     function draw() {
         const image = loadImageCached(imagePath);
-        const imagePixels = image.is3d ? sliceVolume(image, sliceDim, sliceIndex, hFlip, vFlip, transpose) : image.image2d;
-        renderToCanvas(canvasRef.current, imagePixels, brightness);
+        const imagePixels = image.is3d ? sliceVolume(image, sliceDim, sliceIndex) : image.image2d;
+        renderToCanvas(canvasRef.current, imagePixels, brightness, hFlip, vFlip, transpose);
     }
 
     useEffect(() => {

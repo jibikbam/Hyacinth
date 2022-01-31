@@ -173,15 +173,9 @@ export function loadImageCached(imagePath: string): LoadedImage {
     return image;
 }
 
-export function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: number,
-                   hFlip: boolean, vFlip: boolean, tFlip: boolean): number[][] {
+export function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: number): number[][] {
     const image3d = image.image3d;
     const dims = image3d.shape;
-
-    // Nifti pixel data is stored bottom-up instead of top-down, so we vertically flip the 2D slices
-    // (equivalent to drawing from the bottom up)
-    if (image.pixelsBottomUp) vFlip = !vFlip;
-
     // Clamp slice index to prevent any out of bounds errors
     sliceIndex = Math.max(Math.min(sliceIndex, dims[sliceDim] - 1), 0);
 
@@ -194,22 +188,22 @@ export function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: nu
             case 2: imSlice = tf.slice(image3d, [0, 0, sliceIndex], [-1, -1, 1]); break;
         }
         imSlice = tf.squeeze(imSlice);
-        // Apply flips
-        if (hFlip) imSlice = tf.reverse(imSlice, 0);
-        if (vFlip) imSlice = tf.reverse(imSlice, 1);
-        if (tFlip) imSlice = tf.transpose(imSlice);
+        // Nifti pixel data is stored bottom-up instead of top-down, so we vertically flip the 2D slices
+        // (equivalent to drawing from the bottom up)
+        if (image.pixelsBottomUp) imSlice = tf.reverse(imSlice, 1);
         // Convert to JS array for indexing
         return imSlice.arraySync() as number[][];
     });
 }
 
-export function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][], brightness: number) {
+export function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][], brightness: number,
+                               hFlip: boolean, vFlip: boolean, transpose: boolean) {
     // Define xMax and yMax (#cols and #rows)
     const xMax = imageData.length, yMax = imageData[0].length;
 
     // Update canvas size and initialize ImageData array
-    canvas.width = xMax;
-    canvas.height = yMax;
+    canvas.width = transpose ? yMax : xMax;
+    canvas.height = transpose ? xMax : yMax;
     const context = canvas.getContext('2d');
     const canvasImageData = context.createImageData(canvas.width, canvas.height);
 
@@ -236,9 +230,15 @@ export function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][],
             value = (value / toneMapDivisor) * 255;
             value = Math.min(value, 255);
 
+            // Flip and transpose
+            let xDraw = hFlip ? xMax - x - 1 : x;
+            let yDraw = vFlip ? yMax - y - 1 : y;
+            let xMaxDraw = xMax;
+            if (transpose) [xDraw, yDraw, xMaxDraw] = [yDraw, xDraw, yMax];
+
             // Map x and y to 1D canvas array
-            const xOffset = x;
-            const yOffset = y * xMax;
+            const xOffset = xDraw;
+            const yOffset = yDraw * xMaxDraw;
             const drawOffset = xOffset + yOffset;
 
             // Map 1D index to RGBA 1D index
