@@ -5,11 +5,21 @@ import * as tf from '@tensorflow/tfjs-core';
 import {Rank, Tensor3D} from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
 
-type ImageType = 'Nifti' | 'DICOM';
+type ImageType = 'Nifti3D' | 'DicomSeries3D' | 'Dicom2D';
 
-interface ImageVolume {
-    image3d: Tensor3D;
+interface LoadedImage {
+    image2d?: number[][];
+    image3d?: Tensor3D;
+
+    is3d: boolean;
+    pixelsBottomUp: boolean;
     imageType: ImageType;
+}
+
+function getImageType(imagePath: string): ImageType {
+    if (imagePath.endsWith('.dcm')) return 'Dicom2D';
+    else if (imagePath.endsWith('.nii.gz')) return 'Nifti3D';
+    return 'DicomSeries3D';
 }
 
 function rightRotateArray<T>(arr: T[], count: number): T[] {
@@ -47,7 +57,7 @@ export function rotateDicomAxes(axes: number[], iop: [number, number, number, nu
     return rightRotateArray(axes, computeDicomImagePlane(iop) + 1);
 }
 
-function loadNiftiVolume(imagePath: string): ImageVolume {
+function loadNifti3d(imagePath: string): LoadedImage {
     const [imageHeader, imageData] = volumeapi.readNifti(imagePath);
 
     // Get image dims 1-3 (dim[0] in the Nifti format stores the number of dimensions)
@@ -64,10 +74,11 @@ function loadNiftiVolume(imagePath: string): ImageVolume {
         im3d = tf.transpose(im3d, [2, 1, 0]);
         return im3d;
     });
-    return {image3d, imageType: 'Nifti'};
+
+    return {image3d, is3d: true, pixelsBottomUp: true, imageType: 'Nifti3D'};
 }
 
-function loadDicomSeriesVolume(imagePath: string): ImageVolume {
+function loadDicomSeries3d(imagePath: string): LoadedImage {
     const [dims, iop, imageDataArray] = volumeapi.readDicomSeries(imagePath);
 
     const image3d = tf.tidy(() => {
@@ -85,18 +96,35 @@ function loadDicomSeriesVolume(imagePath: string): ImageVolume {
 
         return im3d;
     });
-    return {image3d, imageType: 'DICOM'};
+
+    return {image3d, is3d: true, pixelsBottomUp: false, imageType: 'DicomSeries3D'};
 }
 
-// Implements an LRU cache for image volumes
+function loadDicom2d(imagePath: string): LoadedImage {
+    const [dims, imageData] = volumeapi.readDicom2d(imagePath);
+    const image2d = reshape2d(dims, imageData);
+
+    return {image2d, is3d: false, pixelsBottomUp: false, imageType: 'Dicom2D'};
+}
+
+function loadImage(imagePath: string): LoadedImage {
+    const imageType = getImageType(imagePath);
+    switch (imageType) {
+        case 'Nifti3D': return loadNifti3d(imagePath);
+        case 'DicomSeries3D': return loadDicomSeries3d(imagePath);
+        case 'Dicom2D': return loadDicom2d(imagePath);
+    }
+}
+
+// Implements an LRU cache for image data
 const IMAGE_CACHE_SIZE = 3;
-const IMAGE_CACHE: [string, ImageVolume][] = [];
-function loadVolumeCached(imagePath: string): ImageVolume {
+const IMAGE_CACHE: [string, LoadedImage][] = [];
+function loadImageCached(imagePath: string): LoadedImage {
     for (const [p, img] of IMAGE_CACHE) {
         if (p === imagePath) return img;
     }
 
-    const image = loadVolume(imagePath);
+    const image = loadImage(imagePath);
     // Insert at index 0
     IMAGE_CACHE.splice(0, 0, [imagePath, image]);
     // Pop from end until queue is of correct length
@@ -122,14 +150,14 @@ function reshape2d(dims: [number, number], imageData: Float32Array): number[][] 
     return outerArray;
 }
 
-function sliceVolume(image: ImageVolume, sliceDim: number, sliceIndex: number,
+function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: number,
                    hFlip: boolean, vFlip: boolean, tFlip: boolean): number[][] {
-    const {image3d, imageType} = image;
+    const image3d = image.image3d;
     const dims = image3d.shape;
 
     // Nifti pixel data is stored bottom-up instead of top-down, so we vertically flip the 2D slices
     // (equivalent to drawing from the bottom up)
-    if (imageType === 'Nifti') vFlip = !vFlip;
+    if (image.pixelsBottomUp) vFlip = !vFlip;
 
     // Clamp slice index to prevent any out of bounds errors
     sliceIndex = Math.max(Math.min(sliceIndex, dims[sliceDim] - 1), 0);
@@ -222,16 +250,9 @@ function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false
     const [curImagePath, setCurImagePath] = useState<string | null>(null);
 
     function draw() {
-        // TODO: clean this up
-        if (imagePath.endsWith('.dcm')) {
-            const [dims, imageData] = volumeapi.readDicom2d(imagePath);
-            const image2d = reshape2d(dims, imageData);
-            renderToCanvas(canvasRef.current, image2d, brightness);
-            return;
-        }
-        const image3d = loadVolumeCached(imagePath);
-        const slice = sliceVolume(image3d, sliceDim, sliceIndex, hFlip, vFlip, transpose);
-        renderToCanvas(canvasRef.current, slice, brightness);
+        const image = loadImageCached(imagePath);
+        const imagePixels = image.is3d ? sliceVolume(image, sliceDim, sliceIndex, hFlip, vFlip, transpose) : image.image2d;
+        renderToCanvas(canvasRef.current, imagePixels, brightness);
     }
 
     useEffect(() => {
