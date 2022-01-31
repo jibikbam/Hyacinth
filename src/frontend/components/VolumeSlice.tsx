@@ -47,49 +47,45 @@ export function rotateDicomAxes(axes: number[], iop: [number, number, number, nu
     return rightRotateArray(axes, computeDicomImagePlane(iop) + 1);
 }
 
-function loadVolume(imagePath: string): ImageVolume {
-    // TODO: better way to distinguish nifti and dicom
-    if (imagePath.endsWith('.nii.gz')) {
-        // Load nifti
-        const [imageHeader, imageData] = volumeapi.readNifti(imagePath);
+function loadNiftiVolume(imagePath: string): ImageVolume {
+    const [imageHeader, imageData] = volumeapi.readNifti(imagePath);
 
-        // Get image dims 1-3 (dim[0] in the Nifti format stores the number of dimensions)
-        const dims: [number, number, number] = imageHeader.dims.slice(1, 4);
+    // Get image dims 1-3 (dim[0] in the Nifti format stores the number of dimensions)
+    const dims: [number, number, number] = imageHeader.dims.slice(1, 4);
 
-        // Convert to Int32 because TF tensors do not accept Int16
-        const imageDataArray = new Int32Array(imageData);
+    // Convert to Int32 because TF tensors do not accept Int16
+    const imageDataArray = new Int32Array(imageData);
 
-        const image3d = tf.tidy(() => {
-            // Convert to 3D
-            const im1d = tf.tensor1d(imageDataArray);
-            let im3d = tf.reshape<Rank.R3>(im1d, reverseDims(dims));
-            // Reorder axes (undoes dim reversal which is needed for reshape)
-            im3d = tf.transpose(im3d, [2, 1, 0]);
-            return im3d;
-        });
-        return {image3d, imageType: 'Nifti'};
-    }
-    else {
-        // Load dicom series
-        const [dims, iop, imageDataArray] = volumeapi.readDicomSeries(imagePath);
+    const image3d = tf.tidy(() => {
+        // Convert to 3D
+        const im1d = tf.tensor1d(imageDataArray);
+        let im3d = tf.reshape<Rank.R3>(im1d, reverseDims(dims));
+        // Reorder axes (undoes dim reversal which is needed for reshape)
+        im3d = tf.transpose(im3d, [2, 1, 0]);
+        return im3d;
+    });
+    return {image3d, imageType: 'Nifti'};
+}
 
-        const image3d = tf.tidy(() => {
-            // Convert to 3D
-            const im1d = tf.tensor1d(imageDataArray);
-            let im3d = tf.reshape<Rank.R3>(im1d, reverseDims(dims));
-            // Reorder axes (undoes dim reversal which is needed for reshape)
-            im3d = tf.transpose(im3d, [2, 1, 0]);
+function loadDicomSeriesVolume(imagePath: string): ImageVolume {
+    const [dims, iop, imageDataArray] = volumeapi.readDicomSeries(imagePath);
 
-            // Right-rotate axes to correct order based on the image plane of the DICOM
-            // Ensures axes are always [Sagittal, Coronal, Axial]
-            const newOrder = rotateDicomAxes([0, 1, 2], iop);
-            // Optimization: if newOrder is [0, 1, 2], transpose would do nothing
-            if (newOrder[0] !== 0 || newOrder[1] !== 1 || newOrder[2] !== 2) im3d = tf.transpose(im3d, newOrder);
+    const image3d = tf.tidy(() => {
+        // Convert to 3D
+        const im1d = tf.tensor1d(imageDataArray);
+        let im3d = tf.reshape<Rank.R3>(im1d, reverseDims(dims));
+        // Reorder axes (undoes dim reversal which is needed for reshape)
+        im3d = tf.transpose(im3d, [2, 1, 0]);
 
-            return im3d;
-        });
-        return {image3d, imageType: 'DICOM'};
-    }
+        // Right-rotate axes to correct order based on the image plane of the DICOM
+        // Ensures axes are always [Sagittal, Coronal, Axial]
+        const newOrder = rotateDicomAxes([0, 1, 2], iop);
+        // Optimization: if newOrder is [0, 1, 2], transpose would do nothing
+        if (newOrder[0] !== 0 || newOrder[1] !== 1 || newOrder[2] !== 2) im3d = tf.transpose(im3d, newOrder);
+
+        return im3d;
+    });
+    return {image3d, imageType: 'DICOM'};
 }
 
 // Implements an LRU cache for image volumes
