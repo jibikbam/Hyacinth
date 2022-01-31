@@ -1,4 +1,4 @@
-import {volumeapi} from './backend';
+import {DatasetImage, volumeapi} from './backend';
 import * as tf from '@tensorflow/tfjs-core';
 import {Rank, Tensor3D} from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
@@ -67,6 +67,31 @@ function reshape2d(dims: [number, number], imageData: Float32Array): number[][] 
         outerArray[x] = innerArray;
     }
     return outerArray;
+}
+
+export function loadSliceCount(image: DatasetImage, sliceDim: number): number {
+    if (sliceDim < 0 || sliceDim > 2) throw new Error(`Invalid sliceDim ${sliceDim}`);
+
+    const imagePath = image.datasetRootPath + '/' + image.relPath;
+    const imageType = getImageType(imagePath);
+
+    switch (imageType) {
+        case 'Nifti3D':
+            const imageHeader = volumeapi.readNiftiHeader(imagePath);
+            return imageHeader.dims[sliceDim + 1]; // dim[0] in Nifti header stores number of dimensions
+
+        case 'DicomSeries3D':
+            let [dims, iop] = volumeapi.readDicomSeriesDims(imagePath);
+            // Right-rotate dim order (see dicom series loading code below)
+            dims = rotateDicomAxes(dims, iop) as [number, number, number];
+            return dims[sliceDim];
+
+        case 'Dicom2D':
+            return 1; // 2D image only has one "slice"
+
+        default:
+            throw new Error(`Could not load slice count for unknown image type: ${imageType}`);
+    }
 }
 
 function loadNifti3d(imagePath: string): LoadedImage {
