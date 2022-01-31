@@ -1,6 +1,4 @@
-import * as React from 'react';
-import {useEffect, useRef, useState} from 'react';
-import {volumeapi} from '../backend';
+import {volumeapi} from './backend';
 import * as tf from '@tensorflow/tfjs-core';
 import {Rank, Tensor3D} from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
@@ -133,7 +131,7 @@ function loadImage(imagePath: string): LoadedImage {
 // Implements an LRU cache for image data
 const IMAGE_CACHE_SIZE = 3;
 const IMAGE_CACHE: [string, LoadedImage][] = [];
-function loadImageCached(imagePath: string): LoadedImage {
+export function loadImageCached(imagePath: string): LoadedImage {
     for (const [p, img] of IMAGE_CACHE) {
         if (p === imagePath) return img;
     }
@@ -150,7 +148,7 @@ function loadImageCached(imagePath: string): LoadedImage {
     return image;
 }
 
-function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: number,
+export function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: number,
                    hFlip: boolean, vFlip: boolean, tFlip: boolean): number[][] {
     const image3d = image.image3d;
     const dims = image3d.shape;
@@ -180,7 +178,7 @@ function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: number,
     });
 }
 
-function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][], brightness: number) {
+export function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][], brightness: number) {
     // Define xMax and yMax (#cols and #rows)
     const xMax = imageData.length, yMax = imageData[0].length;
 
@@ -230,49 +228,7 @@ function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][], bright
     context.putImageData(canvasImageData, 0, 0);
 }
 
-function clearCanvas(canvasEl: HTMLCanvasElement) {
+export function clearCanvas(canvasEl: HTMLCanvasElement) {
     const context = canvasEl.getContext('2d');
     context.clearRect(0, 0, canvasEl.width, canvasEl.height);
 }
-
-interface VolumeSliceProps {
-    imagePath: string;
-    sliceDim: number;
-    sliceIndex: number;
-    brightness: number;
-    hFlip?: boolean;
-    vFlip?: boolean;
-    transpose?: boolean;
-}
-
-function VolumeSlice({imagePath, sliceDim, sliceIndex, brightness, hFlip = false, vFlip = false, transpose = false}: VolumeSliceProps) {
-    const canvasRef = useRef(null);
-    const [curImagePath, setCurImagePath] = useState<string | null>(null);
-
-    function draw() {
-        const image = loadImageCached(imagePath);
-        const imagePixels = image.is3d ? sliceVolume(image, sliceDim, sliceIndex, hFlip, vFlip, transpose) : image.image2d;
-        renderToCanvas(canvasRef.current, imagePixels, brightness);
-    }
-
-    useEffect(() => {
-        // If we are loading a different image, clear the canvas to act as a simple loading indicator
-        if (curImagePath !== imagePath) {
-            clearCanvas(canvasRef.current);
-            setTimeout(draw, 100); // Timeout required so empty canvas is rendered
-        }
-        else {
-            draw();
-        }
-        setCurImagePath(imagePath);
-    }, [imagePath, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose]);
-
-    return (
-        <div className="w-full h-full bg-black">
-            <canvas className="w-full h-full" ref={canvasRef} width={0} height={0} />
-        </div>
-    )
-
-}
-
-export {VolumeSlice};

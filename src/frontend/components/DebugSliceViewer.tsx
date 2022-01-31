@@ -3,7 +3,7 @@ import {useMemo, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
 import {dbapi} from '../backend';
 import {InputRange, Select} from './Inputs';
-import {VolumeSlice} from './VolumeSlice';
+import {RenderedImage} from './RenderedImage';
 import {Button} from './Buttons';
 import {ArrowLeftIcon, SwitchHorizontalIcon, SwitchVerticalIcon} from '@heroicons/react/solid';
 
@@ -15,7 +15,7 @@ function SliceWithControls({imagePath, sliceDim}: {imagePath: string, sliceDim: 
 
     return (
         <div className="flex-1 flex flex-col">
-            <VolumeSlice imagePath={imagePath} sliceIndex={Math.round(sliceIndex)} sliceDim={sliceDim} brightness={50} hFlip={hFlip} vFlip={vFlip} transpose={transpose} />
+            <RenderedImage imagePath={imagePath} sliceIndex={Math.round(sliceIndex)} sliceDim={sliceDim} brightness={50} hFlip={hFlip} vFlip={vFlip} transpose={transpose} />
             <div className="mt-4 p-2 bg-gray-800 rounded flex justify-between items-center">
                 <div className="ml-1 flex-1 flex items-center">
                     <InputRange min={0} max={255} step={1} value={sliceIndex} setValue={setSliceIndex} />

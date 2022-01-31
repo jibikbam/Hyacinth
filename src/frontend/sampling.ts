@@ -1,5 +1,5 @@
 import {DatasetImage, SliceAttributes, volumeapi} from './backend';
-import {rotateDicomAxes} from './components/VolumeSlice';
+import {rotateDicomAxes} from './rendering';
 
 function randomInt(max: number) {
     return Math.floor(Math.random() * max);

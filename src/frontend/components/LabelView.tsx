@@ -6,7 +6,7 @@ import {useTimer} from '../hooks/useTimer';
 import {InputRange} from './Inputs';
 import {Button} from './Buttons';
 import {Modal} from './Modal';
-import {VolumeSlice} from './VolumeSlice';
+import {RenderedImage} from './RenderedImage';
 import {buildSortMatrix, sortSlices} from '../sort';
 import {splitLabelOptions} from '../utils';
 import {ChevronLeftIcon, ChevronRightIcon, XIcon} from '@heroicons/react/outline';
@@ -109,7 +109,7 @@ function LabelSlice({datasetRootPath, imageRelPath, sliceDim, sliceIndex, bindKe
                 style={{width: '65vh', height: '65vh'}}
                 onClick={handleClick}
             >
-                <VolumeSlice imagePath={datasetRootPath + '/' + imageRelPath} sliceDim={sliceDim} sliceIndex={sliceIndex} brightness={brightness} />
+                <RenderedImage imagePath={datasetRootPath + '/' + imageRelPath} sliceDim={sliceDim} sliceIndex={sliceIndex} brightness={brightness} />
             </div>
             <div className="mt-3 px-2 py-1 bg-gray-800 rounded flex items-center">
                 <SunIcon className="mr-2 w-6 h-6 text-gray-400" />

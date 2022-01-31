@@ -1,8 +1,6 @@
 import * as React from 'react';
-import {useState} from 'react';
-import {BrowserRouter as Router, Link, Routes, Route, useLocation} from 'react-router-dom';
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 
-import {VolumeSlice} from './VolumeSlice';
 import {Datasets} from './Datasets';
 import {CreateDataset} from './CreateDataset';
 import {DatasetOverview} from './DatasetOverview';
