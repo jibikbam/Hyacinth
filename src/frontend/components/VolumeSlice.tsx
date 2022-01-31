@@ -57,6 +57,20 @@ export function rotateDicomAxes(axes: number[], iop: [number, number, number, nu
     return rightRotateArray(axes, computeDicomImagePlane(iop) + 1);
 }
 
+function reshape2d(dims: [number, number], imageData: Float32Array): number[][] {
+    const outerArray = new Array(dims[0]);
+    for (let x = 0; x < dims[0]; x++) {
+        const innerArray = new Array(dims[1]);
+        for (let y = 0; y < dims[1]; y++) {
+            const xOffset = x;
+            const yOffset = y * dims[0];
+            innerArray[y] = imageData[xOffset + yOffset];
+        }
+        outerArray[x] = innerArray;
+    }
+    return outerArray;
+}
+
 function loadNifti3d(imagePath: string): LoadedImage {
     const [imageHeader, imageData] = volumeapi.readNifti(imagePath);
 
@@ -134,20 +148,6 @@ function loadImageCached(imagePath: string): LoadedImage {
     }
 
     return image;
-}
-
-function reshape2d(dims: [number, number], imageData: Float32Array): number[][] {
-    const outerArray = new Array(dims[0]);
-    for (let x = 0; x < dims[0]; x++) {
-        const innerArray = new Array(dims[1]);
-        for (let y = 0; y < dims[1]; y++) {
-            const xOffset = x;
-            const yOffset = y * dims[0];
-            innerArray[y] = imageData[xOffset + yOffset];
-        }
-        outerArray[x] = innerArray;
-    }
-    return outerArray;
 }
 
 function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: number,
