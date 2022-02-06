@@ -185,22 +185,44 @@ export function insertElementLabel(elementId: number | string, labelValue: strin
 
 // For internal use when appending the next sort comparison within the same transaction after labeling
 function insertComparisonNoTransaction(sessionId: number | string, elementIndex: number, slice1, slice2) {
-    const insertStatement = dbConn.prepare(`
-        INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceDim1, sliceIndex1, imageId2, sliceDim2, sliceIndex2)
-            VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceDim1, :sliceIndex1, :imageId2, :sliceDim2, :sliceIndex2);
-    `);
+    const insertTransaction = dbConn.transaction(() => {
+        // Delete all comparisons (and their labels) which have an elementIndex >= the new comparison we are going to add
+        // This is necessary because active sampling will choose new comparisons based on previous comparisons,
+        // meaning that future comparisons are invalidated if a past label is changed, so they must be deleted
+        dbConn.prepare(`
+            DELETE FROM element_labels
+            WHERE elementId IN (
+                SELECT elementId FROM element_labels
+                INNER JOIN session_elements on element_labels.elementId = session_elements.id
+                WHERE session_elements.sessionId = :sessionId AND session_elements.elementType = 'Comparison' AND session_elements.elementIndex >= :elementIndex
+            );
+        `).run({sessionId, elementIndex});
+        dbConn.prepare(`
+            DELETE FROM session_elements
+            WHERE sessionId = :sessionId AND elementType = 'Comparison' AND elementIndex >= :elementIndex;
+        `).run({sessionId, elementIndex});
 
-    insertStatement.run({
-        sessionId: sessionId,
-        elementIndex: elementIndex,
-        elementType: 'Comparison',
-        imageId1: slice1.imageId,
-        sliceDim1: slice1.sliceDim,
-        sliceIndex1: slice1.sliceIndex,
-        imageId2: slice2.imageId,
-        sliceDim2: slice2.sliceDim,
-        sliceIndex2: slice2.sliceIndex,
+        // Insert new comparison
+        const insertStatement = dbConn.prepare(`
+            INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceDim1, sliceIndex1, imageId2, sliceDim2, sliceIndex2)
+                VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceDim1, :sliceIndex1, :imageId2, :sliceDim2, :sliceIndex2);
+        `);
+
+        insertStatement.run({
+            sessionId: sessionId,
+            elementIndex: elementIndex,
+            elementType: 'Comparison',
+            imageId1: slice1.imageId,
+            sliceDim1: slice1.sliceDim,
+            sliceIndex1: slice1.sliceIndex,
+            imageId2: slice2.imageId,
+            sliceDim2: slice2.sliceDim,
+            sliceIndex2: slice2.sliceIndex,
+        });
     });
+
+    insertTransaction();
+    console.log(`Inserted new comparison for session ${sessionId} at elementIndex ${elementIndex}`);
 }
 
 export function deleteLabelingSession(sessionId: number | string) {

@@ -267,25 +267,42 @@ function LabelView() {
     }, [session, elementIndex]);
 
     function addLabel(labelValue: string) {
+        // If labelValue is already the current label, do nothing
         if (curElement.labels.length > 0 && curElement.labels[0].labelValue === labelValue) return;
-        if (session.comparisonSampling === 'Sort' && parseInt(elementIndex) < elements.length - 1) return; //TODO: allow changing past labels
 
         // Handle sort
         let appendComparisonArgs: {sessionId: number | string, elementIndex: number, slice1: Slice, slice2: Slice} = null;
         if (session.comparisonSampling === 'Sort') {
-            // Get current labels and add new labelValue for the current comparison
-            const comparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
+            // Get current labels
+            const allComparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
+
+            // Remove any comparisons/labels that come after the current one (they will be deleted during insert)
+            const end = curElement.element.elementIndex + 1;
+            if (allComparisonLabels.length > (end + 1)) {
+                // Warn if adding this label is destructive
+                // The last comparison in the list is always unlabeled (unless labeling is complete),
+                // so deleting it is not destructive. We only warn if at least two comparisons appear after this one
+                // in the list, hence (end + 1)
+                const message = `Adding a label here will overwrite all comparisons and labels that come after it.\n\nAre you sure you want to proceed?`;
+                if (!window.confirm(message)) return;
+            }
+            const comparisons = elements.slice(0, end) as Comparison[];
+            const comparisonLabels = allComparisonLabels.slice(0, end);
+
+            // Update the label for the current comparison
             comparisonLabels[comparisonLabels.length - 1] = labelValue;
 
+            // Build sort matrix with updated comparisons/labels and perform sort on slices
             const sortResult = sortSlices(
-                buildSortMatrix(elements as Comparison[], comparisonLabels),
+                buildSortMatrix(comparisons, comparisonLabels),
                 dbapi.selectSessionSlices(session.id)
             );
 
+            // Append next comparison if sorting is not complete
             if (!Array.isArray(sortResult)) {
                 appendComparisonArgs = {
                     sessionId: session.id,
-                    elementIndex: elements.length,
+                    elementIndex: curElement.element.elementIndex + 1,
                     slice1: sortResult.slice1,
                     slice2: sortResult.slice2,
                 }
@@ -295,6 +312,7 @@ function LabelView() {
             }
         }
 
+        // Insert new label (and append new comparison if applicable)
         dbapi.insertElementLabel(curElement.element.id, labelValue, startTimestamp, Date.now(), appendComparisonArgs);
 
         // Update labels for current element
