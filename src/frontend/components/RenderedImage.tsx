@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useEffect, useRef, useState} from 'react';
-import {clearCanvas, loadImageCached, renderToCanvas, sliceVolume} from '../rendering';
+import {clearCanvas, loadAndRender} from '../rendering';
 import {fileapi} from '../backend';
 import {Button} from './Buttons';
 
@@ -22,9 +22,7 @@ export function RenderedImage({imagePath, sliceDim, sliceIndex, brightness, hFli
     const [curImagePath, setCurImagePath] = useState<string | null>(null);
 
     function draw() {
-        const image = loadImageCached(imagePath);
-        const imagePixels = image.is3d ? sliceVolume(image, sliceDim, sliceIndex) : image.image2d;
-        renderToCanvas(canvasRef.current, imagePixels, brightness, hFlip, vFlip, transpose);
+        loadAndRender(imagePath, sliceDim, sliceIndex, canvasRef.current, brightness, hFlip, vFlip, transpose);
     }
 
     async function saveThumbnail() {

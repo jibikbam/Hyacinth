@@ -278,6 +278,9 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: string
                 </div>
             </div>
             <div className="mt-6 self-start">
+                <div className="mb-2">
+                    <LinkButton to={`/generate-thumbnails/${sessionId}`} color="darkGray">Generate Thumbnails</LinkButton>
+                </div>
                 <LinkButton to={`/label/${sessionId}/0`} color="fuchsia">
                     <PlayIcon className="w-5 h-5" />
                     <span className="ml-2 mr-2 font-medium">Start Labeling</span>

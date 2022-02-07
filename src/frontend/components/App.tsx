@@ -7,6 +7,7 @@ import {DatasetOverview} from './DatasetOverview';
 import {CreateSession} from './CreateSession';
 import {LabelView} from './LabelView';
 import {DebugSliceViewer} from './DebugSliceViewer';
+import {ThumbnailGenerator} from './ThumbnailGenerator';
 
 function App() {
     return (
@@ -17,6 +18,7 @@ function App() {
                 <Route path="/dataset/:datasetId/session/:sessionId" element={<DatasetOverview />} />
                 <Route path="/dataset/:datasetId" element={<DatasetOverview />} />
                 <Route path="/label/:sessionId/:elementIndex" element={<LabelView />} />
+                <Route path="/generate-thumbnails/:sessionId" element={<ThumbnailGenerator />} />
                 <Route path="/debug-slice-viewer/:datasetId" element={<DebugSliceViewer />} />
                 <Route path="/*" element={<Datasets />} />
             </Routes>

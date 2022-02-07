@@ -156,7 +156,7 @@ function loadImage(imagePath: string): LoadedImage {
 // Implements an LRU cache for image data
 const IMAGE_CACHE_SIZE = 3;
 const IMAGE_CACHE: [string, LoadedImage][] = [];
-export function loadImageCached(imagePath: string): LoadedImage {
+function loadImageCached(imagePath: string): LoadedImage {
     for (const [p, img] of IMAGE_CACHE) {
         if (p === imagePath) return img;
     }
@@ -173,7 +173,7 @@ export function loadImageCached(imagePath: string): LoadedImage {
     return image;
 }
 
-export function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: number): number[][] {
+function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: number): number[][] {
     const image3d = image.image3d;
     const dims = image3d.shape;
     // Clamp slice index to prevent any out of bounds errors
@@ -196,7 +196,7 @@ export function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: nu
     });
 }
 
-export function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][], brightness: number,
+function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][], brightness: number,
                                hFlip: boolean, vFlip: boolean, transpose: boolean) {
     // Define xMax and yMax (#cols and #rows)
     const xMax = imageData.length, yMax = imageData[0].length;
@@ -251,6 +251,13 @@ export function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][],
         }
     }
     context.putImageData(canvasImageData, 0, 0);
+}
+
+export function loadAndRender(imagePath: string, sliceDim: number, sliceIndex: number, canvas: HTMLCanvasElement,
+                              brightness: number, hFlip: boolean, vFlip: boolean, transpose: boolean) {
+    const image = loadImageCached(imagePath);
+    const imagePixels = image.is3d ? sliceVolume(image, sliceDim, sliceIndex) : image.image2d;
+    renderToCanvas(canvas, imagePixels, brightness, hFlip, vFlip, transpose);
 }
 
 export function clearCanvas(canvasEl: HTMLCanvasElement) {
