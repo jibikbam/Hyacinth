@@ -70,3 +70,29 @@ export function writeTextFile(savePath: string, contents: string) {
     fs.writeFileSync(savePath, contents);
     console.log(`Wrote text file at path ${savePath}`);
 }
+
+export function writeThumbnail(canvas: HTMLCanvasElement, imageName: string) {
+    const userDataDir: string = ipcRenderer.sendSync('get-user-data-dir');
+
+    // Create thumbnails dir if it does not exist
+    const thumbnailsPath = path.join(userDataDir, 'thumbnails');
+    if (!fs.existsSync(thumbnailsPath)) {
+        fs.mkdirSync(thumbnailsPath);
+        console.log(`Created thumbnails dir at ${thumbnailsPath}`);
+    }
+
+    const imagePath = path.join(thumbnailsPath, imageName + '.png');
+
+    // Convert canvas to data URL
+    // We could use toBlob instead, but it's asynchronous which is inconvenient in this case
+    const dataURL = canvas.toDataURL();
+    // Data URL looks like:
+    // data:image/png;base64,AAAA=
+    // Splitting at comma returns base64 encoded image (AAAA=)
+    const imgBase64 = dataURL.split(',', 2)[1];
+    // Convert base64 encoded image to node Buffer
+    const buf = Buffer.from(imgBase64, 'base64');
+
+    fs.writeFileSync(imagePath, buf);
+    console.log(`Wrote thumbnail (${buf.length / 1000} kB) to ${imagePath}`);
+}
