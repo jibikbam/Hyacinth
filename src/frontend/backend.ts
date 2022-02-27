@@ -101,6 +101,7 @@ export interface FileApiType {
     getDatasetImages: (datasetRootPath: string, dicomAsSeries: boolean) => string[];
     readJsonFile: (filePath: string) => string;
     writeTextFile: (savePath: string, contents: string) => void;
+    getThumbnailsDir: () => string;
     writeThumbnail: (canvas: HTMLCanvasElement, imageName: string) => void;
 }
 

@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('fileapi', {
     getDatasetImages: fileapi.getDatasetImages,
     readJsonFile: fileapi.readJsonFile,
     writeTextFile: fileapi.writeTextFile,
+    getThumbnailsDir: fileapi.getThumbnailsDir,
     writeThumbnail: fileapi.writeThumbnail,
 });
 

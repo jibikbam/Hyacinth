@@ -71,6 +71,10 @@ export function writeTextFile(savePath: string, contents: string) {
     console.log(`Wrote text file at path ${savePath}`);
 }
 
+export function getThumbnailsDir() {
+    return path.join(ipcRenderer.sendSync('get-user-data-dir'), 'thumbnails');
+}
+
 export function writeThumbnail(canvas: HTMLCanvasElement, imageName: string) {
     const userDataDir: string = ipcRenderer.sendSync('get-user-data-dir');
 
