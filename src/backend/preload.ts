@@ -31,6 +31,7 @@ contextBridge.exposeInMainWorld('fileapi', {
     readJsonFile: fileapi.readJsonFile,
     writeTextFile: fileapi.writeTextFile,
     getThumbnailsDir: fileapi.getThumbnailsDir,
+    thumbnailExists: fileapi.thumbnailExists,
     writeThumbnail: fileapi.writeThumbnail,
 });
 

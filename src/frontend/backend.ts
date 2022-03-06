@@ -102,7 +102,8 @@ export interface FileApiType {
     readJsonFile: (filePath: string) => string;
     writeTextFile: (savePath: string, contents: string) => void;
     getThumbnailsDir: () => string;
-    writeThumbnail: (canvas: HTMLCanvasElement, imageName: string) => void;
+    thumbnailExists: (thumbnailName: string) => boolean;
+    writeThumbnail: (canvas: HTMLCanvasElement, thumbnailName: string) => void;
 }
 
 export interface VolumeApiType {

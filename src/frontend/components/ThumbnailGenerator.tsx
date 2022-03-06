@@ -11,7 +11,12 @@ export function ThumbnailGenerator() {
     const canvasRef = useRef(null);
 
     const session = useMemo(() => dbapi.selectLabelingSession(sessionId), [sessionId]);
-    const slices = useMemo(() => dbapi.selectSessionSlices(sessionId), [sessionId]);
+    const slices = useMemo(() => {
+        const _slices = dbapi.selectSessionSlices(sessionId)
+        // Optimization: sort slices by imageId to take advantage of image caching in our renderer
+        _slices.sort((a, b) => a.imageId - b.imageId);
+        return _slices;
+    }, [sessionId]);
 
     const [paused, setPaused] = useState<boolean>(false);
     const [curIndex, setCurIndex] = useState<number>(0);
@@ -34,9 +39,12 @@ export function ThumbnailGenerator() {
         const slice = slices[curIndex];
 
         const imagePath = slice.datasetRootPath + '/' + slice.imageRelPath;
-        loadAndRender(imagePath, slice.sliceDim, slice.sliceIndex, canvasRef.current, 50, false, false, false);
+        const thumbnailName = `${slice.id}_${slice.sliceDim}_${slice.sliceIndex}`;
 
-        fileapi.writeThumbnail(canvasRef.current, `${slice.id}_${slice.sliceDim}_${slice.sliceIndex}`);
+        if (!fileapi.thumbnailExists(thumbnailName)) {
+            loadAndRender(imagePath, slice.sliceDim, slice.sliceIndex, canvasRef.current, 50, false, false, false);
+            fileapi.writeThumbnail(canvasRef.current, thumbnailName);
+        }
     }
 
     return (

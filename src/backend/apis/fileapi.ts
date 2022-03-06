@@ -71,21 +71,25 @@ export function writeTextFile(savePath: string, contents: string) {
     console.log(`Wrote text file at path ${savePath}`);
 }
 
-export function getThumbnailsDir() {
-    return path.join(ipcRenderer.sendSync('get-user-data-dir'), 'thumbnails');
+export function getThumbnailsDir(): string {
+    const userDataDir = ipcRenderer.sendSync('get-user-data-dir');
+    return path.join(userDataDir, 'thumbnails');
 }
 
-export function writeThumbnail(canvas: HTMLCanvasElement, imageName: string) {
-    const userDataDir: string = ipcRenderer.sendSync('get-user-data-dir');
+export function thumbnailExists(thumbnailName: string): boolean {
+    const imagePath = path.join(getThumbnailsDir(), thumbnailName + '.png');
+    return fs.existsSync(imagePath);
+}
 
+export function writeThumbnail(canvas: HTMLCanvasElement, thumbnailName: string) {
     // Create thumbnails dir if it does not exist
-    const thumbnailsPath = path.join(userDataDir, 'thumbnails');
-    if (!fs.existsSync(thumbnailsPath)) {
-        fs.mkdirSync(thumbnailsPath);
-        console.log(`Created thumbnails dir at ${thumbnailsPath}`);
+    const thumbnailsDirPath = getThumbnailsDir();
+    if (!fs.existsSync(thumbnailsDirPath)) {
+        fs.mkdirSync(thumbnailsDirPath);
+        console.log(`Created thumbnails dir at ${thumbnailsDirPath}`);
     }
 
-    const imagePath = path.join(thumbnailsPath, imageName + '.png');
+    const imagePath = path.join(thumbnailsDirPath, thumbnailName + '.png');
 
     // Convert canvas to data URL
     // We could use toBlob instead, but it's asynchronous which is inconvenient in this case
