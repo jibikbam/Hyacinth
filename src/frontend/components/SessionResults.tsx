@@ -2,12 +2,13 @@ import * as React from 'react';
 import {Link, useParams} from 'react-router-dom';
 import {useMemo, useState} from 'react';
 import {dbapi, fileapi, Slice} from '../backend';
-import {buildSortMatrix, sortSlices} from '../sort';
 import {ArrowLeftIcon, RefreshIcon} from '@heroicons/react/solid';
 import {ExclamationIcon} from '@heroicons/react/outline';
 import {Button} from './Buttons';
+import {computeResults, SliceResult} from '../results';
 
-function GridSliceContent({index, slice}: {index: number, slice: Slice}) {
+function GridSliceContent({index, sliceResult}: {index: number, sliceResult: SliceResult}) {
+    const slice = sliceResult.slice;
     return (
         <div className="flex flex-col justify-center items-center">
             <div className="relative">
@@ -18,6 +19,13 @@ function GridSliceContent({index, slice}: {index: number, slice: Slice}) {
             </div>
             <div className="mt-1 text-center">
                 <div className="text-gray-400">{slice.imageRelPath} {slice.sliceDim} {slice.sliceIndex}</div>
+                {sliceResult.latestLabelValue && <div className="mt-1 text-sm text-gray-400">Label: "{sliceResult.latestLabelValue}"</div>}
+                {sliceResult.score !== undefined &&
+                    <div className="mt-1 text-gray-400">
+                        <div className="text-sm">Score: {sliceResult.score.toFixed(3)}</div>
+                        <div className="text-xs">WLD: {sliceResult.win}&bull;{sliceResult.loss}&bull;{sliceResult.draw}</div>
+                    </div>
+                }
             </div>
         </div>
     )
@@ -25,13 +33,13 @@ function GridSliceContent({index, slice}: {index: number, slice: Slice}) {
 
 interface GridSliceProps {
     index: number;
-    slice: Slice;
+    sliceResult: SliceResult;
     moveSlice: (startIndex: number, endIndex: number) => void;
 }
 
 const DRAG_DATA_FORMAT = 'text/hyacinth-result-index';
 
-function GridSlice({index, slice, moveSlice}: GridSliceProps) {
+function GridSlice({index, sliceResult, moveSlice}: GridSliceProps) {
     const [highlight, setHighlight] = useState<boolean>(false);
 
     function isValidDragEvent(ev: React.DragEvent) {
@@ -69,7 +77,7 @@ function GridSlice({index, slice, moveSlice}: GridSliceProps) {
         <div draggable={true} onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
              className={`drop-container p-1 ${highlight && 'bg-gray-800'} rounded cursor-pointer`}>
             <div className="pointer-events-none">
-                <GridSliceContent index={index} slice={slice} />
+                <GridSliceContent index={index} sliceResult={sliceResult} />
             </div>
         </div>
     )
@@ -79,38 +87,22 @@ function SessionResults() {
     const {sessionId} = useParams();
     const session = useMemo(() => dbapi.selectLabelingSession(sessionId), [sessionId]);
 
-    const [sortingComplete, slices] = useMemo(() => {
-        const slices = dbapi.selectSessionSlices(sessionId);
-        const comparisons = dbapi.selectSessionComparisons(sessionId);
-        const comparisonLabels = dbapi.selectSessionLatestComparisonLabels(sessionId);
+    const {labelingComplete, sliceResults} = useMemo(() => computeResults(session), [sessionId]);
 
-        const sortResult = sortSlices(
-            buildSortMatrix(comparisons, comparisonLabels),
-            slices
-        );
-
-        if (Array.isArray(sortResult)) {
-            return [true, sortResult as Slice[]];
-        }
-        else {
-            return [false, slices];
-        }
-    }, [sessionId]);
-
-    const [reorderedSlices, setReorderedSlices] = useState<Slice[] | null>(null);
+    const [reorderedResults, setReorderedResults] = useState<SliceResult[] | null>(null);
 
     function moveSlice(startIndex: number, endIndex: number) {
         // Use initial order if user hasn't moved any slices yet
-        const curSlices = (reorderedSlices || slices).slice();
+        const curSlices = (reorderedResults || sliceResults).slice();
 
         curSlices.splice(endIndex, 0, curSlices[startIndex]);
         const newStartIndex = startIndex > endIndex ? startIndex + 1 : startIndex;
-        curSlices.splice(newStartIndex, 1)
-        setReorderedSlices(curSlices);
+        curSlices.splice(newStartIndex, 1);
+        setReorderedResults(curSlices);
     }
 
     function resetOrder() {
-        setReorderedSlices(null);
+        setReorderedResults(null);
     }
 
     return (
@@ -123,13 +115,13 @@ function SessionResults() {
                 </Link>
                 <div className="flex items-center space-x-4">
                     <h1 className="text-4xl font-medium">Results for {session.sessionName}</h1>
-                    {reorderedSlices &&
+                    {reorderedResults &&
                         <Button color="gray" onClick={resetOrder}>
                             <RefreshIcon className="w-4 h-4" />
                             <span className="ml-1">Reset</span>
                         </Button>
                     }
-                    {!sortingComplete &&
+                    {!labelingComplete &&
                         <div className="px-2 text-yellow-300 font-medium border border-yellow-300 rounded flex items-center">
                             <ExclamationIcon className="w-5 h-5" />
                             <span className="ml-2">Labeling is not complete.</span>
@@ -138,7 +130,7 @@ function SessionResults() {
                 </div>
             </div>
             <div className="mt-6 grid grid-cols-6 gap-8">
-                {(reorderedSlices || slices).map((s, i) => <GridSlice key={s.id} index={i} slice={s} moveSlice={moveSlice} />)}
+                {(reorderedResults || sliceResults).map((sr, i) => <GridSlice key={sr.slice.id} sliceResult={sr} index={i}  moveSlice={moveSlice} />)}
             </div>
         </div>
     )
