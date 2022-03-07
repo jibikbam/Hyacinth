@@ -42,7 +42,7 @@ export function ThumbnailGenerator() {
         const thumbnailName = `${slice.id}_${slice.sliceDim}_${slice.sliceIndex}`;
 
         if (!fileapi.thumbnailExists(thumbnailName)) {
-            loadAndRender(imagePath, slice.sliceDim, slice.sliceIndex, canvasRef.current, 50, false, false, false);
+            loadAndRender(imagePath, slice.sliceDim, slice.sliceIndex, canvasRef.current, 99, false, false, false);
             fileapi.writeThumbnail(canvasRef.current, thumbnailName);
         }
     }

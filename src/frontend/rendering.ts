@@ -196,6 +196,20 @@ function sliceVolume(image: LoadedImage, sliceDim: number, sliceIndex: number): 
     });
 }
 
+function computePercentile(imageData: number[][], q: number[]): number[] {
+    const xMax = imageData.length, yMax = imageData[0].length;
+    const imageDataFlat = new Array(xMax * yMax);
+
+    for (let x = 0; x < xMax; x++) {
+        for (let y = 0; y < yMax; y++) {
+            imageDataFlat[x + (y * xMax)] = imageData[x][y];
+        }
+    }
+
+    imageDataFlat.sort((a, b) => a - b);
+    return q.map(qVal => imageDataFlat[Math.floor((imageDataFlat.length - 1) * (qVal / 100))]);
+}
+
 function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][], brightness: number,
                                hFlip: boolean, vFlip: boolean, transpose: boolean) {
     // Define xMax and yMax (#cols and #rows)
@@ -207,24 +221,13 @@ function renderToCanvas(canvas: HTMLCanvasElement, imageData: number[][], bright
     const context = canvas.getContext('2d');
     const canvasImageData = context.createImageData(canvas.width, canvas.height);
 
-    // Compute min and max imageData values for tone mapping
-    let minValue = imageData[0][0];
-    let maxValue = imageData[0][0];
-    for (let x = 0; x < xMax; x++) {
-        for (let y = 0; y < yMax; y++) {
-            const v = imageData[x][y];
-            if (v < minValue) minValue = v;
-            if (v > maxValue) maxValue = v;
-        }
-    }
-    const maxLessMin = maxValue - minValue;
-    const toneMapDivisor = maxLessMin * ((100 - brightness) / 100);
+    const [minValue, brightPctValue] = computePercentile(imageData, [0, brightness]);
+    const toneMapDivisor = brightPctValue - minValue;
 
     // Render imageData to canvas
     for (let x = 0; x < xMax; x++) {
         for (let y = 0; y < yMax; y++) {
             // Get value and tone map to 8 bits (0-255)
-            // (uses maxValue computed earlier with brightness)
             let value = imageData[x][y];
             value = value - minValue;
             value = (value / toneMapDivisor) * 255;

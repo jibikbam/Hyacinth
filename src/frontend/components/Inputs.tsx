@@ -70,7 +70,7 @@ interface InputRangeProps {
     max: number;
     step: number;
     value: number;
-    setValue: (number) => void;
+    setValue: React.Dispatch<React.SetStateAction<number>>;
 }
 
 function InputRange({min, max, step, value, setValue}: InputRangeProps) {
@@ -84,7 +84,7 @@ function InputRange({min, max, step, value, setValue}: InputRangeProps) {
             max={max}
             step={step}
             value={value}
-            onInput={ev => setValue(ev.currentTarget.value)}
+            onInput={ev => setValue(parseInt(ev.currentTarget.value))}
         />
     )
 }

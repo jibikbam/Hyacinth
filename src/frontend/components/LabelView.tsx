@@ -83,7 +83,7 @@ function PastLabelsModal({labels, closeModal}: {labels: ElementLabel[], closeMod
     )
 }
 
-const DEFAULT_BRIGHTNESS = 50;
+const DEFAULT_BRIGHTNESS = 99;
 
 interface LabelSliceProps {
     datasetRootPath: string;

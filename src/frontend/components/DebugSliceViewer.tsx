@@ -15,7 +15,7 @@ function SliceWithControls({imagePath, sliceDim, imageId}: {imagePath: string, s
 
     return (
         <div className="flex-1 flex flex-col">
-            <RenderedImage imagePath={imagePath} sliceIndex={Math.round(sliceIndex)} sliceDim={sliceDim} brightness={50} hFlip={hFlip} vFlip={vFlip} transpose={transpose} allowSave={true} imageId={imageId} />
+            <RenderedImage imagePath={imagePath} sliceIndex={Math.round(sliceIndex)} sliceDim={sliceDim} brightness={99} hFlip={hFlip} vFlip={vFlip} transpose={transpose} allowSave={true} imageId={imageId} />
             <div className="mt-4 p-2 bg-gray-800 rounded flex justify-between items-center">
                 <div className="ml-1 flex-1 flex items-center">
                     <InputRange min={0} max={255} step={1} value={sliceIndex} setValue={setSliceIndex} />
