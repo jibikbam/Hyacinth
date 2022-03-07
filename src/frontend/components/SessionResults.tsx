@@ -6,6 +6,7 @@ import {ArrowLeftIcon, RefreshIcon} from '@heroicons/react/solid';
 import {ExclamationIcon} from '@heroicons/react/outline';
 import {Button} from './Buttons';
 import {computeResults, SliceResult} from '../results';
+import {sessionResultsToCsv} from '../collaboration';
 
 function GridSliceContent({index, sliceResult}: {index: number, sliceResult: SliceResult}) {
     const slice = sliceResult.slice;
@@ -105,6 +106,13 @@ function SessionResults() {
         setReorderedResults(null);
     }
 
+    function exportResults() {
+        const resultsCsvString = sessionResultsToCsv(reorderedResults || sliceResults);
+        const savePath = fileapi.showSaveDialog(session.sessionName + ' results.csv');
+
+        if (savePath) fileapi.writeTextFile(savePath, resultsCsvString);
+    }
+
     return (
         <div className="p-4">
             <div>
@@ -113,20 +121,25 @@ function SessionResults() {
                     <ArrowLeftIcon className="w-5 h-5" />
                     <span>Back to {session.sessionName}</span>
                 </Link>
-                <div className="flex items-center space-x-4">
-                    <h1 className="text-4xl font-medium">Results for {session.sessionName}</h1>
-                    {reorderedResults &&
-                        <Button color="gray" onClick={resetOrder}>
-                            <RefreshIcon className="w-4 h-4" />
-                            <span className="ml-1">Reset</span>
-                        </Button>
-                    }
-                    {!labelingComplete &&
-                        <div className="px-2 text-yellow-300 font-medium border border-yellow-300 rounded flex items-center">
-                            <ExclamationIcon className="w-5 h-5" />
-                            <span className="ml-2">Labeling is not complete.</span>
-                        </div>
-                    }
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-4">
+                        <h1 className="text-4xl font-medium">Results for {session.sessionName}</h1>
+                        {reorderedResults &&
+                            <Button color="gray" onClick={resetOrder}>
+                                <RefreshIcon className="w-4 h-4" />
+                                <span className="ml-1">Reset</span>
+                            </Button>
+                        }
+                        {!labelingComplete &&
+                            <div className="px-2 text-yellow-300 font-medium border border-yellow-300 rounded flex items-center">
+                                <ExclamationIcon className="w-5 h-5" />
+                                <span className="ml-2">Labeling is not complete.</span>
+                            </div>
+                        }
+                    </div>
+                    <div>
+                        <Button onClick={exportResults}>Export</Button>
+                    </div>
                 </div>
             </div>
             <div className="mt-6 grid grid-cols-6 gap-8">

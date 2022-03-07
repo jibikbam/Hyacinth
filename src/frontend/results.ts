@@ -88,10 +88,11 @@ function computeComparisonResults(session: LabelingSession): SessionResults {
             sliceScores[sl1.id] = inc(sliceScores[sl1.id], 'Loss');
             sliceScores[sl2.id] = inc(sliceScores[sl2.id], 'Win');
         }
-        else {
+        else if (label) { // ensure not null
             sliceScores[sl1.id] = inc(sliceScores[sl1.id], 'Draw');
             sliceScores[sl2.id] = inc(sliceScores[sl2.id], 'Draw');
         }
+        else {} // label is null
     }
 
     const sliceResults: SliceResult[] = slices.map(s => {

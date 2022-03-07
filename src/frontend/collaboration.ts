@@ -1,5 +1,6 @@
 import {dbapi, SliceAttributes} from './backend';
 import {getInitialComparison, sliceToString} from './sort';
+import {SliceResult} from './results';
 
 export function sessionToJson(sessionId: number): string {
     const session = dbapi.selectLabelingSession(sessionId);
@@ -152,6 +153,30 @@ export function sessionLabelsToCsv(sessionId: number): string {
                 ]);
             }
         }
+    }
+
+    return rows.map(r => r.join(',')).join('\n');
+}
+
+export function sessionResultsToCsv(results: SliceResult[]): string {
+    const rows: string[][] = [];
+
+    const hasLabels = results[0].latestLabelValue !== undefined;
+    const hasScores = results[0].score !== undefined;
+
+    rows[0] = ['resultOrderIndex', 'elementIndex', 'imageRelPath', 'sliceDim', 'sliceIndex'];
+    if (hasLabels) rows[0].push('latestLabelValue');
+    if (hasScores) rows[0].push('score', 'comparison_wins', 'comparison_losses', 'comparison_draws');
+
+    for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        const sl = r.slice;
+
+        const curRow = [i.toString(), sl.elementIndex.toString(), sl.imageRelPath, sl.sliceDim.toString(), sl.sliceIndex.toString()];
+        if (hasLabels) curRow.push(r.latestLabelValue ? r.latestLabelValue : 'UNLABELED');
+        if (hasScores) curRow.push(r.score.toString(), r.win.toString(), r.loss.toString(), r.draw.toString());
+
+        rows.push(curRow);
     }
 
     return rows.map(r => r.join(',')).join('\n');
