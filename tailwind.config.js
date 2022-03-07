@@ -23,6 +23,7 @@ module.exports = {
       ringWidth: ['hover'],
       ringColor: ['hover', 'active'],
       ringOpacity: ['hover', 'active'],
+      borderRadius: ['first', 'last'],
       borderColor: ['active', 'group-focus'],
     },
   },
