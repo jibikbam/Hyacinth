@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import {Comparison, dbapi, fileapi, LabelingSession, SessionElement, Slice} from '../backend';
 import {Button, LinkButton} from './Buttons';
@@ -8,13 +8,13 @@ import {
     CogIcon,
     DuplicateIcon,
     ExternalLinkIcon,
-    PlayIcon,
+    PlayIcon, PresentationChartBarIcon,
     TagIcon,
     TrashIcon
 } from '@heroicons/react/solid';
 import {sessionLabelsToCsv, sessionToJson} from '../collaboration';
 import {Modal} from './Modal';
-import {truncateStart} from '../utils';
+import {getThumbnailName, truncateStart} from '../utils';
 import {InputText} from './Inputs';
 
 interface DeleteSessionModalProps {
@@ -213,21 +213,17 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: string, comparis
 function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: string, refreshDatasetSessions: () => void}) {
     const navigate = useNavigate();
 
-    const [session, setSession] = useState<LabelingSession | null>(null);
-    const [elements, setElements] = useState<SessionElement[] | null>(null);
-
-    const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
-
-    useEffect(() => {
+    const [session, elements, missingThumbCount]: [LabelingSession, SessionElement[], number] = useMemo(() => {
         const _session = dbapi.selectLabelingSession(sessionId);
-        setSession(_session);
-        if (_session.sessionType === 'Classification') setElements(dbapi.selectSessionSlices(_session.id));
-        else setElements(dbapi.selectSessionComparisons(_session.id));
+        const _elements = (_session.sessionType === 'Classification')
+            ? dbapi.selectSessionSlices(_session.id)
+            : dbapi.selectSessionComparisons(_session.id);
+        const _thumbsExist = fileapi.thumbnailsExist(dbapi.selectSessionSlices(_session.id).map(s => getThumbnailName(s)));
+        const _missingThumbCount = _thumbsExist.filter(e => !e).length;
+        return [_session, _elements, _missingThumbCount];
     }, [sessionId]);
 
-    if (!session || !elements) {
-        return <div>Loading</div>
-    }
+    const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
 
     function exportSession() {
         const sessionJsonString = sessionToJson(session.id);
@@ -277,15 +273,29 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: string
                     <ManageDropdown exportSession={exportSession} exportLabels={exportLabels} openDeleteModal={openDeleteModal} />
                 </div>
             </div>
-            <div className="mt-6 self-start">
-                <div className="mb-2 space-y-2">
-                    <LinkButton to={`/generate-thumbnails/${sessionId}`} color="darkGray">Generate Thumbnails</LinkButton>
-                    <LinkButton to={`/session-results/${sessionId}`} color="darkGray">Results</LinkButton>
-                </div>
+            <div className="mt-6 self-start flex items-center space-x-3">
                 <LinkButton to={`/label/${sessionId}/0`} color="fuchsia">
                     <PlayIcon className="w-5 h-5" />
                     <span className="ml-2 mr-2 font-medium">Start Labeling</span>
                 </LinkButton>
+                <div className="relative group">
+                    <LinkButton to={`/session-results/${sessionId}`} color="gray" disabled={missingThumbCount > 0}>
+                        <PresentationChartBarIcon className="w-5 h-5" />
+                        <span className="ml-2 mr-2 font-medium">View Results</span>
+                    </LinkButton>
+                    {missingThumbCount > 0 &&
+                        <div className="hidden group-hover:block absolute top-full pt-2">
+                            <div className="p-2 text-xs text-gray-400 text-center bg-gray-700 rounded shadow">
+                                <div>Thumbnails must be generated to view results.</div>
+                                <div className="mt-2 mb-1">
+                                    <Link
+                                        className="text-sm text-yellow-300 hover:text-yellow-500 font-medium transition"
+                                        to={`/generate-thumbnails/${sessionId}`}>Generate Thumbnails</Link>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
             <div className="mt-2">
                 <span>{elements.map(e => e.elementLabel ? 1 : 0).reduce((a, b) => a + b, 0)} / {elements.length}</span>
