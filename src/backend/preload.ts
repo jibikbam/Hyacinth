@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld('fileapi', {
     writeTextFile: fileapi.writeTextFile,
     getThumbnailsDir: fileapi.getThumbnailsDir,
     thumbnailExists: fileapi.thumbnailExists,
+    thumbnailsExist: fileapi.thumbnailsExist,
     writeThumbnail: fileapi.writeThumbnail,
 });
 

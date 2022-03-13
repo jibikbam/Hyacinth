@@ -103,6 +103,7 @@ export interface FileApiType {
     writeTextFile: (savePath: string, contents: string) => void;
     getThumbnailsDir: () => string;
     thumbnailExists: (thumbnailName: string) => boolean;
+    thumbnailsExist: (thumbnailNames: string[]) => boolean[];
     writeThumbnail: (canvas: HTMLCanvasElement, thumbnailName: string) => void;
 }
 

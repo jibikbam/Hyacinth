@@ -81,6 +81,11 @@ export function thumbnailExists(thumbnailName: string): boolean {
     return fs.existsSync(imagePath);
 }
 
+export function thumbnailsExist(thumbnailNames: string[]): boolean[] {
+    const thumbnailsDir = getThumbnailsDir();
+    return thumbnailNames.map(n => path.join(thumbnailsDir, n + '.png')).map(p => fs.existsSync(p));
+}
+
 export function writeThumbnail(canvas: HTMLCanvasElement, thumbnailName: string) {
     // Create thumbnails dir if it does not exist
     const thumbnailsDirPath = getThumbnailsDir();

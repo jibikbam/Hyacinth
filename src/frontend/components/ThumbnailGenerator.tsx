@@ -5,6 +5,7 @@ import {dbapi, fileapi} from '../backend';
 import {loadAndRender} from '../rendering';
 import {Button} from './Buttons';
 import {ArrowLeftIcon} from '@heroicons/react/solid';
+import {getThumbnailName, zip} from '../utils';
 
 export function ThumbnailGenerator() {
     const {sessionId}  = useParams();
@@ -15,7 +16,9 @@ export function ThumbnailGenerator() {
         const _slices = dbapi.selectSessionSlices(sessionId)
         // Optimization: sort slices by imageId to take advantage of image caching in our renderer
         _slices.sort((a, b) => a.imageId - b.imageId);
-        return _slices;
+        // Filter out slices that already have thumbnails
+        const _slicesExist = zip(_slices, fileapi.thumbnailsExist(_slices.map(s => getThumbnailName(s))));
+        return _slicesExist.filter(([_, exists]) => !exists).map(([s, _]) => s);
     }, [sessionId]);
 
     const [paused, setPaused] = useState<boolean>(false);
@@ -24,7 +27,7 @@ export function ThumbnailGenerator() {
     useEffect(() => {
         generateCurrentThumbnail();
 
-        if (curIndex < (slices.length - 1)) {
+        if (!paused && curIndex < (slices.length - 1)) {
             // Timeout is needed to allow for enough interactivity to pause even though
             // image rendering is blocking the thread most of the time
             const timeoutID = setTimeout(() => setCurIndex(curIndex + 1), 100);
@@ -39,12 +42,10 @@ export function ThumbnailGenerator() {
         const slice = slices[curIndex];
 
         const imagePath = slice.datasetRootPath + '/' + slice.imageRelPath;
-        const thumbnailName = `${slice.id}_${slice.sliceDim}_${slice.sliceIndex}`;
+        const thumbnailName = getThumbnailName(slice);
 
-        if (!fileapi.thumbnailExists(thumbnailName)) {
-            loadAndRender(imagePath, slice.sliceDim, slice.sliceIndex, canvasRef.current, 99, false, false, false);
-            fileapi.writeThumbnail(canvasRef.current, thumbnailName);
-        }
+        loadAndRender(imagePath, slice.sliceDim, slice.sliceIndex, canvasRef.current, 99, false, false, false);
+        fileapi.writeThumbnail(canvasRef.current, thumbnailName);
     }
 
     return (
