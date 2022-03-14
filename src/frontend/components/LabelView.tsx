@@ -83,8 +83,6 @@ function PastLabelsModal({labels, closeModal}: {labels: ElementLabel[], closeMod
     )
 }
 
-const DEFAULT_BRIGHTNESS = 99;
-
 interface LabelSliceProps {
     datasetRootPath: string;
     imageRelPath: string;
@@ -94,6 +92,8 @@ interface LabelSliceProps {
     selected: boolean;
     onImageClick: (() => void) | null;
 }
+
+const DEFAULT_BRIGHTNESS = 99.5;
 
 function LabelSlice({datasetRootPath, imageRelPath, sliceDim, sliceIndex, bindKey, selected, onImageClick}: LabelSliceProps) {
     const [brightness, setBrightness] = useState<number>(DEFAULT_BRIGHTNESS);
@@ -113,14 +113,14 @@ function LabelSlice({datasetRootPath, imageRelPath, sliceDim, sliceIndex, bindKe
             </div>
             <div className="mt-3 px-2 py-1 bg-gray-800 rounded flex items-center">
                 <SunIcon className="mr-2 w-6 h-6 text-gray-400" />
-                <InputRange min={0} max={100} step={0.01} value={brightness} setValue={setBrightness} />
+                <InputRange min={80} max={100} step={0.01} value={brightness} setValue={setBrightness} />
                 <button
                     className="ml-3 rounded text-gray-500 hover:text-gray-400 active:text-gray-100 focus:outline-none focus:ring-2 ring-gray-600 transition"
                     onClick={() => setBrightness(DEFAULT_BRIGHTNESS)}
                 >
                     <RefreshIcon className="w-5 h-5" />
                 </button>
-                <div className="ml-3 py-0.5 w-12 bg-gray-700 rounded text-gray-400 text-center">{Math.round(brightness)}</div>
+                <div className="ml-3 py-0.5 w-20 bg-gray-700 rounded text-sm text-gray-400 text-center font-mono">{brightness.toFixed(1)}</div>
             </div>
             <div className="mt-2 p-2 bg-gray-800 rounded text-gray-400 text-center">
                 <div className="flex justify-center items-center">

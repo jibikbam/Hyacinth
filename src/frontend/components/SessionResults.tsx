@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Link, useParams} from 'react-router-dom';
 import {useMemo, useState} from 'react';
 import {dbapi, fileapi} from '../backend';
-import {ArrowLeftIcon, PlusIcon, RefreshIcon} from '@heroicons/react/solid';
+import {ArrowLeftIcon, ExternalLinkIcon, PlusIcon, RefreshIcon} from '@heroicons/react/solid';
 import {ExclamationIcon} from '@heroicons/react/outline';
 import {Button} from './Buttons';
 import {computeResults, SliceResult} from '../results';
@@ -185,8 +185,8 @@ function SessionResults() {
                         <h1 className="text-4xl font-medium">Results for {session.sessionName}</h1>
                         {reorderedResults &&
                             <Button color="gray" onClick={resetOrder}>
-                                <RefreshIcon className="w-4 h-4" />
-                                <span className="ml-1">Reset</span>
+                                <RefreshIcon className="w-5 h-5" />
+                                <span className="ml-2 font-medium">Reset</span>
                             </Button>
                         }
                         {!labelingComplete &&
@@ -203,7 +203,10 @@ function SessionResults() {
                             <GridColButton option="Six" gridCols={gridCols} setGridCols={setGridCols}>VI</GridColButton>
                             <GridColButton option="Eight" gridCols={gridCols} setGridCols={setGridCols}>VIII</GridColButton>
                         </div>
-                        <Button onClick={exportResults}>Export</Button>
+                        <Button onClick={exportResults}>
+                            <ExternalLinkIcon className="w-5 h-5" />
+                            <span className="ml-2 font-medium">Export</span>
+                        </Button>
                     </div>
                 </div>
             </div>

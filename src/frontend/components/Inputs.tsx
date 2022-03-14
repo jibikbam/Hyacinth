@@ -84,7 +84,7 @@ function InputRange({min, max, step, value, setValue}: InputRangeProps) {
             max={max}
             step={step}
             value={value}
-            onInput={ev => setValue(parseInt(ev.currentTarget.value))}
+            onInput={ev => setValue(parseFloat(ev.currentTarget.value))}
         />
     )
 }
