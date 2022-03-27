@@ -1,4 +1,5 @@
-export type SessionType = 'Classification' | 'Comparison';
+export type SessionCategory = 'Classification' | 'Comparison';
+export type SessionType = 'Classification' | 'ComparisonRandom' | 'ComparisonActiveSort';
 export type SamplingType = 'Random' | 'Sort';
 export type ElementType = 'Slice' | 'Comparison';
 

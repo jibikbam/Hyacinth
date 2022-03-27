@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {useMemo, useState} from 'react';
 import {Routes, Route, useParams, useNavigate} from 'react-router-dom';
-import {SessionType, SamplingType, dbapi} from '../backend';
+import {SessionCategory, SessionType, SamplingType, dbapi} from '../backend';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
@@ -37,13 +37,18 @@ function TypeOption({text, highlight, onClick, children}: {text: string, highlig
     )
 }
 
-function ChooseTypeStep({sessionType, setSessionType}: {sessionType: SessionType | null, setSessionType: Function}) {
+interface ChooseTypeStepProps {
+    sessionCategory: SessionCategory | null;
+    setSessionCategory: React.Dispatch<React.SetStateAction<SessionCategory | null>>;
+}
+
+function ChooseTypeStep({sessionCategory, setSessionCategory}: ChooseTypeStepProps) {
     return (
         <div className="mt-24 flex justify-center items-start space-x-6">
-            <TypeOption text="Classification Session" highlight={sessionType === 'Classification'} onClick={() => setSessionType('Classification')}>
+            <TypeOption text="Classification Session" highlight={sessionCategory === 'Classification'} onClick={() => setSessionCategory('Classification')}>
                 <CollectionIcon className="w-8 h-8" />
             </TypeOption>
-            <TypeOption text="Comparison Session" highlight={sessionType === 'Comparison'} onClick={() => setSessionType('Comparison')}>
+            <TypeOption text="Comparison Session" highlight={sessionCategory === 'Comparison'} onClick={() => setSessionCategory('Comparison')}>
                 <ScaleIcon className="w-8 h-8" />
             </TypeOption>
         </div>
@@ -54,16 +59,16 @@ interface SessionInfoStepProps {
     sessionName: InputValidator<string>;
     prompt: InputValidator<string>;
     labelOptions: InputValidator<string>;
-    sessionType: SessionType;
+    sessionCategory: SessionCategory;
 }
 
-function SessionInfoStep({sessionName, prompt, labelOptions, sessionType}: SessionInfoStepProps) {
-    const isCompare = sessionType === 'Comparison';
+function SessionInfoStep({sessionName, prompt, labelOptions, sessionCategory}: SessionInfoStepProps) {
+    const isCompare = sessionCategory === 'Comparison';
     return (
         <div className="mx-auto mt-10 w-2/3 flex flex-col space-y-8">
             <div>
                 <InputText id="session-name" label="Session Name *" placeholder="My Session" validator={sessionName} />
-                <div className="mt-2 text-xs text-gray-400">Choose a name for this {sessionType.toLowerCase()} session. Session names must be unique per dataset.</div>
+                <div className="mt-2 text-xs text-gray-400">Choose a name for this {sessionCategory.toLowerCase()} session. Session names must be unique per dataset.</div>
             </div>
             <div>
                 <InputText id="prompt" label="Session Prompt" placeholder={isCompare ? 'Which of these slices is better?' : 'What do you think of this slice?'} validator={prompt} />
@@ -71,7 +76,7 @@ function SessionInfoStep({sessionName, prompt, labelOptions, sessionType}: Sessi
             </div>
             <div>
                 <InputText id="label-options" label={isCompare ? 'Additional Labels' : 'Labels *'} placeholder="Label 1, Label 2, Label 3" validator={labelOptions} />
-                <div className="mt-2 text-xs text-gray-400">Comma-separated list of {isCompare && 'additional'} labels for this {sessionType.toLowerCase()} session.</div>
+                <div className="mt-2 text-xs text-gray-400">Comma-separated list of {isCompare && 'additional'} labels for this {sessionCategory.toLowerCase()} session.</div>
             </div>
         </div>
     )
@@ -111,7 +116,7 @@ interface SamplingOptionsStepProps {
     setSampling: Function;
     comparisonCount: InputValidator<number>;
 
-    sessionType: SessionType;
+    sessionCategory: SessionCategory;
     maxImageCount: number;
 }
 
@@ -134,7 +139,7 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                     <InputNumber id="slice-max-pct" label="Slice Max (%)" help="Max slice index to sample as a percentage of all slices." min={0} validator={props.sliceMaxPct} />
                 </div>
             </div>
-            {props.sessionType === 'Comparison' && (
+            {props.sessionCategory === 'Comparison' && (
                 <div className="w-64">
                     <div>
                         <div className="text-sm text-gray-400">Comparison Sampling</div>
@@ -161,10 +166,10 @@ function CreateSession() {
         return [dbapi.selectDataset(datasetId), dbapi.selectDatasetImages(datasetId)];
     }, []);
 
-    const [sessionType, setSessionType] = useState<SessionType | null>(null);
+    const [sessionCategory, setSessionCategory] = useState<SessionCategory | null>(null);
     const sessionName = useSessionNameValidator('', datasetId);
     const prompt = useStringLengthValidator('');
-    const labelOptions = useSessionLabelOptionsValidator('', sessionType);
+    const labelOptions = useSessionLabelOptionsValidator('', sessionCategory);
 
     const [slicesFrom, setSlicesFrom] = useState<string>('Create New');
     const imageCount = useNumberBoundsValidator(1, 1, datasetImages.length);
@@ -177,6 +182,10 @@ function CreateSession() {
     const comparisonCount = useNumberBoundsValidator(1, 1);
 
     function createSession() {
+        const sessionType: SessionType = (sessionCategory === 'Classification')
+            ? 'Classification'
+            : (sampling === 'Random') ? 'ComparisonRandom' : 'ComparisonActiveSort';
+
         const sessClass = getSessionClass(sessionType);
         const newSessionId = sessClass.createSession(datasetId, sessionName.value, prompt.value, labelOptions.value,
             imageCount.value, slicesFrom, sliceCount.value, sliceDim, sliceMinPct.value, sliceMaxPct.value);
@@ -192,9 +201,9 @@ function CreateSession() {
                     <>
                         <div>
                             <StepHeader title="Create Labeling Session" stepDescription="Choose Session Type" curStep={0} stepCount={3}/>
-                            <ChooseTypeStep sessionType={sessionType} setSessionType={setSessionType}/>
+                            <ChooseTypeStep sessionCategory={sessionCategory} setSessionCategory={setSessionCategory} />
                         </div>
-                        <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={null} nextTo={sessionType && `/create-session/${datasetId}/session-info`} />
+                        <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={null} nextTo={sessionCategory && `/create-session/${datasetId}/session-info`} />
                     </>
                 } />
                 <Route path="/session-info" element={
@@ -205,7 +214,7 @@ function CreateSession() {
                                 sessionName={sessionName}
                                 prompt={prompt}
                                 labelOptions={labelOptions}
-                                sessionType={sessionType}
+                                sessionCategory={sessionCategory}
                             />
                         </div>
                         <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={`/create-session/${datasetId}/choose-type`} nextTo={infoValid && `/create-session/${datasetId}/sampling-options`} />
@@ -227,7 +236,7 @@ function CreateSession() {
                                 sampling={sampling}
                                 setSampling={setSampling}
                                 comparisonCount={comparisonCount}
-                                sessionType={sessionType}
+                                sessionCategory={sessionCategory}
                                 maxImageCount={dataset.imageCount}
                             />
                         </div>

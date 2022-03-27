@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useEffect, useRef, useState} from 'react';
-import {dbapi, SessionType} from '../backend';
+import {dbapi, SessionCategory, SessionType} from '../backend';
 
 export interface InputValidator<T> {
     value: T;
@@ -90,11 +90,11 @@ export function useSessionNameValidator(initialValue: string, datasetId: number 
     return useValidator(validate, initialValue, [datasetId]);
 }
 
-export function useSessionLabelOptionsValidator(initialValue: string, sessionType: SessionType) {
+export function useSessionLabelOptionsValidator(initialValue: string, category: SessionCategory) {
     const validate: ValidatorFunc<string> = (value, errors) => {
-        if (sessionType === 'Classification' && value.length === 0) errors.push('Classification sessions must have at least one label.');
+        if (category === 'Classification' && value.length === 0) errors.push('Classification sessions must have at least one label.');
         return errors;
     };
 
-    return useValidator(validate, initialValue, [sessionType]);
+    return useValidator(validate, initialValue, [category]);
 }
