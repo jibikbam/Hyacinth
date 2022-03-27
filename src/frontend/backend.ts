@@ -74,7 +74,7 @@ export interface DBApiType {
     connect: () => void;
     createTables: () => void;
     insertDataset: (datasetName: string, rootPath: string, imageRelPaths: string[]) => void;
-    insertLabelingSession: (datasetId: number | string, sessionType: string, name: string,
+    insertLabelingSession: (datasetId: number | string, sessionType: SessionType, name: string,
                             prompt: string, labelOptions: string, comparisonSampling: SamplingType | null, metadataJson: string,
                             slices: SliceAttributes[], comparisons: number[][] | null) => number;
     insertElementLabel: (elementId: number | string, labelValue: string,

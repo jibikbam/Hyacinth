@@ -16,6 +16,7 @@ import {
     useSessionNameValidator,
     useStringLengthValidator
 } from '../hooks/validators';
+import {getSessionClass} from '../sessions/session';
 
 function TypeOption({text, highlight, onClick, children}: {text: string, highlight: boolean, onClick: Function, children?: any}) {
     const borderColor = highlight ? 'border-gray-300' : 'border-gray-500 hover:border-gray-400';
@@ -176,27 +177,9 @@ function CreateSession() {
     const comparisonCount = useNumberBoundsValidator(1, 1);
 
     function createSession() {
-        const slices = sampleSlices(datasetImages, imageCount.value, sliceCount.value, sliceDim, sliceMinPct.value, sliceMaxPct.value);
-
-        let comparisons = null;
-        if (sessionType === 'Comparison') {
-            comparisons = sampling === 'Random'
-                ? sampleComparisons(sliceCount.value, comparisonCount.value)
-                : [getInitialComparison(slices)];
-        }
-
-        const metadata: {[key: string]: number | string} = {
-            'Slices From': slicesFrom,
-            'Image Count': imageCount.value,
-            'Slice Count': sliceCount.value,
-            'Slice Dim': sliceDim,
-            'Slice Min Pct': sliceMinPct.value,
-            'Slice Max Pct': sliceMaxPct.value,
-        }
-        if (sessionType === 'Comparison' && sampling === 'Random') metadata['Comparison Count'] = comparisonCount.value;
-        const metadataJson = JSON.stringify(metadata);
-
-        const newSessionId = dbapi.insertLabelingSession(datasetId, sessionType, sessionName.value, prompt.value, labelOptions.value, sampling, metadataJson, slices, comparisons);
+        const sessClass = getSessionClass(sessionType);
+        const newSessionId = sessClass.createSession(datasetId, sessionName.value, prompt.value, labelOptions.value,
+            imageCount.value, slicesFrom, sliceCount.value, sliceDim, sliceMinPct.value, sliceMaxPct.value);
         navigate(`/dataset/${datasetId}/session/${newSessionId}`);
     }
 
