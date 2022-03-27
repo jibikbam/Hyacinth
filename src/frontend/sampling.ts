@@ -50,8 +50,16 @@ function doSliceSample(images: {image: DatasetImage, sliceCount: number}[],
     return sampleWithoutReplacement(possibleSlices, sliceCount);
 }
 
-export function sampleSlices(images: DatasetImage[], imageCount: number, sliceCount: number,
-                      sliceDim: number, sliceMinPct: number, sliceMaxPct: number): SliceAttributes[] {
+export interface SliceSampleOpts {
+    imageCount: number;
+    sliceCount: number;
+    sliceDim: number;
+    sliceMinPct: number;
+    sliceMaxPct: number;
+}
+
+export function sampleSlices(images: DatasetImage[], options: SliceSampleOpts): SliceAttributes[] {
+    const {imageCount, sliceCount, sliceDim, sliceMinPct, sliceMaxPct} = options;
     const startMs = Date.now();
 
     let curMs = Date.now();

@@ -8,8 +8,6 @@ import {StepNavigation} from './StepNavigation';
 import {InputNumber, InputText, Select} from './Inputs';
 import {CheckCircleIcon, CollectionIcon, ScaleIcon} from '@heroicons/react/outline';
 import {ChartBarIcon, ChartPieIcon} from '@heroicons/react/solid';
-import {sampleComparisons, sampleSlices} from '../sampling';
-import {getInitialComparison} from '../sort';
 import {
     InputValidator, useNumberBoundsValidator,
     useSessionLabelOptionsValidator,
@@ -17,6 +15,7 @@ import {
     useStringLengthValidator
 } from '../hooks/validators';
 import {getSessionClass} from '../sessions/session';
+import {SliceSampleOpts} from '../sampling';
 
 function TypeOption({text, highlight, onClick, children}: {text: string, highlight: boolean, onClick: Function, children?: any}) {
     const borderColor = highlight ? 'border-gray-300' : 'border-gray-500 hover:border-gray-400';
@@ -187,8 +186,14 @@ function CreateSession() {
             : (sampling === 'Random') ? 'ComparisonRandom' : 'ComparisonActiveSort';
 
         const sessClass = getSessionClass(sessionType);
+        const sliceOpts: SliceSampleOpts = {
+            imageCount: imageCount.value, sliceCount: sliceCount.value, sliceDim: sliceDim,
+            sliceMinPct: sliceMinPct.value, sliceMaxPct: sliceMaxPct.value
+        };
+
         const newSessionId = sessClass.createSession(datasetId, sessionName.value, prompt.value, labelOptions.value,
-            imageCount.value, slicesFrom, sliceCount.value, sliceDim, sliceMinPct.value, sliceMaxPct.value);
+            slicesFrom, sliceOpts, comparisonCount.value);
+
         navigate(`/dataset/${datasetId}/session/${newSessionId}`);
     }
 
