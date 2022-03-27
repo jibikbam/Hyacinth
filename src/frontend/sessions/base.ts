@@ -1,8 +1,21 @@
 import {SliceSampleOpts} from '../sampling';
+import {LabelingSession, SessionElement} from '../backend';
 
 export abstract class SessionBase {
     static createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
                          slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
+        throw new NotImplementedError();
+    }
+
+    static selectElementsToLabel(session: LabelingSession): SessionElement[] {
+        throw new NotImplementedError();
+    }
+
+    static shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
+        throw new NotImplementedError();
+    }
+
+    static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
         throw new NotImplementedError();
     }
 }

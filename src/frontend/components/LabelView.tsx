@@ -18,6 +18,7 @@ import {
     QuestionMarkCircleIcon,
     RefreshIcon, SunIcon
 } from '@heroicons/react/solid';
+import {getSessionClass} from '../sessions/session';
 
 function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTimer: Function}) {
     const minutes = Math.floor(timerSeconds / 60).toString();
@@ -250,17 +251,14 @@ function LabelView() {
     const [startTimestamp, timerSeconds, resetTimer] = useTimer();
 
     useEffect(() => {
-        const _elements = (session.sessionType === 'Classification')
-            ? dbapi.selectSessionSlices(session.id)
-            : dbapi.selectSessionComparisons(session.id);
-
+        const sessClass = getSessionClass(session);
+        const _elements = sessClass.selectElementsToLabel(session);
         setElements(_elements);
 
         const _curElement = _elements[parseInt(elementIndex)];
-        const _labels = dbapi.selectElementLabels(_curElement.id);
         setCurElement({
             element: _curElement,
-            labels: _labels,
+            labels: dbapi.selectElementLabels(_curElement.id),
         });
 
         resetTimer();
@@ -270,58 +268,23 @@ function LabelView() {
         // If labelValue is already the current label, do nothing
         if (curElement.labels.length > 0 && curElement.labels[0].labelValue === labelValue) return;
 
-        // Handle sort
-        let appendComparisonArgs: {sessionId: number | string, elementIndex: number, slice1: Slice, slice2: Slice} = null;
-        if (session.comparisonSampling === 'Sort') {
-            // Get current labels
-            const allComparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
-
-            // Remove any comparisons/labels that come after the current one (they will be deleted during insert)
-            const end = curElement.element.elementIndex + 1;
-            if (allComparisonLabels.length > (end + 1)) {
-                // Warn if adding this label is destructive
-                // The last comparison in the list is always unlabeled (unless labeling is complete),
-                // so deleting it is not destructive. We only warn if at least two comparisons appear after this one
-                // in the list, hence (end + 1)
-                const message = `Adding a label here will overwrite all comparisons and labels that come after it.\n\nAre you sure you want to proceed?`;
-                if (!window.confirm(message)) return;
-            }
-            const comparisons = elements.slice(0, end) as Comparison[];
-            const comparisonLabels = allComparisonLabels.slice(0, end);
-
-            // Update the label for the current comparison
-            comparisonLabels[comparisonLabels.length - 1] = labelValue;
-
-            // Build sort matrix with updated comparisons/labels and perform sort on slices
-            const sortResult = sortSlices(
-                buildSortMatrix(comparisons, comparisonLabels),
-                dbapi.selectSessionSlices(session.id)
-            );
-
-            // Append next comparison if sorting is not complete
-            if (!Array.isArray(sortResult)) {
-                appendComparisonArgs = {
-                    sessionId: session.id,
-                    elementIndex: curElement.element.elementIndex + 1,
-                    slice1: sortResult.slice1,
-                    slice2: sortResult.slice2,
-                }
-            }
-            else {
-                console.log('Sort Results:', sortResult.map(r => r.elementIndex));
-            }
+        const sessClass = getSessionClass(session);
+        // Warn about overwrite if applicable
+        if (sessClass.shouldWarnAboutLabelOverwrite(session, curElement.element.elementIndex)) {
+            const message = `Adding a label here will overwrite all comparisons and labels that come after it.\n\nAre you sure you want to proceed?`;
+            if (!window.confirm(message)) return;
         }
-
-        // Insert new label (and append new comparison if applicable)
-        dbapi.insertElementLabel(curElement.element.id, labelValue, startTimestamp, Date.now(), appendComparisonArgs);
+        // Add label
+        sessClass.addLabel(session, curElement.element, labelValue, startTimestamp);
 
         // Update labels for current element
         setCurElement({
             element: curElement.element,
             labels: dbapi.selectElementLabels(curElement.element.id)
         });
-        // Update elements with new comparison if sorting
-        if (session.comparisonSampling === 'Sort') setElements(dbapi.selectSessionComparisons(session.id));
+        // Refresh elements
+        setElements(sessClass.selectElementsToLabel(session));
+        // Reset timer
         resetTimer();
     }
 

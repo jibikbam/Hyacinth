@@ -1,5 +1,5 @@
 import {PrivateSessionBase} from '../base';
-import {dbapi} from '../../backend';
+import {dbapi, LabelingSession, SessionElement} from '../../backend';
 import {sampleComparisons, sampleSlices, SliceSampleOpts} from '../../sampling';
 
 export class ComparisonRandomSession extends PrivateSessionBase {
@@ -14,5 +14,17 @@ export class ComparisonRandomSession extends PrivateSessionBase {
 
         return dbapi.insertLabelingSession(datasetId, 'ComparisonRandom', sessionName, prompt, labelOptions,
             null, JSON.stringify(metadata), slices, comparisons);
+    }
+
+    static selectElementsToLabel(session: LabelingSession): SessionElement[] {
+        return dbapi.selectSessionComparisons(session.id);
+    }
+
+    static shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
+        return false;
+    }
+
+    static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
+        dbapi.insertElementLabel(element.id, labelValue, startTimestamp, Date.now(), null);
     }
 }
