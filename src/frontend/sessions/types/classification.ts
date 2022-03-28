@@ -1,6 +1,12 @@
 import {PrivateSessionBase} from '../base';
 import {dbapi, LabelingSession, SessionElement} from '../../backend';
 import {sampleSlices, SliceSampleOpts} from '../../sampling';
+import {
+    basicSessionJsonIsValid,
+    createBasicSessionJson,
+    importSlicesFromSessionJson,
+    toJsonString
+} from '../../collaboration';
 
 export class ClassificationSession extends PrivateSessionBase {
     static createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
@@ -23,5 +29,19 @@ export class ClassificationSession extends PrivateSessionBase {
 
     static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
         dbapi.insertElementLabel(element.id, labelValue, startTimestamp, Date.now(), null);
+    }
+
+    static exportToJsonString(session: LabelingSession): string {
+        const sessionJson = createBasicSessionJson(session);
+        return toJsonString(sessionJson);
+    }
+
+    static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string): number {
+        if (!basicSessionJsonIsValid(sessionJson)) return;
+        const slices = importSlicesFromSessionJson(sessionJson, datasetId);
+
+        const sj = sessionJson;
+        return dbapi.insertLabelingSession(datasetId, 'Classification', newSessionName, sj['prompt'], sj['labelOptions'],
+            null, sj['metadataJson'], slices, null);
     }
 }

@@ -18,6 +18,14 @@ export abstract class SessionBase {
     static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
         throw new NotImplementedError();
     }
+
+    static exportToJsonString(session: LabelingSession): string {
+        throw new NotImplementedError();
+    }
+
+    static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string) {
+        throw new NotImplementedError();
+    }
 }
 
 

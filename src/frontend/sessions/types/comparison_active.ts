@@ -2,6 +2,12 @@ import {PrivateSessionBase} from '../base';
 import {dbapi, LabelingSession, SessionElement} from '../../backend';
 import {sampleSlices, SliceSampleOpts} from '../../sampling';
 import {buildSortMatrix, getInitialComparison, sortSlices} from '../../sort';
+import {
+    basicSessionJsonIsValid,
+    createBasicSessionJson, importComparisonsFromSessionJson,
+    importSlicesFromSessionJson,
+    toJsonString
+} from '../../collaboration';
 
 export class ComparisonActiveSortSession extends PrivateSessionBase {
     static createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
@@ -57,5 +63,20 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
 
         // TODO: dedicated insert function for active label in dbapi
         dbapi.insertElementLabel(element.id, labelValue, startTimestamp, Date.now(), newComparisonOpts);
+    }
+
+    static exportToJsonString(session: LabelingSession): string {
+        const sessionJson = createBasicSessionJson(session);
+        return toJsonString(sessionJson);
+    }
+
+    static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string): number {
+        if (!basicSessionJsonIsValid(sessionJson)) return;
+        const slices = importSlicesFromSessionJson(sessionJson, datasetId);
+        const comparisons = [getInitialComparison(slices)];
+
+        const sj = sessionJson;
+        return dbapi.insertLabelingSession(datasetId, 'ComparisonActiveSort', newSessionName, sj['prompt'], sj['labelOptions'],
+            null, sj['metadataJson'], slices, comparisons);
     }
 }

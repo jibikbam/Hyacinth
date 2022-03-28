@@ -12,10 +12,11 @@ import {
     TagIcon,
     TrashIcon
 } from '@heroicons/react/solid';
-import {sessionLabelsToCsv, sessionToJson} from '../collaboration';
+import {sessionLabelsToCsv} from '../collaboration';
 import {Modal} from './Modal';
 import {getThumbnailName, truncateStart} from '../utils';
 import {InputText} from './Inputs';
+import {getSessionClass} from '../sessions/session';
 
 interface DeleteSessionModalProps {
     sessionName: string;
@@ -226,7 +227,7 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: string
     const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
 
     function exportSession() {
-        const sessionJsonString = sessionToJson(session.id);
+        const sessionJsonString = getSessionClass(session).exportToJsonString(session);
         const savePath = fileapi.showSaveDialog(session.sessionName + '.json');
         if (savePath) {
             fileapi.writeTextFile(savePath, sessionJsonString);

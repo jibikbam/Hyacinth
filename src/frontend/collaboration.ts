@@ -1,58 +1,89 @@
-import {dbapi, SliceAttributes} from './backend';
+import {Comparison, DatasetImage, dbapi, LabelingSession, Slice, SliceAttributes} from './backend';
 import {getInitialComparison, sliceToString} from './sort';
 import {SliceResult} from './results';
 
-export function sessionToJson(sessionId: number): string {
-    const session = dbapi.selectLabelingSession(sessionId);
-    const slices = dbapi.selectSessionSlices(sessionId);
-    const comparisons = dbapi.selectSessionComparisons(sessionId);
+export function toJsonString(obj: object) {
+    return JSON.stringify(obj, null, 1);
+}
 
-    const sessionJson = {
+export function createBasicSessionJson(session: LabelingSession): object {
+    return {
         sessionType: session.sessionType,
         sessionName: session.sessionName,
         prompt: session.prompt,
         labelOptions: session.labelOptions,
-        comparisonSampling: session.comparisonSampling,
         metadataJson: session.metadataJson,
-        slices: [],
-        comparisons: [],
+        slices: slicesToJson(dbapi.selectSessionSlices(session.id)),
     };
+}
+
+function slicesToJson(slices: Slice[]): object[] {
+    const slicesJson = [];
     for (const slice of slices) {
-        sessionJson.slices.push({
+        slicesJson.push({
             imageRelPath: slice.imageRelPath,
             sliceDim: slice.sliceDim,
             sliceIndex: slice.sliceIndex,
         });
     }
-    // Only export comparisons if sampling is Random (Sort sampling will create its own comparisons)
-    if (session.comparisonSampling === 'Random') {
-        for (const comparison of comparisons) {
-            sessionJson.comparisons.push({
-                imageRelPath1: comparison.imageRelPath1,
-                sliceDim1: comparison.sliceDim1,
-                sliceIndex1: comparison.sliceIndex1,
-                imageRelPath2: comparison.imageRelPath2,
-                sliceDim2: comparison.sliceDim2,
-                sliceIndex2: comparison.sliceIndex2,
-            });
-        }
+    return slicesJson;
+}
+
+export function comparisonsToJson(comparisons: Comparison[]): object[] {
+    const comparisonsJson = [];
+    for (const comparison of comparisons) {
+        comparisonsJson.push({
+            imageRelPath1: comparison.imageRelPath1,
+            sliceDim1: comparison.sliceDim1,
+            sliceIndex1: comparison.sliceIndex1,
+            imageRelPath2: comparison.imageRelPath2,
+            sliceDim2: comparison.sliceDim2,
+            sliceIndex2: comparison.sliceIndex2,
+        });
     }
-    return JSON.stringify(sessionJson, null, 1);
+    return comparisonsJson;
 }
 
 const SESSION_TYPES = ['Classification', 'Comparison'];
 const COMPARISON_SAMPLINGS = ['Random', 'Sort', null];
 
-export function importSessionFromJson(sessionJson: any, newSessionName: string, datasetId: number | string): number {
-    if (!SESSION_TYPES.includes(sessionJson.sessionType)) throw new Error(`Invalid sessionType ${sessionJson.sessionType}`);
-    if (!COMPARISON_SAMPLINGS.includes(sessionJson.comparisonSampling)) throw new Error(`Invalid comparisonSampling ${sessionJson.comparisonSampling}`);
-    if (typeof sessionJson.sessionName !== 'string') throw new Error(`Invalid sessionName ${sessionJson.sessionName}`);
+const SESSION_VALID_KEY_TYPES = [
+    ['sessionName', 'string'],
+    ['sessionType', 'string'],
+    ['prompt', 'string'],
+    ['labelOptions', 'string'],
+    ['metadataJson', 'string'],
+]
 
-    const datasetImages = dbapi.selectDatasetImages(datasetId);
-    const imagesByPath = {};
-    for (const dImg of datasetImages) {
-        imagesByPath[dImg.relPath] = dImg;
+export function basicSessionJsonIsValid(sessionJson: object): boolean {
+    let valid = true;
+    for (const [k, t] of SESSION_VALID_KEY_TYPES) {
+        if (!(k in sessionJson)) {
+            valid = false;
+            console.log(`Session JSON is missing key ${k}`);
+        }
+        else if (typeof sessionJson[k] !== t) {
+            valid = false;
+            console.log(`Session JSON value ${k}=${sessionJson[k]} is of invalid type "${typeof sessionJson[k]}" (should be "${t}")`);
+        }
     }
+
+    const metadataJson = JSON.parse(sessionJson['metadataJson']);
+    for (const [k, v] of Object.entries(metadataJson)) {
+        if (typeof v !== 'string' && typeof v !== 'number' && typeof v !== 'boolean') {
+            valid = false;
+            console.log(`Session JSON metadata value ${k}=${v} is of invalid type ${typeof v}`);
+        }
+    }
+    return valid;
+}
+
+function getImagesByPath(datasetId: number | string): {[key: string]: DatasetImage} {
+    return Object.fromEntries(dbapi.selectDatasetImages(datasetId).map(di => [di.relPath, di]));
+}
+
+export function importSlicesFromSessionJson(sessionJson: any, datasetId: number | string): SliceAttributes[] {
+    const imagesByPath = getImagesByPath(datasetId);
 
     const slices: SliceAttributes[] = [];
     for (const sl of sessionJson.slices) {
@@ -64,53 +95,32 @@ export function importSessionFromJson(sessionJson: any, newSessionName: string, 
             sliceIndex: sl.sliceIndex,
         });
     }
+    return slices;
+}
 
-    const sliceIndByString = {};
-    for (const [i, sl] of Object.entries(slices)) {
-        sliceIndByString[sliceToString(sl)] = i;
+export function importComparisonsFromSessionJson(sessionJson: object, datasetId: number | string,
+                                          slices: SliceAttributes[]): [number, number][] {
+    const imagesByPath = getImagesByPath(datasetId);
+    const sliceIndByString = Object.fromEntries(slices.map((s, i) => [sliceToString(s), i]));
+
+    const comparisons: [number, number][] = [];
+    for (const co of sessionJson['comparisons']) {
+        const dImg1 = imagesByPath[co.imageRelPath1];
+        if (!dImg1) throw new Error(`Invalid imageRelPath ${co.imageRelPath1}`);
+        const dImg2 = imagesByPath[co.imageRelPath2];
+        if (!dImg2) throw new Error(`Invalid imageRelPath ${co.imageRelPath2}`);
+
+        const sl1: SliceAttributes = {imageId: dImg1.id, sliceDim: co.sliceDim1, sliceIndex: co.sliceIndex1};
+        const sl2: SliceAttributes = {imageId: dImg2.id, sliceDim: co.sliceDim2, sliceIndex: co.sliceIndex2};
+
+        const slInd1 = sliceIndByString[sliceToString(sl1)];
+        if (slInd1 == undefined) throw new Error(`Slice from comparison not found (${sl1.imageId} ${sl1.sliceDim} ${sl1.sliceIndex})`);
+        const slInd2 = sliceIndByString[sliceToString(sl2)];
+        if (slInd2 == undefined) throw new Error(`Slice from comparison not found (${sl2.imageId} ${sl2.sliceDim} ${sl2.sliceIndex})`);
+
+        comparisons.push([slInd1, slInd2]);
     }
-
-    const comparisons: number[][] = [];
-    if (sessionJson.comparisonSampling === 'Sort') {
-        comparisons.push(getInitialComparison(slices));
-    }
-    else {
-        for (const co of sessionJson.comparisons) {
-            const dImg1 = imagesByPath[co.imageRelPath1];
-            if (!dImg1) throw new Error(`Invalid imageRelPath ${co.imageRelPath1}`);
-            const dImg2 = imagesByPath[co.imageRelPath2];
-            if (!dImg2) throw new Error(`Invalid imageRelPath ${co.imageRelPath2}`);
-
-            const sl1: SliceAttributes = {imageId: dImg1.id, sliceDim: co.sliceDim1, sliceIndex: co.sliceIndex1};
-            const sl2: SliceAttributes = {imageId: dImg2.id, sliceDim: co.sliceDim2, sliceIndex: co.sliceIndex2};
-
-            const slInd1 = sliceIndByString[sliceToString(sl1)];
-            if (!slInd1) throw new Error(`Slice from comparison not found (${sl1.imageId} ${sl1.sliceDim} ${sl1.sliceIndex})`);
-            const slInd2 = sliceIndByString[sliceToString(sl2)];
-            if (!slInd2) throw new Error(`Slice from comparison not found (${sl2.imageId} ${sl2.sliceDim} ${sl2.sliceIndex})`);
-
-            comparisons.push([slInd1, slInd2]);
-        }
-    }
-
-    // Parse metadata for sanity and ensure JSON is key/value with no nesting
-    const metadataJson = JSON.parse(sessionJson.metadataJson);
-    for (const [k, v] of Object.entries(metadataJson)) {
-        if (typeof v !== 'string' && typeof v !== 'number' && typeof v !== 'boolean') throw new Error(`Invalid metadataJson value for key ${k}`);
-    }
-    metadataJson['Imported From'] = sessionJson.sessionName;
-
-    return dbapi.insertLabelingSession(
-        datasetId,
-        sessionJson.sessionType,
-        newSessionName,
-        sessionJson.prompt,
-        sessionJson.labelOptions,
-        sessionJson.comparisonSampling,
-        JSON.stringify(metadataJson),
-        slices,
-        comparisons
-    );
+    return comparisons;
 }
 
 export function sessionLabelsToCsv(sessionId: number): string {

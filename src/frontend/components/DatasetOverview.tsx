@@ -15,8 +15,8 @@ import {BeakerIcon} from '@heroicons/react/outline';
 import {SessionOverview} from './SessionOverview';
 import {Modal} from './Modal';
 import {InputText} from './Inputs';
-import {importSessionFromJson} from '../collaboration';
 import {useSessionNameValidator} from '../hooks/validators';
+import {getSessionClass} from '../sessions/session';
 
 interface ImportSessionModalProps {
     filePath: string;
@@ -132,7 +132,8 @@ function DatasetOverview() {
 
     function finishSessionImport(newSessionName: string) {
         if (newSessionName.length === 0) return;
-        const newSessionId = importSessionFromJson(importData.json, newSessionName, datasetId);
+        const sessClass = getSessionClass(importData.json['sessionType']);
+        const newSessionId = sessClass.importFromJson(importData.json, newSessionName, datasetId);
 
         setImportData(null);
         refreshSessions();
