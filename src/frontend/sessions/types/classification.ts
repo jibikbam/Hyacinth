@@ -1,18 +1,14 @@
 import {PrivateSessionBase} from '../base';
 import {dbapi, LabelingSession, SessionElement} from '../../backend';
-import {sampleSlices, SliceSampleOpts} from '../../sampling';
-import {
-    basicSessionJsonIsValid,
-    createBasicSessionJson,
-    importSlicesFromSessionJson,
-    toJsonString
-} from '../../collaboration';
+import {SliceSampleOpts} from '../../sampling';
+import * as Sampling from '../../sampling';
+import * as Collab from '../../collaboration';
 
 export class ClassificationSession extends PrivateSessionBase {
     static createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
                          slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
 
-        const slices = sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
+        const slices = Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
         const metadata = this.createBasicMetadata(slicesFrom, sliceOpts);
 
         return dbapi.insertLabelingSession(datasetId, 'Classification', sessionName, prompt, labelOptions,
@@ -32,16 +28,16 @@ export class ClassificationSession extends PrivateSessionBase {
     }
 
     static exportToJsonString(session: LabelingSession): string {
-        const sessionJson = createBasicSessionJson(session);
-        return toJsonString(sessionJson);
+        const sessionJson = Collab.sessionAttributesToJson(session);
+        sessionJson['slices'] = Collab.slicesToJson(dbapi.selectSessionSlices(session.id));
+        return Collab.jsonToString(sessionJson);
     }
 
     static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string): number {
-        if (!basicSessionJsonIsValid(sessionJson)) return;
-        const slices = importSlicesFromSessionJson(sessionJson, datasetId);
+        const {prompt, labelOptions, metadataJson} = Collab.sessionAttributesFromJson(sessionJson);
+        const slices = Collab.slicesFromSessionJson(sessionJson, datasetId);
 
-        const sj = sessionJson;
-        return dbapi.insertLabelingSession(datasetId, 'Classification', newSessionName, sj['prompt'], sj['labelOptions'],
-            null, sj['metadataJson'], slices, null);
+        return dbapi.insertLabelingSession(datasetId, 'Classification', newSessionName,
+            prompt, labelOptions, null, metadataJson, slices, null);
     }
 }

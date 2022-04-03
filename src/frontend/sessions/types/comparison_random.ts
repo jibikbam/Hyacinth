@@ -1,20 +1,15 @@
 import {PrivateSessionBase} from '../base';
 import {dbapi, LabelingSession, SessionElement} from '../../backend';
-import {sampleComparisons, sampleSlices, SliceSampleOpts} from '../../sampling';
-import {
-    basicSessionJsonIsValid,
-    comparisonsToJson,
-    createBasicSessionJson, importComparisonsFromSessionJson,
-    importSlicesFromSessionJson,
-    toJsonString
-} from '../../collaboration';
+import {SliceSampleOpts} from '../../sampling';
+import * as Sampling from '../../sampling';
+import * as Collab from '../../collaboration';
 
 export class ComparisonRandomSession extends PrivateSessionBase {
     static createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
                          slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
 
-        const slices = sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
-        const comparisons = sampleComparisons(sliceOpts.sliceCount, comparisonCount);
+        const slices = Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
+        const comparisons = Sampling.sampleComparisons(sliceOpts.sliceCount, comparisonCount);
 
         const metadata = this.createBasicMetadata(slicesFrom, sliceOpts);
         metadata['Comparison Count'] = comparisonCount;
@@ -36,18 +31,18 @@ export class ComparisonRandomSession extends PrivateSessionBase {
     }
 
     static exportToJsonString(session: LabelingSession): string {
-        const sessionJson = createBasicSessionJson(session);
-        sessionJson['comparisons'] = comparisonsToJson(dbapi.selectSessionComparisons(session.id));
-        return toJsonString(sessionJson);
+        const sessionJson = Collab.sessionAttributesToJson(session);
+        sessionJson['slices'] = Collab.slicesToJson(dbapi.selectSessionSlices(session.id));
+        sessionJson['comparisons'] = Collab.comparisonsToJson(dbapi.selectSessionComparisons(session.id));
+        return Collab.jsonToString(sessionJson);
     }
 
     static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string): number {
-        if (!basicSessionJsonIsValid(sessionJson)) return;
-        const slices = importSlicesFromSessionJson(sessionJson, datasetId);
-        const comparisons = importComparisonsFromSessionJson(sessionJson, datasetId, slices);
+        const {prompt, labelOptions, metadataJson} = Collab.sessionAttributesFromJson(sessionJson);
+        const slices = Collab.slicesFromSessionJson(sessionJson, datasetId);
+        const comparisons = Collab.comparisonsFromSessionJson(sessionJson, datasetId, slices);
 
-        const sj = sessionJson;
-        return dbapi.insertLabelingSession(datasetId, 'ComparisonRandom', newSessionName, sj['prompt'], sj['labelOptions'],
-            null, sj['metadataJson'], slices, comparisons);
+        return dbapi.insertLabelingSession(datasetId, 'ComparisonRandom', newSessionName,
+            prompt, labelOptions, null, metadataJson, slices, comparisons);
     }
 }

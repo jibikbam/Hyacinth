@@ -1,127 +1,155 @@
 import {Comparison, DatasetImage, dbapi, LabelingSession, Slice, SliceAttributes} from './backend';
-import {getInitialComparison, sliceToString} from './sort';
+import {sliceToString} from './sort';
 import {SliceResult} from './results';
+import * as JsonUtils from './json_utils';
 
-export function toJsonString(obj: object) {
+// ---- Export Session ----
+
+export function jsonToString(obj: object): string {
     return JSON.stringify(obj, null, 1);
 }
 
-export function createBasicSessionJson(session: LabelingSession): object {
-    return {
-        sessionType: session.sessionType,
-        sessionName: session.sessionName,
-        prompt: session.prompt,
-        labelOptions: session.labelOptions,
-        metadataJson: session.metadataJson,
-        slices: slicesToJson(dbapi.selectSessionSlices(session.id)),
-    };
+export function sessionAttributesToJson(session: LabelingSession): object {
+    const {sessionType, sessionName, prompt, labelOptions, metadataJson} = session;
+    return {sessionType, sessionName, prompt, labelOptions, metadataJson};
 }
 
-function slicesToJson(slices: Slice[]): object[] {
-    const slicesJson = [];
-    for (const slice of slices) {
-        slicesJson.push({
-            imageRelPath: slice.imageRelPath,
-            sliceDim: slice.sliceDim,
-            sliceIndex: slice.sliceIndex,
-        });
-    }
-    return slicesJson;
+export function slicesToJson(slices: Slice[]): object[] {
+    return slices.map(s => {
+        const {imageRelPath, sliceDim, sliceIndex} = s;
+        return {imageRelPath, sliceDim, sliceIndex};
+    });
 }
 
 export function comparisonsToJson(comparisons: Comparison[]): object[] {
-    const comparisonsJson = [];
-    for (const comparison of comparisons) {
-        comparisonsJson.push({
-            imageRelPath1: comparison.imageRelPath1,
-            sliceDim1: comparison.sliceDim1,
-            sliceIndex1: comparison.sliceIndex1,
-            imageRelPath2: comparison.imageRelPath2,
-            sliceDim2: comparison.sliceDim2,
-            sliceIndex2: comparison.sliceIndex2,
-        });
-    }
-    return comparisonsJson;
+    return comparisons.map(c => {
+        const {imageRelPath1, sliceDim1, sliceIndex1, imageRelPath2, sliceDim2, sliceIndex2} = c;
+        return {imageRelPath1, sliceDim1, sliceIndex1, imageRelPath2, sliceDim2, sliceIndex2};
+    });
 }
 
-const SESSION_TYPES = ['Classification', 'Comparison'];
-const COMPARISON_SAMPLINGS = ['Random', 'Sort', null];
 
-const SESSION_VALID_KEY_TYPES = [
+// ---- Import Session ----
+
+class SessionImportException extends Error {
+    constructor(msg) {
+        super(msg);
+        this.name = 'SessionImportException';
+    }
+}
+
+const SESSION_VALID_KEY_TYPES: [string, string][] = [
     ['sessionName', 'string'],
     ['sessionType', 'string'],
     ['prompt', 'string'],
     ['labelOptions', 'string'],
     ['metadataJson', 'string'],
-]
+];
+const SESSION_VALID_METADATA_TYPES = ['string', 'number', 'boolean'];
 
-export function basicSessionJsonIsValid(sessionJson: object): boolean {
+export function sessionAttributesFromJson(sessionJson: object): {prompt: string, labelOptions: string, metadataJson: string} {
     let valid = true;
-    for (const [k, t] of SESSION_VALID_KEY_TYPES) {
-        if (!(k in sessionJson)) {
-            valid = false;
-            console.log(`Session JSON is missing key ${k}`);
-        }
-        else if (typeof sessionJson[k] !== t) {
-            valid = false;
-            console.log(`Session JSON value ${k}=${sessionJson[k]} is of invalid type "${typeof sessionJson[k]}" (should be "${t}")`);
-        }
-    }
 
+    // Validate attribute keys exist and their values have the correct type
+    if (!JsonUtils.validateJsonWithKeys(sessionJson, SESSION_VALID_KEY_TYPES)) valid = false;
+
+    // Parse metadata JSON string and validate its values have the correct types
     const metadataJson = JSON.parse(sessionJson['metadataJson']);
-    for (const [k, v] of Object.entries(metadataJson)) {
-        if (typeof v !== 'string' && typeof v !== 'number' && typeof v !== 'boolean') {
-            valid = false;
-            console.log(`Session JSON metadata value ${k}=${v} is of invalid type ${typeof v}`);
-        }
+    if (!JsonUtils.validateJsonValues(metadataJson, SESSION_VALID_METADATA_TYPES)) valid = false;
+
+    // Throw error if attributes are not valid
+    if (!valid) throw new SessionImportException('Session attributes are malformed.');
+
+    metadataJson['Imported From'] = sessionJson['sessionName'];
+    return {
+        prompt: sessionJson['prompt'],
+        labelOptions: sessionJson['labelOptions'],
+        metadataJson: JSON.stringify(metadataJson),
     }
-    return valid;
 }
 
-function getImagesByPath(datasetId: number | string): {[key: string]: DatasetImage} {
+type ImagesByPath = {[key: string]: DatasetImage};
+function getImagesByPath(datasetId: number | string): ImagesByPath {
     return Object.fromEntries(dbapi.selectDatasetImages(datasetId).map(di => [di.relPath, di]));
 }
 
-export function importSlicesFromSessionJson(sessionJson: any, datasetId: number | string): SliceAttributes[] {
-    const imagesByPath = getImagesByPath(datasetId);
-
-    const slices: SliceAttributes[] = [];
-    for (const sl of sessionJson.slices) {
-        const dImg = imagesByPath[sl.imageRelPath];
-        if (!dImg) throw new Error(`Invalid imageRelPath ${sl.imageRelPath}`);
-        slices.push({
-            imageId: dImg.id,
-            sliceDim: sl.sliceDim,
-            sliceIndex: sl.sliceIndex,
-        });
-    }
-    return slices;
+function findImage(imagesByPath: ImagesByPath, relPath: string): DatasetImage {
+    const dImg = imagesByPath[relPath];
+    if (!dImg) throw new SessionImportException(`Slice image ${relPath} is missing from dataset.`);
+    return dImg;
 }
 
-export function importComparisonsFromSessionJson(sessionJson: object, datasetId: number | string,
+const SLICE_VALID_KEY_TYPES: [string, string][] = [
+    ['imageRelPath', 'string'],
+    ['sliceDim', 'number'],
+    ['sliceIndex', 'number'],
+];
+
+function sliceFromJson(sliceJson: object, imagesByPath: ImagesByPath): SliceAttributes {
+    if (!JsonUtils.validateJsonWithKeys(sliceJson, SLICE_VALID_KEY_TYPES)) {
+        throw new SessionImportException('Session slices are malformed.');
+    }
+
+    return {
+        imageId: findImage(imagesByPath, sliceJson['imageRelPath']).id,
+        sliceDim: sliceJson['sliceDim'],
+        sliceIndex: sliceJson['sliceIndex'],
+    }
+}
+
+export function slicesFromSessionJson(sessionJson: any, datasetId: number | string): SliceAttributes[] {
+    if (!JsonUtils.validateJsonWithKeys(sessionJson, [['slices', 'object']])) {
+        throw new SessionImportException('Session slices are malformed.');
+    }
+
+    const imagesByPath = getImagesByPath(datasetId);
+    return sessionJson['slices'].map(sj => sliceFromJson(sj, imagesByPath));
+}
+
+const COMPARISON_VALID_KEY_TYPES: [string, string][] = [
+    ['imageRelPath1', 'string'],
+    ['sliceDim1', 'number'],
+    ['sliceIndex1', 'number'],
+    ['imageRelPath2', 'string'],
+    ['sliceDim2', 'number'],
+    ['sliceIndex2', 'number'],
+];
+
+function comparisonFromJson(comparisonJson: object, imagesByPath: ImagesByPath,
+                            sliceIndicesByString: {[key: string]: number}): [number, number] {
+    if (!JsonUtils.validateJsonWithKeys(comparisonJson, COMPARISON_VALID_KEY_TYPES)) {
+        throw new SessionImportException('Session comparisons are malformed.');
+    }
+
+    const cj = comparisonJson;
+    const img1 = findImage(imagesByPath, cj['imageRelPath1']);
+    const img2 = findImage(imagesByPath, cj['imageRelPath2']);
+
+    const sl1: SliceAttributes = {imageId: img1.id, sliceDim: cj['sliceDim1'], sliceIndex: cj['sliceIndex1']};
+    const sl2: SliceAttributes = {imageId: img2.id, sliceDim: cj['sliceDim2'], sliceIndex: cj['sliceIndex2']};
+
+    const ind1 = sliceIndicesByString[sliceToString(sl1)];
+    if (ind1 === undefined) throw new Error(`Slice from comparison not found (${sl1.imageId} ${sl1.sliceDim} ${sl1.sliceIndex})`);
+    const ind2 = sliceIndicesByString[sliceToString(sl2)];
+    if (ind2 === undefined) throw new Error(`Slice from comparison not found (${sl2.imageId} ${sl2.sliceDim} ${sl2.sliceIndex})`);
+
+    return [ind1, ind2];
+}
+
+export function comparisonsFromSessionJson(sessionJson: object, datasetId: number | string,
                                           slices: SliceAttributes[]): [number, number][] {
+    if (!JsonUtils.validateJsonWithKeys(sessionJson, [['comparisons', 'object']])) {
+        throw new SessionImportException('Session comparisons are malformed');
+    }
+
     const imagesByPath = getImagesByPath(datasetId);
     const sliceIndByString = Object.fromEntries(slices.map((s, i) => [sliceToString(s), i]));
 
-    const comparisons: [number, number][] = [];
-    for (const co of sessionJson['comparisons']) {
-        const dImg1 = imagesByPath[co.imageRelPath1];
-        if (!dImg1) throw new Error(`Invalid imageRelPath ${co.imageRelPath1}`);
-        const dImg2 = imagesByPath[co.imageRelPath2];
-        if (!dImg2) throw new Error(`Invalid imageRelPath ${co.imageRelPath2}`);
-
-        const sl1: SliceAttributes = {imageId: dImg1.id, sliceDim: co.sliceDim1, sliceIndex: co.sliceIndex1};
-        const sl2: SliceAttributes = {imageId: dImg2.id, sliceDim: co.sliceDim2, sliceIndex: co.sliceIndex2};
-
-        const slInd1 = sliceIndByString[sliceToString(sl1)];
-        if (slInd1 == undefined) throw new Error(`Slice from comparison not found (${sl1.imageId} ${sl1.sliceDim} ${sl1.sliceIndex})`);
-        const slInd2 = sliceIndByString[sliceToString(sl2)];
-        if (slInd2 == undefined) throw new Error(`Slice from comparison not found (${sl2.imageId} ${sl2.sliceDim} ${sl2.sliceIndex})`);
-
-        comparisons.push([slInd1, slInd2]);
-    }
-    return comparisons;
+    return sessionJson['comparisons'].map(cj => comparisonFromJson(cj, imagesByPath, sliceIndByString));
 }
+
+
+// ---- Export Labels ----
 
 export function sessionLabelsToCsv(sessionId: number): string {
     const labelSession = dbapi.selectLabelingSession(sessionId);

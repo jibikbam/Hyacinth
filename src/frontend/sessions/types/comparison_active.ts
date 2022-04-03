@@ -1,20 +1,16 @@
 import {PrivateSessionBase} from '../base';
 import {dbapi, LabelingSession, SessionElement} from '../../backend';
-import {sampleSlices, SliceSampleOpts} from '../../sampling';
-import {buildSortMatrix, getInitialComparison, sortSlices} from '../../sort';
-import {
-    basicSessionJsonIsValid,
-    createBasicSessionJson, importComparisonsFromSessionJson,
-    importSlicesFromSessionJson,
-    toJsonString
-} from '../../collaboration';
+import {SliceSampleOpts} from '../../sampling';
+import * as Sampling from '../../sampling';
+import * as Sort from '../../sort';
+import * as Collab from '../../collaboration';
 
 export class ComparisonActiveSortSession extends PrivateSessionBase {
     static createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
                          slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
 
-        const slices = sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
-        const comparisons = [getInitialComparison(slices)];
+        const slices = Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
+        const comparisons = [Sort.getInitialComparison(slices)];
 
         const metadata = this.createBasicMetadata(slicesFrom, sliceOpts);
 
@@ -42,8 +38,8 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
         labels[element.elementIndex] = labelValue;
 
         // Compute new sort result with modified labels
-        const sortResult = sortSlices(
-            buildSortMatrix(comparisons, labels),
+        const sortResult = Sort.sortSlices(
+            Sort.buildSortMatrix(comparisons, labels),
             dbapi.selectSessionSlices(session.id)
         );
 
@@ -66,17 +62,17 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
     }
 
     static exportToJsonString(session: LabelingSession): string {
-        const sessionJson = createBasicSessionJson(session);
-        return toJsonString(sessionJson);
+        const sessionJson = Collab.sessionAttributesToJson(session);
+        sessionJson['slices'] = Collab.slicesToJson(dbapi.selectSessionSlices(session.id));
+        return Collab.jsonToString(sessionJson);
     }
 
     static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string): number {
-        if (!basicSessionJsonIsValid(sessionJson)) return;
-        const slices = importSlicesFromSessionJson(sessionJson, datasetId);
-        const comparisons = [getInitialComparison(slices)];
+        const {prompt, labelOptions, metadataJson} = Collab.sessionAttributesFromJson(sessionJson);
+        const slices = Collab.slicesFromSessionJson(sessionJson, datasetId);
+        const comparisons = [Sort.getInitialComparison(slices)];
 
-        const sj = sessionJson;
-        return dbapi.insertLabelingSession(datasetId, 'ComparisonActiveSort', newSessionName, sj['prompt'], sj['labelOptions'],
-            null, sj['metadataJson'], slices, comparisons);
+        return dbapi.insertLabelingSession(datasetId, 'ComparisonActiveSort', newSessionName,
+            prompt, labelOptions, null, metadataJson, slices, comparisons);
     }
 }
