@@ -266,8 +266,8 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: string
                 <div>
                     <h1 className="text-5xl font-medium">{session.sessionName}</h1>
                     <div className="mt-3 flex space-x-2">
+                        {/* TODO: use session class implementation for tags */}
                         <SessionTag>{session.sessionType} Session</SessionTag>
-                        {session.comparisonSampling && <SessionTag>{session.comparisonSampling} Sampling</SessionTag>}
                     </div>
                 </div>
                 <div>

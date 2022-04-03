@@ -12,7 +12,7 @@ export class ClassificationSession extends PrivateSessionBase {
         const metadata = this.createBasicMetadata(slicesFrom, sliceOpts);
 
         return dbapi.insertLabelingSession(datasetId, 'Classification', sessionName, prompt, labelOptions,
-            null, JSON.stringify(metadata), slices, null);
+            JSON.stringify(metadata), slices, null);
     }
 
     static selectElementsToLabel(session: LabelingSession): SessionElement[] {
@@ -37,7 +37,7 @@ export class ClassificationSession extends PrivateSessionBase {
         const {prompt, labelOptions, metadataJson} = Collab.sessionAttributesFromJson(sessionJson);
         const slices = Collab.slicesFromSessionJson(sessionJson, datasetId);
 
-        return dbapi.insertLabelingSession(datasetId, 'Classification', newSessionName,
-            prompt, labelOptions, null, metadataJson, slices, null);
+        return dbapi.insertLabelingSession(datasetId, 'Classification', newSessionName, prompt, labelOptions,
+            metadataJson, slices, null);
     }
 }

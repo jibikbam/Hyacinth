@@ -144,7 +144,8 @@ function computeSortResults(session: LabelingSession): SessionResults {
 }
 
 export function computeResults(session: LabelingSession): SessionResults {
-    const [type, sampling] = [session.sessionType, session.comparisonSampling];
+    // TODO: replace with session class implementations
+    const [type, sampling] = [session.sessionType, null];
     if (type === 'Classification') {
         return computeClassificationResults(session);
     }

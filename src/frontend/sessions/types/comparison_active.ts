@@ -15,7 +15,7 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
         const metadata = this.createBasicMetadata(slicesFrom, sliceOpts);
 
         return dbapi.insertLabelingSession(datasetId, 'ComparisonActiveSort', sessionName, prompt, labelOptions,
-            null, JSON.stringify(metadata), slices, comparisons);
+            JSON.stringify(metadata), slices, comparisons);
     }
 
     static selectElementsToLabel(session: LabelingSession): SessionElement[] {
@@ -72,7 +72,7 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
         const slices = Collab.slicesFromSessionJson(sessionJson, datasetId);
         const comparisons = [Sort.getInitialComparison(slices)];
 
-        return dbapi.insertLabelingSession(datasetId, 'ComparisonActiveSort', newSessionName,
-            prompt, labelOptions, null, metadataJson, slices, comparisons);
+        return dbapi.insertLabelingSession(datasetId, 'ComparisonActiveSort', newSessionName, prompt, labelOptions,
+            metadataJson, slices, comparisons);
     }
 }

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {useMemo, useState} from 'react';
 import {Routes, Route, useParams, useNavigate} from 'react-router-dom';
-import {SessionCategory, SessionType, SamplingType, dbapi} from '../backend';
+import {SessionCategory, SessionType, dbapi} from '../backend';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
@@ -16,6 +16,8 @@ import {
 } from '../hooks/validators';
 import {getSessionClass} from '../sessions/session';
 import {SliceSampleOpts} from '../sampling';
+
+type SamplingType = 'Random' | 'Sort';
 
 function TypeOption({text, highlight, onClick, children}: {text: string, highlight: boolean, onClick: Function, children?: any}) {
     const borderColor = highlight ? 'border-gray-300' : 'border-gray-500 hover:border-gray-400';

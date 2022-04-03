@@ -1,6 +1,5 @@
 export type SessionCategory = 'Classification' | 'Comparison';
 export type SessionType = 'Classification' | 'ComparisonRandom' | 'ComparisonActiveSort';
-export type SamplingType = 'Random' | 'Sort';
 export type ElementType = 'Slice' | 'Comparison';
 
 export interface Dataset {
@@ -25,7 +24,6 @@ export interface LabelingSession {
     sessionName: string;
     prompt: string;
     labelOptions: string;
-    comparisonSampling: SamplingType;
     metadataJson: string;
 }
 
@@ -76,7 +74,7 @@ export interface DBApiType {
     createTables: () => void;
     insertDataset: (datasetName: string, rootPath: string, imageRelPaths: string[]) => void;
     insertLabelingSession: (datasetId: number | string, sessionType: SessionType, name: string,
-                            prompt: string, labelOptions: string, comparisonSampling: SamplingType | null, metadataJson: string,
+                            prompt: string, labelOptions: string, metadataJson: string,
                             slices: SliceAttributes[], comparisons: number[][] | null) => number;
     insertElementLabel: (elementId: number | string, labelValue: string,
                          startTimestamp: number, finishTimestamp: number,

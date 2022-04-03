@@ -47,7 +47,6 @@ export function createTables() {
                 sessionName TEXT NOT NULL,
                 prompt TEXT NOT NULL,
                 labelOptions TEXT NOT NULL,
-                comparisonSampling TEXT,
                 metadataJson TEXT NOT NULL,
                 FOREIGN KEY (datasetId) REFERENCES datasets (id) ON UPDATE CASCADE ON DELETE CASCADE,
                 UNIQUE (datasetId, sessionName)
@@ -107,17 +106,16 @@ export function insertDataset(datasetName, rootPath, imageRelPaths) {
 }
 
 export function insertLabelingSession(datasetId: number | string, sessionType: string, name: string,
-                               prompt: string, labelOptions: string, comparisonSampling: string | null, metadataJson: string,
+                               prompt: string, labelOptions: string, metadataJson: string,
                                slices: any, comparisons: any) {
     labelOptions = labelOptions.split(',').map(s => s.trim()).join(',');
-    if (sessionType !== 'Comparison') comparisonSampling = null;
 
     let insertedSessionId;
     const insertTransaction = dbConn.transaction(() => {
         const sessionInsertInfo = dbConn.prepare(`
-            INSERT INTO labeling_sessions (datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson)
-                VALUES (:datasetId, :sessionType, :name, :prompt, :labelOptions, :comparisonSampling, :metadataJson);
-        `).run({datasetId, sessionType, name, prompt, labelOptions, comparisonSampling, metadataJson});
+            INSERT INTO labeling_sessions (datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson)
+                VALUES (:datasetId, :sessionType, :name, :prompt, :labelOptions, :metadataJson);
+        `).run({datasetId, sessionType, name, prompt, labelOptions, metadataJson});
 
         const sessionId = sessionInsertInfo.lastInsertRowid;
         insertedSessionId = sessionId;
@@ -280,7 +278,7 @@ export function selectDatasetImages(datasetId: number | string) {
 
 export function selectDatasetSessions(datasetId: number | string) {
     const sessionRows = dbConn.prepare(`
-        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson
+        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson
         FROM labeling_sessions
         WHERE datasetId = :datasetId;
     `).all({datasetId});
@@ -299,7 +297,7 @@ export function isLabelingSessionNameAvailable(datasetId: number | string, sessi
 
 export function selectLabelingSession(sessionId: number | string) {
     const sessionRow = dbConn.prepare(`
-        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, comparisonSampling, metadataJson FROM labeling_sessions
+        SELECT id, datasetId, sessionType, sessionName, prompt, labelOptions, metadataJson FROM labeling_sessions
         WHERE id = :sessionId;
     `).get({sessionId});
     console.log(`Selected session ${sessionRow.id} ${sessionRow.sessionName}`);

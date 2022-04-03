@@ -15,7 +15,7 @@ export class ComparisonRandomSession extends PrivateSessionBase {
         metadata['Comparison Count'] = comparisonCount;
 
         return dbapi.insertLabelingSession(datasetId, 'ComparisonRandom', sessionName, prompt, labelOptions,
-            null, JSON.stringify(metadata), slices, comparisons);
+            JSON.stringify(metadata), slices, comparisons);
     }
 
     static selectElementsToLabel(session: LabelingSession): SessionElement[] {
@@ -42,7 +42,7 @@ export class ComparisonRandomSession extends PrivateSessionBase {
         const slices = Collab.slicesFromSessionJson(sessionJson, datasetId);
         const comparisons = Collab.comparisonsFromSessionJson(sessionJson, datasetId, slices);
 
-        return dbapi.insertLabelingSession(datasetId, 'ComparisonRandom', newSessionName,
-            prompt, labelOptions, null, metadataJson, slices, comparisons);
+        return dbapi.insertLabelingSession(datasetId, 'ComparisonRandom', newSessionName, prompt, labelOptions,
+            metadataJson, slices, comparisons);
     }
 }
