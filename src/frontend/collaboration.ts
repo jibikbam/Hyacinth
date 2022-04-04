@@ -151,53 +151,62 @@ export function comparisonsFromSessionJson(sessionJson: object, datasetId: numbe
 
 // ---- Export Labels ----
 
-export function sessionLabelsToCsv(sessionId: number): string {
-    const labelSession = dbapi.selectLabelingSession(sessionId);
+type CsvRows = (string | number)[][];
+function rowsToCsvString(rows: CsvRows) {
+    // Converts array of rows to a CSV-formatted string
+    // Any numbers are converted to strings automatically
+    return rows.map(row => {
+        return row.map(value => value.toString()).join(',');
+    }).join('\n');
+}
 
-    const rows: string[][] = [];
-    if (labelSession.sessionType === 'Classification') {
-        // Header Row
-        rows.push(['elementIndex', 'imageRelPath', 'sliceDim', 'sliceIndex', 'labelValue', 'startTimestamp', 'finishTimestamp']);
+export function sliceLabelsToCsv(session: LabelingSession): string {
+    const rows: CsvRows = [];
 
-        const slices = dbapi.selectSessionSlices(labelSession.id);
-        for (const slice of slices) {
-            const labels = dbapi.selectElementLabels(slice.id);
-            for (const label of labels) {
-                rows.push([
-                    slice.elementIndex.toString(), slice.imageRelPath, slice.sliceDim.toString(), slice.sliceIndex.toString(),
-                    label.labelValue, label.startTimestamp.toString(), label.finishTimestamp.toString(),
-                ]);
-            }
-        }
-    }
-    else { // Comparison
-        // Header Row
-        rows.push([
-            'elementIndex',
-            'imageRelPath1', 'sliceDim1', 'sliceIndex1',
-            'imageRelPath2', 'sliceDim2', 'sliceIndex2',
-            'labelValue', 'startTimestamp', 'finishTimestamp'
-        ]);
+    // Header Row
+    rows.push([
+        'elementIndex', 'imageRelPath', 'sliceDim', 'sliceIndex',
+        'labelValue', 'startTimestamp', 'finishTimestamp'
+    ]);
 
-        const comparisons = dbapi.selectSessionComparisons(labelSession.id);
-        for (const comparison of comparisons) {
-            const labels = dbapi.selectElementLabels(comparison.id);
-            for (const label of labels) {
-                rows.push([
-                    comparison.elementIndex.toString(),
-                    comparison.imageRelPath1, comparison.sliceDim1.toString(), comparison.sliceIndex1.toString(),
-                    comparison.imageRelPath2, comparison.sliceDim2.toString(), comparison.sliceIndex2.toString(),
-                    label.labelValue, label.startTimestamp.toString(), label.finishTimestamp.toString(),
-                ]);
-            }
+    for (const slice of dbapi.selectSessionSlices(session.id)) {
+        for (const label of dbapi.selectElementLabels(slice.id)) {
+            rows.push([
+                slice.elementIndex, slice.imageRelPath, slice.sliceDim, slice.sliceIndex,
+                label.labelValue, label.startTimestamp, label.finishTimestamp,
+            ]);
         }
     }
 
-    return rows.map(r => r.join(',')).join('\n');
+    return rowsToCsvString(rows);
+}
+
+export function comparisonLabelsToCsv(session: LabelingSession): string {
+    const rows: CsvRows = [];
+    // Header Row
+    rows.push([
+        'elementIndex',
+        'imageRelPath1', 'sliceDim1', 'sliceIndex1',
+        'imageRelPath2', 'sliceDim2', 'sliceIndex2',
+        'labelValue', 'startTimestamp', 'finishTimestamp'
+    ]);
+
+    for (const comparison of dbapi.selectSessionComparisons(session.id)) {
+        for (const label of dbapi.selectElementLabels(comparison.id)) {
+            rows.push([
+                comparison.elementIndex,
+                comparison.imageRelPath1, comparison.sliceDim1, comparison.sliceIndex1,
+                comparison.imageRelPath2, comparison.sliceDim2, comparison.sliceIndex2,
+                label.labelValue, label.startTimestamp, label.finishTimestamp,
+            ]);
+        }
+    }
+
+    return rowsToCsvString(rows);
 }
 
 export function sessionResultsToCsv(results: SliceResult[]): string {
-    const rows: string[][] = [];
+    const rows: CsvRows = [];
 
     const hasLabels = results[0].latestLabelValue !== undefined;
     const hasScores = results[0].score !== undefined;
@@ -207,15 +216,15 @@ export function sessionResultsToCsv(results: SliceResult[]): string {
     if (hasScores) rows[0].push('score', 'comparison_wins', 'comparison_losses', 'comparison_draws');
 
     for (let i = 0; i < results.length; i++) {
-        const r = results[i];
-        const sl = r.slice;
+        const result = results[i];
+        const slice = result.slice;
 
-        const curRow = [i.toString(), sl.elementIndex.toString(), sl.imageRelPath, sl.sliceDim.toString(), sl.sliceIndex.toString()];
-        if (hasLabels) curRow.push(r.latestLabelValue ? r.latestLabelValue : 'UNLABELED');
-        if (hasScores) curRow.push(r.score.toString(), r.win.toString(), r.loss.toString(), r.draw.toString());
+        const curRow = [i, slice.elementIndex, slice.imageRelPath, slice.sliceDim, slice.sliceIndex];
+        if (hasLabels) curRow.push(result.latestLabelValue ? result.latestLabelValue : 'UNLABELED');
+        if (hasScores) curRow.push(result.score, result.win, result.loss, result.draw);
 
         rows.push(curRow);
     }
 
-    return rows.map(r => r.join(',')).join('\n');
+    return rowsToCsvString(rows);
 }

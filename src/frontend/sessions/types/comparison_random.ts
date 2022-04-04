@@ -1,7 +1,7 @@
 import {PrivateSessionBase} from '../base';
 import {dbapi, LabelingSession, SessionElement} from '../../backend';
 import {SliceSampleOpts} from '../../sampling';
-import {SessionResults} from '../../results';
+import {SessionResults, SliceResult} from '../../results';
 import * as Sampling from '../../sampling';
 import * as Results from '../../results';
 import * as Collab from '../../collaboration';
@@ -57,5 +57,13 @@ export class ComparisonRandomSession extends PrivateSessionBase {
 
         return dbapi.insertLabelingSession(datasetId, 'ComparisonRandom', newSessionName, prompt, labelOptions,
             metadataJson, slices, comparisons);
+    }
+
+    static exportLabelsToCsv(session: LabelingSession): string {
+        return Collab.comparisonLabelsToCsv(session);
+    }
+
+    static exportResultsToCsv(results: SliceResult[]): string {
+        return Collab.sessionResultsToCsv(results);
     }
 }

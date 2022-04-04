@@ -52,4 +52,12 @@ export class ClassificationSession extends PrivateSessionBase {
         return dbapi.insertLabelingSession(datasetId, 'Classification', newSessionName, prompt, labelOptions,
             metadataJson, slices, null);
     }
+
+    static exportLabelsToCsv(session: LabelingSession): string {
+        return Collab.sliceLabelsToCsv(session);
+    }
+
+    static exportResultsToCsv(results: SliceResult[]): string {
+        return Collab.sessionResultsToCsv(results);
+    }
 }

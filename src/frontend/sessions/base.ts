@@ -1,6 +1,6 @@
 import {SliceSampleOpts} from '../sampling';
 import {LabelingSession, SessionElement} from '../backend';
-import {SessionResults} from '../results';
+import {SessionResults, SliceResult} from '../results';
 
 export abstract class SessionBase {
     static createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
@@ -29,6 +29,14 @@ export abstract class SessionBase {
     }
 
     static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string) {
+        throw new NotImplementedError();
+    }
+
+    static exportLabelsToCsv(session: LabelingSession): string {
+        throw new NotImplementedError();
+    }
+
+    static exportResultsToCsv(results: SliceResult[]): string {
         throw new NotImplementedError();
     }
 }
