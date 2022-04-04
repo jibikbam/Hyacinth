@@ -14,3 +14,5 @@ To run the application again in the future, or after making changes, run `builds
 subdirectory of the project named `dev_app_data`. This is controlled by
 an environment variable: `HYACINTH_DEV=true`. If this variable is not set,
 application data will be written to the default location as determined by Electron.
+
+### Example
