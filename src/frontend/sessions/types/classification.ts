@@ -24,7 +24,7 @@ export class ClassificationSession extends PrivateSessionBase {
     }
 
     static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
-        dbapi.insertElementLabel(element.id, labelValue, startTimestamp, Date.now(), null);
+        dbapi.insertElementLabel(element.id, labelValue, startTimestamp, Date.now());
     }
 
     static exportToJsonString(session: LabelingSession): string {

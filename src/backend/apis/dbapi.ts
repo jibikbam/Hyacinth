@@ -164,63 +164,62 @@ export function insertLabelingSession(datasetId: number | string, sessionType: s
     return insertedSessionId;
 }
 
-export function insertElementLabel(elementId: number | string, labelValue: string, startTimestamp: number, finishTimestamp: number, appendComparisonArgs = null) {
-    const insertTransaction = dbConn.transaction(() => {
-        dbConn.prepare(`
-            INSERT INTO element_labels (elementId, labelValue, startTimestamp, finishTimestamp)
-                VALUES (:elementId, :labelValue, :startTimestamp, :finishTimestamp);
-        `).run({elementId, labelValue, startTimestamp, finishTimestamp});
+export function insertElementLabel(elementId: number | string, labelValue: string, startTimestamp: number, finishTimestamp: number) {
+    dbConn.prepare(`
+        INSERT INTO element_labels (elementId, labelValue, startTimestamp, finishTimestamp)
+            VALUES (:elementId, :labelValue, :startTimestamp, :finishTimestamp);
+    `).run({elementId, labelValue, startTimestamp, finishTimestamp});
 
-        if (appendComparisonArgs) {
-            insertComparisonNoTransaction(appendComparisonArgs.sessionId, appendComparisonArgs.elementIndex,
-                appendComparisonArgs.slice1, appendComparisonArgs.slice2);
+    console.log(`Inserted label "${labelValue}" for element ${elementId}`);
+}
+
+export function insertComparisonLabelActive(elementId: number | string, labelValue: string,
+                                            startTimestamp: number, finishTimestamp: number,
+                                            nextComparison: [any, any] | null) {
+    const insertTransaction = dbConn.transaction(() => {
+        // Insert label
+        insertElementLabel(elementId, labelValue, startTimestamp, finishTimestamp);
+
+        // Query additional info about element
+        const {sessionId, elementIndex: labeledElementIndex} = dbConn.prepare(`
+            SELECT sessionId, elementIndex FROM session_elements WHERE id = :elementId
+        `).get({elementId});
+
+        // Delete all comparisons which come after the comparison being labeled
+        // Active sampling will choose new comparisons based on previous, so any comparisons
+        // which come after this one are invalid and must be deleted
+        // (note: labels are deleted by CASCADE on foreign key)
+        dbConn.prepare(`
+            DELETE FROM session_elements
+            WHERE sessionId = :sessionId AND elementType = 'Comparison' AND elementIndex > :labeledElementIndex;
+        `).run({sessionId, labeledElementIndex});
+
+        // Insert new comparison if one is provided
+        if (nextComparison) {
+            const insertStatement = dbConn.prepare(`
+                INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceDim1, sliceIndex1,
+                                              imageId2, sliceDim2, sliceIndex2)
+                VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceDim1, :sliceIndex1,
+                        :imageId2, :sliceDim2, :sliceIndex2);
+            `);
+            const [slice1, slice2] = nextComparison;
+            const newComparisonIndex = labeledElementIndex + 1;
+            insertStatement.run({
+                sessionId: sessionId,
+                elementIndex: newComparisonIndex,
+                elementType: 'Comparison',
+                imageId1: slice1.imageId,
+                sliceDim1: slice1.sliceDim,
+                sliceIndex1: slice1.sliceIndex,
+                imageId2: slice2.imageId,
+                sliceDim2: slice2.sliceDim,
+                sliceIndex2: slice2.sliceIndex,
+            });
         }
     });
 
     insertTransaction();
-    console.log(`Inserted label "${labelValue}" for element ${elementId}`);
-}
-
-// For internal use when appending the next sort comparison within the same transaction after labeling
-function insertComparisonNoTransaction(sessionId: number | string, elementIndex: number, slice1, slice2) {
-    const insertTransaction = dbConn.transaction(() => {
-        // Delete all comparisons (and their labels) which have an elementIndex >= the new comparison we are going to add
-        // This is necessary because active sampling will choose new comparisons based on previous comparisons,
-        // meaning that future comparisons are invalidated if a past label is changed, so they must be deleted
-        dbConn.prepare(`
-            DELETE FROM element_labels
-            WHERE elementId IN (
-                SELECT elementId FROM element_labels
-                INNER JOIN session_elements on element_labels.elementId = session_elements.id
-                WHERE session_elements.sessionId = :sessionId AND session_elements.elementType = 'Comparison' AND session_elements.elementIndex >= :elementIndex
-            );
-        `).run({sessionId, elementIndex});
-        dbConn.prepare(`
-            DELETE FROM session_elements
-            WHERE sessionId = :sessionId AND elementType = 'Comparison' AND elementIndex >= :elementIndex;
-        `).run({sessionId, elementIndex});
-
-        // Insert new comparison
-        const insertStatement = dbConn.prepare(`
-            INSERT INTO session_elements (sessionId, elementType, elementIndex, imageId1, sliceDim1, sliceIndex1, imageId2, sliceDim2, sliceIndex2)
-                VALUES (:sessionId, :elementType, :elementIndex, :imageId1, :sliceDim1, :sliceIndex1, :imageId2, :sliceDim2, :sliceIndex2);
-        `);
-
-        insertStatement.run({
-            sessionId: sessionId,
-            elementIndex: elementIndex,
-            elementType: 'Comparison',
-            imageId1: slice1.imageId,
-            sliceDim1: slice1.sliceDim,
-            sliceIndex1: slice1.sliceIndex,
-            imageId2: slice2.imageId,
-            sliceDim2: slice2.sliceDim,
-            sliceIndex2: slice2.sliceIndex,
-        });
-    });
-
-    insertTransaction();
-    console.log(`Inserted new comparison for session ${sessionId} at elementIndex ${elementIndex}`);
+    console.log(`Inserted label "${labelValue}" for comparison element ${elementId} (plus cleared future comparisons as needed)`);
 }
 
 export function deleteLabelingSession(sessionId: number | string) {
@@ -346,7 +345,7 @@ export function selectElementLabels(elementId: number | string) {
     return labelRows;
 }
 
-export function selectSessionLatestComparisonLabels(sessionId: number | string) {
+export function selectSessionLatestComparisonLabels(sessionId: number | string): string[] {
     const labelRows = dbConn.prepare(`
         SELECT (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
         FROM session_elements se

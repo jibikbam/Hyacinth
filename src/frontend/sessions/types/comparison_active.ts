@@ -1,5 +1,5 @@
 import {PrivateSessionBase} from '../base';
-import {dbapi, LabelingSession, SessionElement} from '../../backend';
+import {dbapi, LabelingSession, SessionElement, Slice} from '../../backend';
 import {SliceSampleOpts} from '../../sampling';
 import * as Sampling from '../../sampling';
 import * as Sort from '../../sort';
@@ -23,8 +23,9 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
     }
 
     static shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
+        // Checks whether there are more labels after "index" which we should warn about in the UI
         const allComparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
-        return allComparisonLabels.length > (index + 2);
+        return allComparisonLabels.length > (index + 1) && allComparisonLabels[index + 1] !== null;
     }
 
     static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
@@ -43,22 +44,16 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
             dbapi.selectSessionSlices(session.id)
         );
 
-        let newComparisonOpts;
+        let newComparison: [Slice, Slice] | null;
         if (Array.isArray(sortResult)) {
-            newComparisonOpts = null;
+            newComparison = null;
             console.log('Sort Results:', sortResult.map(r => r.elementIndex));
         }
         else {
-            newComparisonOpts = {
-                sessionId: session.id,
-                elementIndex: element.elementIndex + 1,
-                slice1: sortResult.slice1,
-                slice2: sortResult.slice2,
-            }
+            newComparison = [sortResult.slice1, sortResult.slice2];
         }
 
-        // TODO: dedicated insert function for active label in dbapi
-        dbapi.insertElementLabel(element.id, labelValue, startTimestamp, Date.now(), newComparisonOpts);
+        dbapi.insertComparisonLabelActive(element.id, labelValue, startTimestamp, Date.now(), newComparison);
     }
 
     static exportToJsonString(session: LabelingSession): string {
