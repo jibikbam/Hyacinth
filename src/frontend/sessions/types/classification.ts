@@ -1,7 +1,9 @@
 import {PrivateSessionBase} from '../base';
-import {dbapi, LabelingSession, SessionElement} from '../../backend';
+import {dbapi, LabelingSession, SessionElement, Slice} from '../../backend';
 import {SliceSampleOpts} from '../../sampling';
+import {SessionResults, SliceResult} from '../../results';
 import * as Sampling from '../../sampling';
+import * as Results from '../../results';
 import * as Collab from '../../collaboration';
 
 export class ClassificationSession extends PrivateSessionBase {
@@ -25,6 +27,16 @@ export class ClassificationSession extends PrivateSessionBase {
 
     static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
         dbapi.insertElementLabel(element.id, labelValue, startTimestamp, Date.now());
+    }
+
+    static computeResults(session: LabelingSession): SessionResults {
+        const slicesWithLabels = Results.withLabels(dbapi.selectSessionSlices(session.id));
+        const slicesSorted = Results.sortedByLabel(slicesWithLabels, session.labelOptions);
+        const sliceResults: SliceResult[] = slicesSorted.map(([s, l]) => ({slice: s, latestLabelValue: l}))
+        return {
+            labelingComplete: !sliceResults.map(r => r.latestLabelValue).includes(null),
+            sliceResults: sliceResults,
+        }
     }
 
     static exportToJsonString(session: LabelingSession): string {

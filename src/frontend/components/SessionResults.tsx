@@ -5,8 +5,9 @@ import {dbapi, fileapi} from '../backend';
 import {ArrowLeftIcon, ExternalLinkIcon, PlusIcon, RefreshIcon} from '@heroicons/react/solid';
 import {ExclamationIcon} from '@heroicons/react/outline';
 import {Button} from './Buttons';
-import {computeResults, SliceResult} from '../results';
+import {SliceResult} from '../results';
 import {sessionResultsToCsv} from '../collaboration';
+import * as Session from '../sessions/session';
 
 function GridSliceContent({index, sliceResult, isLastMoved}: {index: number, sliceResult: SliceResult, isLastMoved: boolean}) {
     const slice = sliceResult.slice;
@@ -136,7 +137,10 @@ function SessionResults() {
     const {sessionId} = useParams();
     const session = useMemo(() => dbapi.selectLabelingSession(sessionId), [sessionId]);
 
-    const {labelingComplete, sliceResults} = useMemo(() => computeResults(session), [sessionId]);
+    const {labelingComplete, sliceResults} = useMemo(() => {
+        const sessClass = Session.getSessionClass(session);
+        return sessClass.computeResults(session);
+    }, [sessionId]);
 
     const [reorderedResults, setReorderedResults] = useState<SliceResult[] | null>(null);
     const [lastMoved, setLastMoved] = useState<number>(null);

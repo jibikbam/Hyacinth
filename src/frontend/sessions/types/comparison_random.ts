@@ -1,7 +1,9 @@
 import {PrivateSessionBase} from '../base';
 import {dbapi, LabelingSession, SessionElement} from '../../backend';
 import {SliceSampleOpts} from '../../sampling';
+import {SessionResults} from '../../results';
 import * as Sampling from '../../sampling';
+import * as Results from '../../results';
 import * as Collab from '../../collaboration';
 
 export class ComparisonRandomSession extends PrivateSessionBase {
@@ -28,6 +30,17 @@ export class ComparisonRandomSession extends PrivateSessionBase {
 
     static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
         dbapi.insertElementLabel(element.id, labelValue, startTimestamp, Date.now());
+    }
+
+    static computeResults(session: LabelingSession): SessionResults {
+        const slices = dbapi.selectSessionSlices(session.id);
+        const comparisonsWithLabels = Results.withLabels(dbapi.selectSessionComparisons(session.id));
+        const resultsWithScores = Results.computeScores(slices, comparisonsWithLabels);
+        const resultsSorted = Results.sortedByScore(resultsWithScores);
+        return {
+            labelingComplete: !comparisonsWithLabels.map((_, l) => l).includes(null),
+            sliceResults: resultsSorted,
+        }
     }
 
     static exportToJsonString(session: LabelingSession): string {

@@ -1,6 +1,7 @@
 import {PrivateSessionBase} from '../base';
 import {dbapi, LabelingSession, SessionElement, Slice} from '../../backend';
 import {SliceSampleOpts} from '../../sampling';
+import {SessionResults} from '../../results';
 import * as Sampling from '../../sampling';
 import * as Sort from '../../sort';
 import * as Collab from '../../collaboration';
@@ -54,6 +55,31 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
         }
 
         dbapi.insertComparisonLabelActive(element.id, labelValue, startTimestamp, Date.now(), newComparison);
+    }
+
+    static computeResults(session: LabelingSession): SessionResults {
+        const slices = dbapi.selectSessionSlices(session.id);
+        const comparisons = dbapi.selectSessionComparisons(session.id);
+        const comparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
+
+        const sortResult = Sort.sortSlices(
+            Sort.buildSortMatrix(comparisons, comparisonLabels),
+            slices
+        );
+
+        if (Array.isArray(sortResult)) {
+            // Note: sorted results are reversed so that the "winners" come first
+            return {
+                labelingComplete: true,
+                sliceResults: (sortResult as Slice[]).map(s => ({slice: s})).reverse(),
+            }
+        }
+        else {
+            return {
+                labelingComplete: false,
+                sliceResults: slices.map(s => ({slice: s})),
+            }
+        }
     }
 
     static exportToJsonString(session: LabelingSession): string {

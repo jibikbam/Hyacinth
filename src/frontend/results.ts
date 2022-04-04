@@ -1,6 +1,5 @@
-import {Comparison, dbapi, LabelingSession, Slice} from './backend';
-import {splitLabelOptions} from './utils';
-import {buildSortMatrix, sortSlices} from './sort';
+import {Comparison, dbapi, SessionElement, Slice} from './backend';
+import * as Utils from './utils';
 
 export interface SliceResult {
     slice: Slice;
@@ -17,59 +16,39 @@ export interface SessionResults {
     sliceResults: SliceResult[];
 }
 
-function computeClassificationResults(session: LabelingSession): SessionResults {
-    const slices = dbapi.selectSessionSlices(session.id);
-    const slicesWithLabels: [Slice, string | null][] = slices.map(s => {
-        const _labels = dbapi.selectElementLabels(s.id);
-        const _latestLabelValue = _labels.length > 0 ? _labels[_labels.length - 1].labelValue : null;
-
-        return [s, _latestLabelValue];
-    });
-
-    const labelOptions = splitLabelOptions(session.labelOptions);
-
-    slicesWithLabels.sort(([a, aLabel], [b, bLabel]) => {
-        const aKey = aLabel === null ? 0 : labelOptions.indexOf(aLabel) + 1;
-        const bKey = bLabel === null ? 0 : labelOptions.indexOf(bLabel) + 1;
-
-        return bKey - aKey; // We want highest first, for lowest first: aKey - bKey
-    });
-
-    const sliceResults = slicesWithLabels.map(([s, sLabel]) => {
-        return {
-            slice: s,
-            latestLabelValue: sLabel,
-        };
-    });
-
-    const labelingComplete = !slicesWithLabels.map(([_, l]) => l).includes(null);
-
-    return {
-        labelingComplete: labelingComplete,
-        sliceResults: sliceResults,
-    }
+export function withLabels<T extends SessionElement>(elements: T[]): [T, string | null][] {
+    return elements.map(e => {
+        const labels = dbapi.selectElementLabels(e.id);
+        const latest = (labels.length > 0) ? labels[labels.length - 1].labelValue : null;
+        return [e, latest];
+    })
 }
 
-function computeComparisonResults(session: LabelingSession): SessionResults {
-    const slices = dbapi.selectSessionSlices(session.id);
-    const comparisons = dbapi.selectSessionComparisons(session.id);
-    const comparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
+export function sortedByLabel<T extends SessionElement>(elementsWithLabels: [T, string | null][],
+                                                        labelOptionsString: string): [T, string | null][] {
+    const labelOptions = Utils.splitLabelOptions(labelOptionsString);
+    const cloned = elementsWithLabels.slice();
+    cloned.sort(([a, aLabel], [b, bLabel]) => {
+        const aKey = (aLabel === null) ? 0 : labelOptions.indexOf(aLabel) + 1;
+        const bKey = (bLabel === null) ? 0 : labelOptions.indexOf(bLabel) + 1;
+        return bKey - aKey; // We want highest first - for lowest first: aKey - bKey
+    });
+    return cloned;
+}
 
-    const comparisonsWithLabels: [Comparison, string][] = comparisons.map((c, i) => [c, comparisonLabels[i]]);
-
+export function computeScores(slices: Slice[], comparisonsWithLabels: [Comparison, string | null][]): SliceResult[] {
     function findSlice(imageId: number, sliceDim: number, sliceIndex: number) {
-        for (const sl of slices) {
-            if (sl.imageId === imageId && sl.sliceDim === sliceDim && sl.sliceIndex === sliceIndex) return sl;
-        }
-        throw new Error(`Could not find slice for comparison imageId=${imageId} sliceDim=${sliceDim} sliceIndex=${sliceIndex}`);
+        const slice = slices.find(s => s.imageId === imageId && s.sliceDim === sliceDim && s.sliceIndex == sliceIndex);
+        if (slice) return slice;
+        else throw new Error(`Could not find slice for comparison: ${imageId} ${sliceDim} ${sliceIndex}`);
     }
 
-    function inc([win, loss, draw]: [number, number, number], result: 'Win' | 'Loss' | 'Draw'): [number, number, number] {
-        if (result === 'Win') win += 1;
-        else if (result === 'Loss') loss += 1;
-        else draw += 1;
-
-        return [win, loss, draw];
+    function inc([win, loss, draw]: [number, number, number], result: 'W' | 'L' | 'D'): [number, number, number] {
+        switch (result) {
+            case 'W': return [win + 1, loss, draw];
+            case 'L': return [win, loss + 1, draw];
+            default: return [win, loss, draw + 1];
+        }
     }
 
     // Initialize scores
@@ -81,81 +60,30 @@ function computeComparisonResults(session: LabelingSession): SessionResults {
         const sl2 = findSlice(c.imageId2, c.sliceDim2, c.sliceIndex2);
 
         if (label === 'First') {
-            sliceScores[sl1.id] = inc(sliceScores[sl1.id], 'Win');
-            sliceScores[sl2.id] = inc(sliceScores[sl2.id], 'Loss');
+            sliceScores[sl1.id] = inc(sliceScores[sl1.id], 'W');
+            sliceScores[sl2.id] = inc(sliceScores[sl2.id], 'L');
         }
         else if (label === 'Second') {
-            sliceScores[sl1.id] = inc(sliceScores[sl1.id], 'Loss');
-            sliceScores[sl2.id] = inc(sliceScores[sl2.id], 'Win');
+            sliceScores[sl1.id] = inc(sliceScores[sl1.id], 'L');
+            sliceScores[sl2.id] = inc(sliceScores[sl2.id], 'W');
         }
         else if (label) { // ensure not null
-            sliceScores[sl1.id] = inc(sliceScores[sl1.id], 'Draw');
-            sliceScores[sl2.id] = inc(sliceScores[sl2.id], 'Draw');
+            sliceScores[sl1.id] = inc(sliceScores[sl1.id], 'D');
+            sliceScores[sl2.id] = inc(sliceScores[sl2.id], 'D');
         }
         else {} // label is null
     }
 
-    const sliceResults: SliceResult[] = slices.map(s => {
-        const [win, loss, draw] = sliceScores[s.id];
+    return slices.map(slice => {
+        const [win, loss, draw] = sliceScores[slice.id];
         const total = win + loss + draw;
-        return {
-            slice: s,
-            score: total === 0 ? 0 : (win - loss) / total,
-            win: win,
-            loss: loss,
-            draw: draw,
-        };
+        const score = (total === 0) ? 0 : (win - loss) / total;
+        return {slice, score, win, loss, draw};
     });
-
-    sliceResults.sort((a, b) => {
-        return b.score - a.score; // We want highest first, for lowest first: a - b
-    });
-
-    const labelingComplete = !comparisonLabels.includes(null);
-
-    return {
-        labelingComplete: labelingComplete,
-        sliceResults: sliceResults,
-    };
 }
 
-function computeSortResults(session: LabelingSession): SessionResults {
-    const slices = dbapi.selectSessionSlices(session.id);
-    const comparisons = dbapi.selectSessionComparisons(session.id);
-    const comparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
-
-    const sortResult = sortSlices(
-        buildSortMatrix(comparisons, comparisonLabels),
-        slices
-    );
-
-    if (Array.isArray(sortResult)) {
-        return {
-            labelingComplete: true,
-            sliceResults: (sortResult as Slice[]).map(s => ({slice: s})),
-        }
-    }
-    else {
-        return {
-            labelingComplete: false,
-            sliceResults: slices.map(s => ({slice: s})),
-        }
-    }
-}
-
-export function computeResults(session: LabelingSession): SessionResults {
-    // TODO: replace with session class implementations
-    const [type, sampling] = [session.sessionType, null];
-    if (type === 'Classification') {
-        return computeClassificationResults(session);
-    }
-    else if (type === 'Comparison' && sampling === 'Random') {
-        return computeComparisonResults(session);
-    }
-    else if (type === 'Comparison' && sampling === 'Sort') {
-        return computeSortResults(session);
-    }
-    else {
-        throw new Error(`Cannot handle session: type=${type} sampling=${sampling}`);
-    }
+export function sortedByScore(results: SliceResult[]): SliceResult[] {
+    const cloned = results.slice();
+    cloned.sort((a, b) => b.score - a.score);
+    return cloned;
 }

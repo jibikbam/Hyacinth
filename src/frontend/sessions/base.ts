@@ -1,5 +1,6 @@
 import {SliceSampleOpts} from '../sampling';
 import {LabelingSession, SessionElement} from '../backend';
+import {SessionResults} from '../results';
 
 export abstract class SessionBase {
     static createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
@@ -16,6 +17,10 @@ export abstract class SessionBase {
     }
 
     static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
+        throw new NotImplementedError();
+    }
+
+    static computeResults(session: LabelingSession): SessionResults {
         throw new NotImplementedError();
     }
 
