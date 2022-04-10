@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('dbapi', {
 });
 
 contextBridge.exposeInMainWorld('fileapi', {
+    getDatabaseFilePath: fileapi.getDatabaseFilePath,
     showFolderDialog: fileapi.showFolderDialog,
     showOpenJsonDialog: fileapi.showOpenJsonDialog,
     showSaveDialog: fileapi.showSaveDialog,

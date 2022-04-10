@@ -1,12 +1,12 @@
 import Database from 'better-sqlite3';
-import * as path from 'path';
-import {ipcRenderer} from 'electron';
 
 let dbConn;
 
-export function connect() {
-    const userDataDir: string = ipcRenderer.sendSync('get-user-data-dir');
-    const dbPath = path.join(userDataDir, 'hyacinth.db');
+export function connect(dbPath: string) {
+    // Sanity check to further constrain api (prevents loading of arbitrary sqlite files)
+    if (dbPath !== ':memory:' && !dbPath.endsWith('hyacinth.db')) {
+        throw new Error(`Invalid dbPath (file must be named hyacinth.db): ${dbPath}`);
+    }
 
     dbConn = new Database(dbPath);
     dbConn.pragma('foreign_keys = ON;');

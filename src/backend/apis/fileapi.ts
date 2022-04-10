@@ -5,6 +5,11 @@ import {ipcRenderer} from 'electron';
 const NIFTI_EXT = '.nii.gz';
 const DICOM_EXT = '.dcm';
 
+export function getDatabaseFilePath() {
+    const userDataDir: string = ipcRenderer.sendSync('get-user-data-dir');
+    return path.join(userDataDir, 'hyacinth.db');
+}
+
 export function showFolderDialog() {
     return ipcRenderer.sendSync('show-open-directory-dialog');
 }

@@ -70,7 +70,7 @@ export interface SliceAttributes {
 }
 
 export interface DBApiType {
-    connect: () => void;
+    connect: (dbPath: string) => void;
     createTables: () => void;
     insertDataset: (datasetName: string, rootPath: string, imageRelPaths: string[]) => void;
     insertLabelingSession: (datasetId: number | string, sessionType: SessionType, name: string,
@@ -96,6 +96,7 @@ export interface DBApiType {
 }
 
 export interface FileApiType {
+    getDatabaseFilePath: () => string;
     showFolderDialog: () => string[] | undefined;
     showOpenJsonDialog: () => string[] | undefined;
     showSaveDialog: (defaultName: string) => string | undefined;
@@ -116,6 +117,18 @@ export interface VolumeApiType {
     readDicom2d: (imagePath: string) => [[number, number], Float32Array];
 }
 
-export const dbapi = (window as any).dbapi as DBApiType;
-export const fileapi = (window as any).fileapi as FileApiType;
-export const volumeapi = (window as any).volumeapi as VolumeApiType;
+export let dbapi: DBApiType;
+export let fileapi: FileApiType;
+export let volumeapi: VolumeApiType;
+
+export function setupRenderer() {
+    dbapi = (window as any).dbapi as DBApiType;
+    fileapi = (window as any).fileapi as FileApiType;
+    volumeapi = (window as any).volumeapi as VolumeApiType;
+}
+
+export function setupTestInject(_dbapi: DBApiType, _fileapi: FileApiType, _volumeapi: VolumeApiType) {
+    dbapi = _dbapi;
+    fileapi = _fileapi;
+    volumeapi = _volumeapi;
+}

@@ -1,9 +1,10 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
-import {dbapi, fileapi} from './backend';
+import {setupRenderer, dbapi, fileapi} from './backend';
 import {App} from './components/App';
 
-dbapi.connect();
+setupRenderer();
+dbapi.connect(fileapi.getDatabaseFilePath());
 dbapi.createTables();
 
 ReactDOM.render(
