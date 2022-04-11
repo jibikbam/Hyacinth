@@ -72,7 +72,7 @@ export interface SliceAttributes {
 export interface DBApiType {
     connect: (dbPath: string) => void;
     createTables: () => void;
-    insertDataset: (datasetName: string, rootPath: string, imageRelPaths: string[]) => void;
+    insertDataset: (datasetName: string, rootPath: string, imageRelPaths: string[]) => number;
     insertLabelingSession: (datasetId: number | string, sessionType: SessionType, name: string,
                             prompt: string, labelOptions: string, metadataJson: string,
                             slices: SliceAttributes[], comparisons: number[][] | null) => number;
@@ -93,6 +93,7 @@ export interface DBApiType {
     selectSessionComparisons: (sessionId: number | string) => Comparison[];
     selectElementLabels: (elementId: number | string) => ElementLabel[];
     selectSessionLatestComparisonLabels: (sessionId: number | string) => (string | null)[];
+    runWithRollback: (func: Function) => void;
 }
 
 export interface FileApiType {

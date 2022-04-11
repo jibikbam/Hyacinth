@@ -88,12 +88,14 @@ export function createTables() {
 }
 
 export function insertDataset(datasetName, rootPath, imageRelPaths) {
+    let insertedDatasetId;
     const insertDatasetTransaction = dbConn.transaction(() => {
         const datasetInsertInfo = dbConn.prepare(`
             INSERT INTO datasets (datasetName, rootPath) VALUES (:datasetName, :rootPath);
         `).run({datasetName, rootPath});
 
         const datasetId = datasetInsertInfo.lastInsertRowid;
+        insertedDatasetId = datasetId;
 
         const insertImage = dbConn.prepare(`
             INSERT INTO dataset_images (datasetId, relPath) VALUES (:datasetId, :relPath);
@@ -103,6 +105,7 @@ export function insertDataset(datasetName, rootPath, imageRelPaths) {
 
     insertDatasetTransaction();
     console.log(`Inserted dataset ${datasetName}`);
+    return insertedDatasetId;
 }
 
 export function insertLabelingSession(datasetId: number | string, sessionType: string, name: string,
@@ -354,4 +357,16 @@ export function selectSessionLatestComparisonLabels(sessionId: number | string):
     `).all({sessionId});
     console.log(`Selected ${labelRows.length} latest comparison labels for session ${sessionId}`);
     return labelRows.map(r => r.elementLabel);
+}
+
+export function runWithRollback(func: Function): void {
+    try {
+        dbConn.transaction(() => {
+            func();
+            throw new Error('__triggerRollback');
+        })();
+    }
+    catch (e) {
+        if (e.message !== '__triggerRollback') throw e;
+    }
 }

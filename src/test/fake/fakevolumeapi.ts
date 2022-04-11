@@ -1,3 +1,5 @@
 export function readNiftiHeader(imagePath: string) {
-    return {};
+    return {
+        dims: [3, 176, 256, 256, 1, 0, 0, 0],
+    }
 }

@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('dbapi', {
     selectSessionComparisons: dbapi.selectSessionComparisons,
     selectElementLabels: dbapi.selectElementLabels,
     selectSessionLatestComparisonLabels: dbapi.selectSessionLatestComparisonLabels,
+    runWithRollback: dbapi.runWithRollback,
 });
 
 contextBridge.exposeInMainWorld('fileapi', {
