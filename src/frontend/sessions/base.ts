@@ -28,7 +28,7 @@ export abstract class SessionBase {
         throw new NotImplementedError();
     }
 
-    static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string) {
+    static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string): number {
         throw new NotImplementedError();
     }
 
