@@ -342,7 +342,7 @@ export function selectElementLabels(elementId: number | string) {
         SELECT id, elementId, labelValue, startTimestamp, finishTimestamp
         FROM element_labels
         WHERE elementId = :elementId
-        ORDER BY finishTimestamp DESC;
+        ORDER BY finishTimestamp DESC, id DESC;
     `).all({elementId});
     console.log(`Selected ${labelRows.length} labels for element ${elementId}`);
     return labelRows;

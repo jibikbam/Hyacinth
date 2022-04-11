@@ -35,6 +35,6 @@ export function sessionFixture(sessionType: SessionType): LabelingSession {
     const sessClass = Session.getClass(sessionType);
     const dataset = datasetFixture();
     const sessionId = sessClass.createSession(dataset.id, `Session ${getUniqueNumber()}`, 'Test prompt!',
-        'Label 1,Label2', 'Create New', sliceOptsFixture(), 12);
+        'Label 1,Label 2,Label 3', 'Create New', sliceOptsFixture(), 12);
     return dbapi.selectLabelingSession(sessionId);
 }
