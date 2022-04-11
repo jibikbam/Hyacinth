@@ -8,7 +8,7 @@ export function testClassificationCollab() {
     const session = Fixtures.sessionFixture('Classification');
     const dataset = dbapi.selectDataset(session.datasetId);
 
-    const sessClass = Session.getSessionClass('Classification');
+    const sessClass = Session.getClass('Classification');
     const exported = sessClass.exportToJsonString(session);
     const importedId = sessClass.importFromJson(JSON.parse(exported), 'Imported session', dataset.id);
     const imported = dbapi.selectLabelingSession(importedId);
@@ -26,7 +26,7 @@ export function testComparisonRandomCollab() {
     const session = Fixtures.sessionFixture('ComparisonRandom');
     const dataset = dbapi.selectDataset(session.datasetId);
 
-    const sessClass = Session.getSessionClass('ComparisonRandom');
+    const sessClass = Session.getClass('ComparisonRandom');
     const exported = sessClass.exportToJsonString(session);
     const importedId = sessClass.importFromJson(JSON.parse(exported), 'Imported session', dataset.id);
     const imported = dbapi.selectLabelingSession(importedId);
@@ -44,7 +44,7 @@ export function testComparisonActiveSortCollab() {
     const session = Fixtures.sessionFixture('ComparisonActiveSort');
     const dataset = dbapi.selectDataset(session.datasetId);
 
-    const sessClass = Session.getSessionClass('ComparisonActiveSort');
+    const sessClass = Session.getClass('ComparisonActiveSort');
     const exported = sessClass.exportToJsonString(session);
     const importedId = sessClass.importFromJson(JSON.parse(exported), 'Imported session', dataset.id);
     const imported = dbapi.selectLabelingSession(importedId);

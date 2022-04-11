@@ -4,7 +4,7 @@ import {ClassificationSession} from './types/classification';
 import {ComparisonRandomSession} from './types/comparison_random';
 import {ComparisonActiveSortSession} from './types/comparison_active';
 
-export function getSessionClass(sessionOrType: LabelingSession | SessionType): typeof SessionBase {
+export function getClass(sessionOrType: LabelingSession | SessionType): typeof SessionBase {
     const sessionType: SessionType = (typeof sessionOrType === 'string')
         ? sessionOrType as SessionType
         : (sessionOrType as LabelingSession).sessionType;

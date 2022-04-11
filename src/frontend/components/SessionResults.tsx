@@ -138,7 +138,7 @@ function SessionResults() {
     const session = useMemo(() => dbapi.selectLabelingSession(sessionId), [sessionId]);
 
     const {labelingComplete, sliceResults} = useMemo(() => {
-        const sessClass = Session.getSessionClass(session);
+        const sessClass = Session.getClass(session);
         return sessClass.computeResults(session);
     }, [sessionId]);
 

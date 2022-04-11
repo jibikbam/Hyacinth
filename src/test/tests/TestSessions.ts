@@ -15,7 +15,7 @@ const SLICE_OPTS: SliceSampleOpts = {
 
 export function testClassificationSessionCreation() {
     const dataset = Fixtures.datasetFixture();
-    const sessClass = Session.getSessionClass('Classification');
+    const sessClass = Session.getClass('Classification');
     const sessionId = sessClass.createSession(dataset.id, 'Test session', 'Test prompt!', 'Label 1,Label2',
         'Create New', SLICE_OPTS, 0);
 
@@ -50,7 +50,7 @@ export function testClassificationSessionCreation() {
 
 export function testComparisonRandomSessionCreation() {
     const dataset = Fixtures.datasetFixture();
-    const sessClass = Session.getSessionClass('ComparisonRandom');
+    const sessClass = Session.getClass('ComparisonRandom');
     const sessionId = sessClass.createSession(dataset.id, 'Test session', 'Test prompt!', 'Label 1,Label2',
         'Create New', SLICE_OPTS, 12);
 
@@ -93,7 +93,7 @@ export function testComparisonRandomSessionCreation() {
 
 export function testComparisonActiveSortSessionCreation() {
     const dataset = Fixtures.datasetFixture();
-    const sessClass = Session.getSessionClass('ComparisonActiveSort');
+    const sessClass = Session.getClass('ComparisonActiveSort');
     const sessionId = sessClass.createSession(dataset.id, 'Test session', 'Test prompt!', 'Label 1,Label2',
         'Create New', SLICE_OPTS, 0);
 

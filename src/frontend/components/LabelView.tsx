@@ -18,7 +18,7 @@ import {
     QuestionMarkCircleIcon,
     RefreshIcon, SunIcon
 } from '@heroicons/react/solid';
-import {getSessionClass} from '../sessions/session';
+import {getClass} from '../sessions/session';
 
 function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTimer: Function}) {
     const minutes = Math.floor(timerSeconds / 60).toString();
@@ -251,7 +251,7 @@ function LabelView() {
     const [startTimestamp, timerSeconds, resetTimer] = useTimer();
 
     useEffect(() => {
-        const sessClass = getSessionClass(session);
+        const sessClass = getClass(session);
         const _elements = sessClass.selectElementsToLabel(session);
         setElements(_elements);
 
@@ -268,7 +268,7 @@ function LabelView() {
         // If labelValue is already the current label, do nothing
         if (curElement.labels.length > 0 && curElement.labels[0].labelValue === labelValue) return;
 
-        const sessClass = getSessionClass(session);
+        const sessClass = getClass(session);
         // Warn about overwrite if applicable
         if (sessClass.shouldWarnAboutLabelOverwrite(session, curElement.element.elementIndex)) {
             const message = `Adding a label here will overwrite all comparisons and labels that come after it.\n\nAre you sure you want to proceed?`;

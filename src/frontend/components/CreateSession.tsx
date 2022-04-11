@@ -14,7 +14,7 @@ import {
     useSessionNameValidator,
     useStringLengthValidator
 } from '../hooks/validators';
-import {getSessionClass} from '../sessions/session';
+import {getClass} from '../sessions/session';
 import {SliceSampleOpts} from '../sampling';
 
 type SamplingType = 'Random' | 'Sort';
@@ -187,7 +187,7 @@ function CreateSession() {
             ? 'Classification'
             : (sampling === 'Random') ? 'ComparisonRandom' : 'ComparisonActiveSort';
 
-        const sessClass = getSessionClass(sessionType);
+        const sessClass = getClass(sessionType);
         const sliceOpts: SliceSampleOpts = {
             imageCount: imageCount.value, sliceCount: sliceCount.value, sliceDim: sliceDim,
             sliceMinPct: sliceMinPct.value, sliceMaxPct: sliceMaxPct.value
