@@ -4,6 +4,7 @@ import {Link, useNavigate, useParams} from 'react-router-dom';
 import {Comparison, dbapi, ElementLabel, SessionElement, Slice} from '../../backend';
 import {LabelTimer} from './LabelTimer';
 import {PastLabelsModal} from './PastLabelsModal';
+import {LabelKeymapModal} from './LabelKeymapModal';
 import {ClassificationControls} from './ClassificationControls';
 import {ComparisonControls} from './ComparisonControls';
 import {useTimer} from '../../hooks/useTimer';
@@ -12,7 +13,7 @@ import {ArrowLeftIcon, ChatAltIcon, CollectionIcon, QuestionMarkCircleIcon} from
 import * as Utils from '../../utils';
 import * as Session from '../../sessions/session';
 
-type LabelModal = 'pastLabels';
+type LabelModal = 'pastLabels' | 'keymap';
 
 function LabelView() {
     const navigate = useNavigate();
@@ -107,8 +108,10 @@ function LabelView() {
         return <div className="w-screen h-screen text-2xl text-gray-400 font-medium flex justify-center items-center">Loading...</div>
     }
 
-    let modalEl = null;
+    let modalEl;
     if (modal === 'pastLabels') modalEl = <PastLabelsModal labels={curElement.labels} closeModal={closeModal} />
+    else if (modal === 'keymap') modalEl = <LabelKeymapModal closeModal={closeModal} />
+    else modalEl = null;
 
     return (
         <div>
@@ -135,11 +138,14 @@ function LabelView() {
                     </div>
                 </div>
                 <div className="w-1/4 flex justify-end items-center">
-                    <button className="text-gray-400 flex items-center">
-                        <QuestionMarkCircleIcon className="w-5 h-5" />
+                    <button
+                        className="px-2 text-gray-400 hover:text-gray-500 rounded focus:ring-2 ring-gray-400 focus:outline-none flex items-center transition"
+                        onClick={() => setModal('keymap')}
+                    >
+                        <QuestionMarkCircleIcon className="w-5 h-5 opacity-80" />
                         <span className="ml-1 font-medium">Keymap</span>
                     </button>
-                    <div className="ml-8 space-x-3">
+                    <div className="ml-6 space-x-3">
                         <button
                             className="bg-gray-400 hover:bg-gray-500 rounded p-1.5 focus:outline-none focus:ring-4 ring-gray-400 hover:ring-gray-500 ring-opacity-50 hover:ring-opacity-50 transition"
                         >
