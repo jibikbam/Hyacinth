@@ -5,7 +5,7 @@ import {Datasets} from './Datasets';
 import {CreateDataset} from './CreateDataset';
 import {DatasetOverview} from './DatasetOverview';
 import {CreateSession} from './CreateSession';
-import {LabelView} from './LabelView';
+import {LabelView} from './label/LabelView';
 import {DebugSliceViewer} from './DebugSliceViewer';
 import {ThumbnailGenerator} from './ThumbnailGenerator';
 import {SessionResults} from './SessionResults';

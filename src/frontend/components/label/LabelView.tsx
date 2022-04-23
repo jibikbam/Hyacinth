@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {useEffect, useMemo, useState} from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
-import {Comparison, dbapi, ElementLabel, LabelingSession, SessionElement, Slice} from '../backend';
-import {useTimer} from '../hooks/useTimer';
-import {InputRange} from './Inputs';
-import {Button} from './Buttons';
-import {Modal} from './Modal';
-import {RenderedImage} from './RenderedImage';
+import {Comparison, dbapi, ElementLabel, LabelingSession, SessionElement, Slice} from '../../backend';
+import {useTimer} from '../../hooks/useTimer';
+import {InputRange} from '../Inputs';
+import {Button} from '../Buttons';
+import {Modal} from '../Modal';
+import {RenderedImage} from '../RenderedImage';
 import {ChevronLeftIcon, ChevronRightIcon, XIcon} from '@heroicons/react/outline';
 import {
     ArrowLeftIcon,
@@ -16,8 +16,8 @@ import {
     QuestionMarkCircleIcon,
     RefreshIcon, SunIcon
 } from '@heroicons/react/solid';
-import * as Utils from '../utils';
-import * as Session from '../sessions/session';
+import * as Utils from '../../utils';
+import * as Session from '../../sessions/session';
 
 function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTimer: Function}) {
     const minutes = Math.floor(timerSeconds / 60).toString();
