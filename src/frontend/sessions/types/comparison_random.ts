@@ -24,6 +24,10 @@ export class ComparisonRandomSession extends PrivateSessionBase {
         return dbapi.selectSessionComparisons(session.id);
     }
 
+    static isComparison(): boolean {
+        return true;
+    }
+
     static shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
         return false;
     }

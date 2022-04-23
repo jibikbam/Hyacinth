@@ -23,6 +23,10 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
         return dbapi.selectSessionComparisons(session.id);
     }
 
+    static isComparison(): boolean {
+        return true;
+    }
+
     static shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
         // Checks whether there are more labels after "index" which we should warn about in the UI
         const allComparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);

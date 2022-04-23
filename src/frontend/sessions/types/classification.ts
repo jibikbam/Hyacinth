@@ -21,6 +21,10 @@ export class ClassificationSession extends PrivateSessionBase {
         return dbapi.selectSessionSlices(session.id);
     }
 
+    static isComparison(): boolean {
+        return false;
+    }
+
     static shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
         return false;
     }

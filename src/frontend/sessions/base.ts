@@ -12,6 +12,10 @@ export abstract class SessionBase {
         throw new NotImplementedError();
     }
 
+    static isComparison(): boolean {
+        throw new NotImplementedError();
+    }
+
     static shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
         throw new NotImplementedError();
     }

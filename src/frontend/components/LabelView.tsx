@@ -1,14 +1,12 @@
 import * as React from 'react';
 import {useEffect, useMemo, useState} from 'react';
-import {Link, useParams} from 'react-router-dom';
+import {Link, useNavigate, useParams} from 'react-router-dom';
 import {Comparison, dbapi, ElementLabel, LabelingSession, SessionElement, Slice} from '../backend';
 import {useTimer} from '../hooks/useTimer';
 import {InputRange} from './Inputs';
 import {Button} from './Buttons';
 import {Modal} from './Modal';
 import {RenderedImage} from './RenderedImage';
-import {buildSortMatrix, sortSlices} from '../sort';
-import {splitLabelOptions} from '../utils';
 import {ChevronLeftIcon, ChevronRightIcon, XIcon} from '@heroicons/react/outline';
 import {
     ArrowLeftIcon,
@@ -18,7 +16,8 @@ import {
     QuestionMarkCircleIcon,
     RefreshIcon, SunIcon
 } from '@heroicons/react/solid';
-import {getClass} from '../sessions/session';
+import * as Utils from '../utils';
+import * as Session from '../sessions/session';
 
 function LabelTimer({timerSeconds, resetTimer}: {timerSeconds: number, resetTimer: Function}) {
     const minutes = Math.floor(timerSeconds / 60).toString();
@@ -95,9 +94,41 @@ interface LabelSliceProps {
 }
 
 const DEFAULT_BRIGHTNESS = 99.5;
+const [MIN_BRIGHTNESS, MAX_BRIGHTNESS] = [90, 100];
+const KEYBOARD_BRIGHTNESS_STEP = 0.5;
 
 function LabelSlice({datasetRootPath, imageRelPath, sliceDim, sliceIndex, bindKey, selected, onImageClick}: LabelSliceProps) {
     const [brightness, setBrightness] = useState<number>(DEFAULT_BRIGHTNESS);
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [brightness]);
+
+    function handleKeyDown(event: KeyboardEvent) {
+        if (event.code === 'ArrowDown' || event.code === 'KeyS') {
+            // Increase brightness value (dims image)
+            if (event.getModifierState('Shift')) {
+                setBrightness(MAX_BRIGHTNESS);
+            }
+            else {
+                setBrightness(Math.min(brightness + KEYBOARD_BRIGHTNESS_STEP, MAX_BRIGHTNESS));
+            }
+        }
+        else if (event.code === 'ArrowUp' || event.code === 'KeyW') {
+            // Decrease brightness value (brightens image)
+            if (event.getModifierState('Shift')) {
+                setBrightness(MIN_BRIGHTNESS);
+            }
+            else {
+                setBrightness(Math.max(brightness - KEYBOARD_BRIGHTNESS_STEP, MIN_BRIGHTNESS));
+            }
+        }
+        else if (event.code === 'KeyR') {
+            // Reset brightness
+            setBrightness(DEFAULT_BRIGHTNESS);
+        }
+    }
 
     function handleClick() {
         if (onImageClick) onImageClick();
@@ -114,7 +145,7 @@ function LabelSlice({datasetRootPath, imageRelPath, sliceDim, sliceIndex, bindKe
             </div>
             <div className="mt-3 px-2 py-1 bg-gray-800 rounded flex items-center">
                 <SunIcon className="mr-2 w-6 h-6 text-gray-400" />
-                <InputRange min={80} max={100} step={0.01} value={brightness} setValue={setBrightness} />
+                <InputRange min={MIN_BRIGHTNESS} max={MAX_BRIGHTNESS} step={0.01} value={brightness} setValue={setBrightness} />
                 <button
                     className="ml-3 rounded text-gray-500 hover:text-gray-400 active:text-gray-100 focus:outline-none focus:ring-2 ring-gray-600 transition"
                     onClick={() => setBrightness(DEFAULT_BRIGHTNESS)}
@@ -230,7 +261,7 @@ function ComparisonControls({session, comparison, labels, addLabel}: ComparisonC
                 />
             </div>
             <div className="ml-6 w-48">
-                <LabelControls additional={true} labelOptions={splitLabelOptions(session.labelOptions)} labels={labels} addLabel={addLabel} bindStart={2} />
+                <LabelControls additional={true} labelOptions={Utils.splitLabelOptions(session.labelOptions)} labels={labels} addLabel={addLabel} bindStart={2} />
             </div>
         </div>
     )
@@ -239,6 +270,7 @@ function ComparisonControls({session, comparison, labels, addLabel}: ComparisonC
 type LabelModal = 'pastLabels';
 
 function LabelView() {
+    const navigate = useNavigate();
     let {sessionId, elementIndex} = useParams();
     const elementIndexInt = parseInt(elementIndex);
 
@@ -251,7 +283,7 @@ function LabelView() {
     const [startTimestamp, timerSeconds, resetTimer] = useTimer();
 
     useEffect(() => {
-        const sessClass = getClass(session);
+        const sessClass = Session.getClass(session);
         const _elements = sessClass.selectElementsToLabel(session);
         setElements(_elements);
 
@@ -264,11 +296,45 @@ function LabelView() {
         resetTimer();
     }, [session, elementIndex]);
 
+    useEffect(() => {
+        if (elements && curElement) {
+            document.addEventListener('keydown', handleKeyDown);
+            return () => document.removeEventListener('keydown', handleKeyDown);
+        }
+    }, [elements, curElement]);
+
+    function handleKeyDown(event: KeyboardEvent) {
+        if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
+            // Go to previous element
+            const newIndex = Math.max(curElement.element.elementIndex - 1, 0);
+            navigate(`/label/${sessionId}/${newIndex}`);
+        }
+        else if (event.code === 'ArrowRight' || event.code === 'KeyD') {
+            // Go to next element
+            const newIndex = Math.min(curElement.element.elementIndex + 1, elements.length - 1);
+            navigate(`/label/${sessionId}/${newIndex}`);
+        }
+        else if (event.code.startsWith('Digit') || event.code.startsWith('Numpad')) {
+            // Add label based on number key pressed
+            let keyNum;
+            if (event.code.startsWith('Digit')) keyNum = parseInt(event.code.substring('Digit'.length));
+            else keyNum = parseInt(event.code.substring('Numpad'.length));
+
+            let labelOpts = Utils.splitLabelOptions(session.labelOptions);
+            if (Session.getClass(session).isComparison()) labelOpts = ['First', 'Second'].concat(labelOpts);
+
+            const labelIndex = keyNum - 1;
+            if (labelIndex >= 0 && labelIndex < labelOpts.length) {
+                addLabel(labelOpts[labelIndex]);
+            }
+        }
+    }
+
     function addLabel(labelValue: string) {
         // If labelValue is already the current label, do nothing
         if (curElement.labels.length > 0 && curElement.labels[0].labelValue === labelValue) return;
 
-        const sessClass = getClass(session);
+        const sessClass = Session.getClass(session);
         // Warn about overwrite if applicable
         if (sessClass.shouldWarnAboutLabelOverwrite(session, curElement.element.elementIndex)) {
             const message = `Adding a label here will overwrite all comparisons and labels that come after it.\n\nAre you sure you want to proceed?`;
@@ -347,7 +413,7 @@ function LabelView() {
                 </div>
             </header>
             <main className="mt-6">
-                {session.sessionType === 'Classification'
+                {!Session.getClass(session).isComparison()
                     ? <ClassificationControls session={session} slice={curElement.element as Slice} labels={curElement.labels} addLabel={addLabel} />
                     : <ComparisonControls session={session} comparison={curElement.element as Comparison} labels={curElement.labels} addLabel={addLabel} />
                 }
