@@ -6,10 +6,8 @@
   "main": "./built/js/backend/main.js",
   "scripts": {
     "start": "electron .",
-    "buildstart": "npm run buildjsfront && npm run buildjsback && ELECTRON_ENABLE_LOGGING=true HYACINTH_DEV=true electron .",
+    "buildstart": "node build.js && ELECTRON_ENABLE_LOGGING=true HYACINTH_DEV=true electron .",
     "buildcss": "npx tailwindcss -i ./css/tailwind.css -o ./built/css/style.css",
-    "buildjsfront": "esbuild src/frontend/index.tsx --outfile=built/js/bundle.js --bundle --target=chrome91",
-    "buildjsback": "esbuild src/backend/*.ts src/backend/apis/*.ts --outdir=built/js/backend --platform=node --format=cjs --target=node14",
     "test": "npm run buildjstest && ELECTRON_RUN_AS_NODE=true NODE_ENV=test electron built/js/testbundle.js",
     "buildjstest": "esbuild src/test/test.ts --outfile=built/js/testbundle.js --external:better-sqlite3 --bundle --platform=node --format=cjs --target=node14",
     "elrebuild": "electron-rebuild"
