@@ -15,7 +15,6 @@ import {
 import {Modal} from './Modal';
 import {getThumbnailName, truncateStart} from '../utils';
 import {InputText} from './Inputs';
-import {getClass} from '../sessions/session';
 import * as Session from '../sessions/session';
 
 interface DeleteSessionModalProps {
@@ -227,7 +226,7 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: string
     const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
 
     function exportSession() {
-        const sessionJsonString = getClass(session).exportToJsonString(session);
+        const sessionJsonString = Session.getClass(session).exportToJsonString(session);
         const savePath = fileapi.showSaveDialog(session.sessionName + '.json');
         if (savePath) {
             fileapi.writeTextFile(savePath, sessionJsonString);

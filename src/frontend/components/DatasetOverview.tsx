@@ -16,7 +16,7 @@ import {SessionOverview} from './SessionOverview';
 import {Modal} from './Modal';
 import {InputText} from './Inputs';
 import {useSessionNameValidator} from '../hooks/validators';
-import {getClass} from '../sessions/session';
+import * as Session from '../sessions/session';
 
 interface ImportSessionModalProps {
     filePath: string;
@@ -132,7 +132,7 @@ function DatasetOverview() {
 
     function finishSessionImport(newSessionName: string) {
         if (newSessionName.length === 0) return;
-        const sessClass = getClass(importData.json['sessionType']);
+        const sessClass = Session.getClass(importData.json['sessionType']);
         const newSessionId = sessClass.importFromJson(importData.json, newSessionName, datasetId);
 
         setImportData(null);
