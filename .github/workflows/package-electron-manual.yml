@@ -11,8 +11,7 @@ jobs:
       - run: |
           npm install
           npm run elrebuild
-          npm run buildjsfront
-          npm run buildjsback
+          node build.js
           npm run buildcss
           npx electron-packager . --out dist --ignore .gitignore --ignore /src/frontend --ignore /src/backend
       - run: |
@@ -32,8 +31,7 @@ jobs:
       - run: |
           npm install
           npm run elrebuild
-          npm run buildjsfront
-          npm run buildjsback
+          node build.js
           npm run buildcss
           npx electron-packager . --out dist --ignore .gitignore --ignore /src/frontend --ignore /src/backend
       - run: |
