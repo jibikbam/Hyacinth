@@ -21,20 +21,20 @@ export function datasetFixture(): Dataset {
     return dbapi.selectDataset(datasetId);
 }
 
-export function sliceOptsFixture(): SliceSampleOpts {
+function sliceOptsFixture(numSlices: number): SliceSampleOpts {
     return {
         imageCount: 4,
-        sliceCount: 10,
+        sliceCount: numSlices,
         sliceDim: 0,
         sliceMinPct: 20,
         sliceMaxPct: 80,
     };
 }
 
-export function sessionFixture(sessionType: SessionType): LabelingSession {
+export function sessionFixture(sessionType: SessionType, numSlices = 10, numComparisons = 12): LabelingSession {
     const sessClass = Session.getClass(sessionType);
     const dataset = datasetFixture();
     const sessionId = sessClass.createSession(dataset.id, `Session ${getUniqueNumber()}`, 'Test prompt!',
-        'Label 1,Label 2,Label 3', 'Create New', sliceOptsFixture(), 12);
+        'Label 1,Label 2,Label 3', 'Create New', sliceOptsFixture(numSlices), numComparisons);
     return dbapi.selectLabelingSession(sessionId);
 }

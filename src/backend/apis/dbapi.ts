@@ -310,7 +310,7 @@ export function selectSessionSlices(sessionId: number | string) {
     const sliceRows = dbConn.prepare(`
         SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1 as imageId, se.sliceDim1 as sliceDim, se.sliceIndex1 as sliceIndex,
                d.rootPath as datasetRootPath, di.relPath as imageRelPath,
-               (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
+               (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC, el.id DESC LIMIT 1) AS elementLabel
         FROM session_elements se
         INNER JOIN dataset_images di on se.imageId1 = di.id
         INNER JOIN datasets d on di.datasetId = d.id
@@ -325,7 +325,7 @@ export function selectSessionComparisons(sessionId: number | string) {
     const comparisonRows = dbConn.prepare(`
         SELECT se.id, se.sessionId, se.elementType, se.elementIndex, se.imageId1, se.sliceDim1, se.sliceIndex1, se.imageId2, se.sliceDim2, se.sliceIndex2,
                d.rootPath AS datasetRootPath, di1.relPath AS imageRelPath1, di2.relPath AS imageRelPath2,
-               (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
+               (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC, el.id DESC LIMIT 1) AS elementLabel
         FROM session_elements se
             INNER JOIN dataset_images di1 on se.imageId1 = di1.id
             INNER JOIN dataset_images di2 on se.imageId2 = di2.id
@@ -350,7 +350,7 @@ export function selectElementLabels(elementId: number | string) {
 
 export function selectSessionLatestComparisonLabels(sessionId: number | string): string[] {
     const labelRows = dbConn.prepare(`
-        SELECT (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC LIMIT 1) AS elementLabel
+        SELECT (SELECT el.labelValue FROM element_labels el WHERE el.elementId = se.id ORDER BY el.finishTimestamp DESC, el.id DESC LIMIT 1) AS elementLabel
         FROM session_elements se
         WHERE se.sessionId = :sessionId AND se.elementType = 'Comparison'
         ORDER BY se.id;

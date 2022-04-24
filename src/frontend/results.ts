@@ -19,7 +19,7 @@ export interface SessionResults {
 export function withLabels<T extends SessionElement>(elements: T[]): [T, string | null][] {
     return elements.map(e => {
         const labels = dbapi.selectElementLabels(e.id);
-        const latest = (labels.length > 0) ? labels[labels.length - 1].labelValue : null;
+        const latest = (labels.length > 0) ? labels[0].labelValue : null;
         return [e, latest];
     })
 }

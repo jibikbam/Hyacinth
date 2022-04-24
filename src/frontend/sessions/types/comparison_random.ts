@@ -42,7 +42,7 @@ export class ComparisonRandomSession extends PrivateSessionBase {
         const resultsWithScores = Results.computeScores(slices, comparisonsWithLabels);
         const resultsSorted = Results.sortedByScore(resultsWithScores);
         return {
-            labelingComplete: !comparisonsWithLabels.map((_, l) => l).includes(null),
+            labelingComplete: !comparisonsWithLabels.map(([_, l]) => l).includes(null),
             sliceResults: resultsSorted,
         }
     }
