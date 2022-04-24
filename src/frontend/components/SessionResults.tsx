@@ -168,7 +168,8 @@ function SessionResults() {
     }
 
     function exportResults() {
-        const resultsCsvString = sessionResultsToCsv(reorderedResults || sliceResults);
+        const sessClass = Session.getClass(session);
+        const resultsCsvString = sessClass.exportResultsToCsv(reorderedResults || sliceResults);
         const savePath = fileapi.showSaveDialog(session.sessionName + ' results.csv');
 
         if (savePath) fileapi.writeTextFile(savePath, resultsCsvString);
