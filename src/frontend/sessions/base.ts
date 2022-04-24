@@ -3,64 +3,37 @@ import {LabelingSession, SessionElement} from '../backend';
 import {SessionResults, SliceResult} from '../results';
 
 export abstract class SessionBase {
-    static createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
-                         slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
-        throw new NotImplementedError();
-    }
+    abstract createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
+                           slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number
 
-    static selectElementsToLabel(session: LabelingSession): SessionElement[] {
-        throw new NotImplementedError();
-    }
+    abstract selectElementsToLabel(session: LabelingSession): SessionElement[]
 
-    static isComparison(): boolean {
-        throw new NotImplementedError();
-    }
+    abstract isComparison(): boolean
 
-    static shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
-        throw new NotImplementedError();
-    }
+    abstract shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean
 
-    static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
-        throw new NotImplementedError();
-    }
+    abstract addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number)
 
-    static computeResults(session: LabelingSession): SessionResults {
-        throw new NotImplementedError();
-    }
+    abstract computeResults(session: LabelingSession): SessionResults
 
-    static exportToJsonString(session: LabelingSession): string {
-        throw new NotImplementedError();
-    }
+    abstract exportToJsonString(session: LabelingSession): string
 
-    static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string): number {
-        throw new NotImplementedError();
-    }
+    abstract importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string): number
 
-    static exportLabelsToCsv(session: LabelingSession): string {
-        throw new NotImplementedError();
-    }
+    abstract exportLabelsToCsv(session: LabelingSession): string
 
-    static exportResultsToCsv(results: SliceResult[]): string {
-        throw new NotImplementedError();
-    }
+    abstract exportResultsToCsv(results: SliceResult[]): string
 }
 
+export abstract class PrivateSessionBase extends SessionBase {}
 
-export abstract class PrivateSessionBase extends SessionBase {
-    static createBasicMetadata(slicesFrom: string, sliceOpts: SliceSampleOpts): {[key: string]: number | string} {
-        return {
-            'Slices From': slicesFrom,
-            'Image Count': sliceOpts.imageCount,
-            'Slice Count': sliceOpts.sliceCount,
-            'Slice Dim': sliceOpts.sliceDim,
-            'Slice Min Pct': sliceOpts.sliceMinPct,
-            'Slice Max Pct': sliceOpts.sliceMaxPct,
-        }
+export function createBasicMetadata(slicesFrom: string, sliceOpts: SliceSampleOpts): {[key: string]: number | string} {
+    return {
+        'Slices From': slicesFrom,
+        'Image Count': sliceOpts.imageCount,
+        'Slice Count': sliceOpts.sliceCount,
+        'Slice Dim': sliceOpts.sliceDim,
+        'Slice Min Pct': sliceOpts.sliceMinPct,
+        'Slice Max Pct': sliceOpts.sliceMaxPct,
     }
 }
-
-function NotImplementedError() {
-    this.name = 'NotImplementedError';
-    this.message = '';
-}
-NotImplementedError.prototype = Error.prototype;

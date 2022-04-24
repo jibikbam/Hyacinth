@@ -1,4 +1,4 @@
-import {PrivateSessionBase} from '../base';
+import {createBasicMetadata, PrivateSessionBase} from '../base';
 import {dbapi, LabelingSession, SessionElement, Slice} from '../../backend';
 import {SliceSampleOpts} from '../../sampling';
 import {SessionResults, SliceResult} from '../../results';
@@ -7,33 +7,33 @@ import * as Sort from '../../sort';
 import * as Collab from '../../collaboration';
 
 export class ComparisonActiveSortSession extends PrivateSessionBase {
-    static createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
+    createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
                          slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
 
         const slices = Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
         const comparisons = [Sort.getInitialComparison(slices)];
 
-        const metadata = this.createBasicMetadata(slicesFrom, sliceOpts);
+        const metadata = createBasicMetadata(slicesFrom, sliceOpts);
 
         return dbapi.insertLabelingSession(datasetId, 'ComparisonActiveSort', sessionName, prompt, labelOptions,
             JSON.stringify(metadata), slices, comparisons);
     }
 
-    static selectElementsToLabel(session: LabelingSession): SessionElement[] {
+    selectElementsToLabel(session: LabelingSession): SessionElement[] {
         return dbapi.selectSessionComparisons(session.id);
     }
 
-    static isComparison(): boolean {
+    isComparison(): boolean {
         return true;
     }
 
-    static shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
+    shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
         // Checks whether there are more labels after "index" which we should warn about in the UI
         const allComparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
         return allComparisonLabels.length > (index + 1) && allComparisonLabels[index + 1] !== null;
     }
 
-    static addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
+    addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number) {
         const initialComparisons = dbapi.selectSessionComparisons(session.id);
         const initialLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
 
@@ -61,7 +61,7 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
         dbapi.insertComparisonLabelActive(element.id, labelValue, startTimestamp, Date.now(), newComparison);
     }
 
-    static computeResults(session: LabelingSession): SessionResults {
+    computeResults(session: LabelingSession): SessionResults {
         const slices = dbapi.selectSessionSlices(session.id);
         const comparisons = dbapi.selectSessionComparisons(session.id);
         const comparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);
@@ -86,13 +86,13 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
         }
     }
 
-    static exportToJsonString(session: LabelingSession): string {
+    exportToJsonString(session: LabelingSession): string {
         const sessionJson = Collab.sessionAttributesToJson(session);
         sessionJson['slices'] = Collab.slicesToJson(dbapi.selectSessionSlices(session.id));
         return Collab.jsonToString(sessionJson);
     }
 
-    static importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string): number {
+    importFromJson(sessionJson: object, newSessionName: string, datasetId: number | string): number {
         const {prompt, labelOptions, metadataJson} = Collab.sessionAttributesFromJson(sessionJson);
         const slices = Collab.slicesFromSessionJson(sessionJson, datasetId);
         const comparisons = [Sort.getInitialComparison(slices)];
@@ -101,11 +101,11 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
             metadataJson, slices, comparisons);
     }
 
-    static exportLabelsToCsv(session: LabelingSession): string {
+    exportLabelsToCsv(session: LabelingSession): string {
         return Collab.comparisonLabelsToCsv(session);
     }
 
-    static exportResultsToCsv(results: SliceResult[]): string {
+    exportResultsToCsv(results: SliceResult[]): string {
         return Collab.sessionResultsToCsv(results);
     }
 }

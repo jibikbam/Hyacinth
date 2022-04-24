@@ -4,15 +4,15 @@ import {ClassificationSession} from './types/classification';
 import {ComparisonRandomSession} from './types/comparison_random';
 import {ComparisonActiveSortSession} from './types/comparison_active';
 
-export function getClass(sessionOrType: LabelingSession | SessionType): typeof SessionBase {
+export function getClass(sessionOrType: LabelingSession | SessionType): SessionBase {
     const sessionType: SessionType = (typeof sessionOrType === 'string')
         ? sessionOrType as SessionType
         : (sessionOrType as LabelingSession).sessionType;
 
     switch (sessionType) {
-        case 'Classification': return ClassificationSession;
-        case 'ComparisonRandom': return ComparisonRandomSession;
-        case 'ComparisonActiveSort': return ComparisonActiveSortSession;
+        case 'Classification': return new ClassificationSession();
+        case 'ComparisonRandom': return new ComparisonRandomSession();
+        case 'ComparisonActiveSort': return new ComparisonActiveSortSession();
     }
     throw new Error(`No session class found for type ${sessionType}`);
 }
