@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {InputValidator} from '../hooks/validators';
+import {Tooltip} from './Tooltip';
 import {QuestionMarkCircleIcon, SelectorIcon} from '@heroicons/react/solid';
 
 interface InputTextProps {
@@ -47,7 +48,7 @@ function InputNumber({id, label, help, value, min, max, setValue, validator}: In
         <div className="flex-1 flex flex-col">
             <div className="pr-0.5 flex justify-between items-center">
                 <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>
-                {help && <div title={help}><QuestionMarkCircleIcon className="w-4 h-4 text-gray-500" /></div>}
+                {help && <Tooltip text={help}><QuestionMarkCircleIcon className="w-4 h-4 text-gray-500" /></Tooltip>}
             </div>
             <input
                 className={`mt-1 px-3 py-1 w-full bg-gray-800 rounded shadow text-xl text-gray-300 transition

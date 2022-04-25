@@ -129,15 +129,15 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                     <Select id="slices-from" label="Slices From" options={['Create New']} value={props.slicesFrom} setValue={props.setSlicesFrom} />
                 </div>
                 <div className="mt-3 flex space-x-4">
-                    <InputNumber id="image-count" label="Images" help="Number of images to sample slices from." min={1} validator={props.imageCount} />
-                    <InputNumber id="slice-count" label="Slices" help="Number of slices to sample." min={2} validator={props.sliceCount} />
+                    <InputNumber id="image-count" label="Images" help="Number of images (volumes) to sample slices from." min={1} validator={props.imageCount} />
+                    <InputNumber id="slice-count" label="Slices" help="Number of slices to be labeled in this session." min={2} validator={props.sliceCount} />
                 </div>
                 <div className="mt-3">
                     <Select id="slice-dim" label="Slice Dimension" options={['0', '1', '2']} value={props.sliceDim.toString()} setValue={(val: string) => props.setSliceDim(parseInt(val))} />
                 </div>
                 <div className="mt-3 flex space-x-4">
-                    <InputNumber id="slice-min-pct" label="Slice Min (%)" help="Min slice index to sample as a percentage of all slices." min={0} validator={props.sliceMinPct} />
-                    <InputNumber id="slice-max-pct" label="Slice Max (%)" help="Max slice index to sample as a percentage of all slices." min={0} validator={props.sliceMaxPct} />
+                    <InputNumber id="slice-min-pct" label="Slice Min (%)" help="Lowest slice to sample in this orientation (0% to 100%)." min={0} validator={props.sliceMinPct} />
+                    <InputNumber id="slice-max-pct" label="Slice Max (%)" help="Highest slice to be sampled in this orientation (0% to 100%)." min={0} validator={props.sliceMaxPct} />
                 </div>
             </div>
             {props.sessionCategory === 'Comparison' && (
@@ -150,7 +150,7 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                     </div>
                     {props.sampling === 'Random' && (
                         <div className="mt-3 w-1/2 pr-2">
-                            <InputNumber id="comparison-count" label="Comparisons" help="Number of comparisons to sample." validator={props.comparisonCount} />
+                            <InputNumber id="comparison-count" label="Comparisons" help="Number of comparisons to be labeled in this session." validator={props.comparisonCount} />
                         </div>
                     )}
                 </div>
