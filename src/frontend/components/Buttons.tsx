@@ -17,7 +17,7 @@ const COLOR_CLASSES = {
 }
 
 const FLEX_CLASSES = 'flex justify-center items-center';
-const BUTTON_CLASSES = FLEX_CLASSES + ' rounded shadow focus:outline-none focus:ring-4 ring-opacity-50 hover:ring-opacity-50 box-border transition';
+const BUTTON_CLASSES = FLEX_CLASSES + ' font-medium rounded shadow focus:outline-none focus:ring-4 ring-opacity-50 hover:ring-opacity-50 box-border transition';
 const DISABLED_CLASSES = FLEX_CLASSES + ' rounded bg-gray-600 text-gray-400 opacity-50 select-none';
 
 interface CommonButtonProps {
