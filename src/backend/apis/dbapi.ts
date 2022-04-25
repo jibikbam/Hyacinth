@@ -10,6 +10,7 @@ export function connect(dbPath: string) {
 
     dbConn = new Database(dbPath);
     dbConn.pragma('foreign_keys = ON;');
+    dbConn.pragma('user_version = 1;')
     console.log('Connected to ' + dbPath);
 }
 
