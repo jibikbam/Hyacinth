@@ -4,7 +4,7 @@ import {SessionResults, SliceResult} from '../results';
 
 export abstract class SessionBase {
     abstract createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
-                           slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number
+                           slicesFromSession: LabelingSession | null, sliceOpts: SliceSampleOpts, comparisonCount: number): number
 
     abstract selectElementsToLabel(session: LabelingSession): SessionElement[]
 
@@ -27,9 +27,10 @@ export abstract class SessionBase {
 
 export abstract class PrivateSessionBase extends SessionBase {}
 
-export function createBasicMetadata(slicesFrom: string, sliceOpts: SliceSampleOpts): {[key: string]: number | string} {
+export function createBasicMetadata(slicesFromSession: LabelingSession | null,
+                                    sliceOpts: SliceSampleOpts): {[key: string]: number | string} {
     return {
-        'Slices From': slicesFrom,
+        'Slices From': slicesFromSession ? slicesFromSession.sessionName : 'Create New',
         'Image Count': sliceOpts.imageCount,
         'Slice Count': sliceOpts.sliceCount,
         'Slice Dim': sliceOpts.sliceDim,

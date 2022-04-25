@@ -8,12 +8,14 @@ import * as Collab from '../../collaboration';
 
 export class ComparisonActiveSortSession extends PrivateSessionBase {
     createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
-                         slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
+                         slicesFromSession: LabelingSession | null, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
 
-        const slices = Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
+        const slices = (slicesFromSession)
+            ? dbapi.selectSessionSlices(slicesFromSession.id)
+            : Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
         const comparisons = [Sort.getInitialComparison(slices)];
 
-        const metadata = createBasicMetadata(slicesFrom, sliceOpts);
+        const metadata = createBasicMetadata(slicesFromSession, sliceOpts);
 
         return dbapi.insertLabelingSession(datasetId, 'ComparisonActiveSort', sessionName, prompt, labelOptions,
             JSON.stringify(metadata), slices, comparisons);

@@ -8,12 +8,14 @@ import * as Collab from '../../collaboration';
 
 export class ComparisonRandomSession extends PrivateSessionBase {
     createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
-                         slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
+                         slicesFromSession: LabelingSession | null, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
 
-        const slices = Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
-        const comparisons = Sampling.sampleComparisons(sliceOpts.sliceCount, comparisonCount);
+        const slices = (slicesFromSession)
+            ? dbapi.selectSessionSlices(slicesFromSession.id)
+            : Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
+        const comparisons = Sampling.sampleComparisons(slices.length, comparisonCount);
 
-        const metadata = createBasicMetadata(slicesFrom, sliceOpts);
+        const metadata = createBasicMetadata(slicesFromSession, sliceOpts);
         metadata['Comparison Count'] = comparisonCount;
 
         return dbapi.insertLabelingSession(datasetId, 'ComparisonRandom', sessionName, prompt, labelOptions,

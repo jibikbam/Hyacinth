@@ -119,6 +119,7 @@ interface SamplingOptionsStepProps {
 
     sessionCategory: SessionCategory;
     maxImageCount: number;
+    sessionNames: string[];
 }
 
 function SamplingOptionsStep(props: SamplingOptionsStepProps) {
@@ -126,21 +127,31 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
         <div className="mt-4 flex items-start space-x-12">
             <div className="w-64">
                 <div>
-                    <Select id="slices-from" label="Slices From" options={['Create New']} value={props.slicesFrom} setValue={props.setSlicesFrom} />
+                    <Select
+                        id="slices-from"
+                        label="Slices From"
+                        options={['Create New'].concat(props.sessionNames)}
+                        value={props.slicesFrom}
+                        setValue={props.setSlicesFrom}
+                    />
                 </div>
-                <div className="mt-3 flex space-x-4">
-                    <InputNumber id="image-count" label="Images" help="Number of images (volumes) to sample slices from." min={1} validator={props.imageCount} />
-                    <InputNumber id="slice-count" label="Slices" help="Number of slices to be labeled in this session." min={2} validator={props.sliceCount} />
-                </div>
-                <div className="mt-3">
-                    <Select id="slice-dim" label="Slice Dimension" options={['0', '1', '2']} value={props.sliceDim.toString()} setValue={(val: string) => props.setSliceDim(parseInt(val))} />
-                </div>
-                <div className="mt-3 flex space-x-4">
-                    <InputNumber id="slice-min-pct" label="Slice Min (%)" help="Lowest slice to sample in this orientation (0% to 100%)." min={0} validator={props.sliceMinPct} />
-                    <InputNumber id="slice-max-pct" label="Slice Max (%)" help="Highest slice to be sampled in this orientation (0% to 100%)." min={0} validator={props.sliceMaxPct} />
-                </div>
+                {(props.slicesFrom === 'Create New') && (
+                    <div>
+                        <div className="mt-3 flex space-x-4">
+                            <InputNumber id="image-count" label="Images" help="Number of images (volumes) to sample slices from." min={1} validator={props.imageCount}/>
+                            <InputNumber id="slice-count" label="Slices" help="Number of slices to be labeled in this session." min={2} validator={props.sliceCount}/>
+                        </div>
+                        <div className="mt-3">
+                            <Select id="slice-dim" label="Slice Dimension" options={['0', '1', '2']} value={props.sliceDim.toString()} setValue={(val: string) => props.setSliceDim(parseInt(val))} />
+                        </div>
+                        <div className="mt-3 flex space-x-4">
+                            <InputNumber id="slice-min-pct" label="Slice Min (%)" help="Lowest slice to sample in this orientation (0% to 100%)." min={0} validator={props.sliceMinPct} />
+                            <InputNumber id="slice-max-pct" label="Slice Max (%)" help="Highest slice to be sampled in this orientation (0% to 100%)." min={0} validator={props.sliceMaxPct} />
+                        </div>
+                    </div>
+                )}
             </div>
-            {props.sessionCategory === 'Comparison' && (
+            {(props.sessionCategory === 'Comparison') && (
                 <div className="w-64">
                     <div>
                         <div className="text-sm text-gray-400">Comparison Sampling</div>
@@ -163,8 +174,12 @@ function CreateSession() {
     const {datasetId} = useParams();
     const navigate = useNavigate();
 
-    const [dataset, datasetImages] = useMemo(() => {
-        return [dbapi.selectDataset(datasetId), dbapi.selectDatasetImages(datasetId)];
+    const [dataset, datasetImages, datasetSessions] = useMemo(() => {
+        return [
+            dbapi.selectDataset(datasetId),
+            dbapi.selectDatasetImages(datasetId),
+            dbapi.selectDatasetSessions(datasetId)
+        ];
     }, []);
 
     const [sessionCategory, setSessionCategory] = useState<SessionCategory | null>(null);
@@ -188,13 +203,17 @@ function CreateSession() {
             : (sampling === 'Random') ? 'ComparisonRandom' : 'ComparisonActiveSort';
 
         const sessClass = Session.getClass(sessionType);
+        const slicesFromSession = (slicesFrom === 'Create New')
+            ? null
+            : datasetSessions.find(s => s.sessionName === slicesFrom);
+
         const sliceOpts: SliceSampleOpts = {
             imageCount: imageCount.value, sliceCount: sliceCount.value, sliceDim: sliceDim,
             sliceMinPct: sliceMinPct.value, sliceMaxPct: sliceMaxPct.value
         };
 
         const newSessionId = sessClass.createSession(datasetId, sessionName.value, prompt.value, labelOptions.value,
-            slicesFrom, sliceOpts, comparisonCount.value);
+            slicesFromSession, sliceOpts, comparisonCount.value);
 
         navigate(`/dataset/${datasetId}/session/${newSessionId}`);
     }
@@ -245,6 +264,7 @@ function CreateSession() {
                                 comparisonCount={comparisonCount}
                                 sessionCategory={sessionCategory}
                                 maxImageCount={dataset.imageCount}
+                                sessionNames={datasetSessions.map(s => s.sessionName)}
                             />
                         </div>
                         <StepNavigation cancelTo={`/dataset/${dataset.id}`} backTo={`/create-session/${datasetId}/session-info`} nextTo={null} finishText="Create" finishClicked={createSession} finishDisabled={false} />

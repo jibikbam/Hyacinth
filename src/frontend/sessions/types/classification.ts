@@ -8,10 +8,12 @@ import * as Collab from '../../collaboration';
 
 export class ClassificationSession extends PrivateSessionBase {
     createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
-                         slicesFrom: string, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
+                         slicesFromSession: LabelingSession | null, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
 
-        const slices = Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
-        const metadata = createBasicMetadata(slicesFrom, sliceOpts);
+        const slices = (slicesFromSession)
+            ? dbapi.selectSessionSlices(slicesFromSession.id)
+            : Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
+        const metadata = createBasicMetadata(slicesFromSession, sliceOpts);
 
         return dbapi.insertLabelingSession(datasetId, 'Classification', sessionName, prompt, labelOptions,
             JSON.stringify(metadata), slices, null);
