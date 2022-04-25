@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useRef} from 'react';
 
 interface StepStatusProps {
     stepDescription: string;
@@ -43,8 +44,16 @@ interface StepHeaderProps {
 }
 
 function StepHeader({title, stepDescription, curStep, stepCount}: StepHeaderProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        // Force focus on step header when curStep changes
+        // so that tab always selects the first input field of the step
+        containerRef.current.focus();
+    }, [curStep]);
+
     return (
-        <div className="pb-2 border-b border-gray-600 flex justify-between items-center">
+        <div ref={containerRef} tabIndex={-1} className="pb-2 border-b border-gray-600 flex justify-between items-center focus:outline-none">
             <h1 className="text-3xl text-gray-300">{title}</h1>
             <StepStatus stepDescription={stepDescription} curStep={curStep} stepCount={stepCount} />
         </div>
