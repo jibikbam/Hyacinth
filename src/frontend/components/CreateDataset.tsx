@@ -7,7 +7,7 @@ import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
 import {FolderOpenIcon} from '@heroicons/react/solid';
 import {InputText} from './Inputs';
-import {CheckCircleIcon, InformationCircleIcon} from '@heroicons/react/outline';
+import {InformationCircleIcon} from '@heroicons/react/outline';
 import {InputValidator, useDatasetNameValidator} from '../hooks/validators';
 
 function ChooseDirectoryButton({onClick}: {onClick: Function}) {
@@ -42,7 +42,8 @@ function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}: {datasetRoot: str
                 : <DirectoryStatus datasetRoot={datasetRoot} chooseDatasetRoot={chooseDatasetRoot} />
             }
             <div className="mt-4 w-3/4 text-sm text-gray-400 text-center">
-                <div>The chosen directory will be scanned for image files to be added to this dataset. Any collaborators will have to use the same directory structure.</div>
+                <span>The chosen directory will be scanned for Nifti and DICOM image files to be added to this dataset.</span>
+                <span> Any collaborators will have to use the same directory structure.</span>
             </div>
         </div>
     )
@@ -60,13 +61,13 @@ interface FilePreviewStepProps {
 function FilePreviewStep({datasetRoot, filePathsMatched, filterRegex, setFilterRegex, dicomAsSeries, setDicomAsSeries}: FilePreviewStepProps) {
     return (
         <div className="mt-4 min-h-0 flex flex-col">
-            <div className="flex items-center space-x-3">
+            <div className="flex space-x-3">
                 <div className="flex-1">
                     <InputText id="file-path-regex-text" label={null} placeholder="Filter regex" value={filterRegex} setValue={setFilterRegex} />
                 </div>
-                <div className="px-3 py-1 bg-gray-800 rounded border border-gray-500">
-                    <label className="text-gray-300 flex items-center space-x-2">
-                        <span>DICOM Series Mode</span>
+                <div className="px-3 py-1 bg-gray-800 rounded border border-gray-600 flex items-center">
+                    <label className="text-xs text-gray-400 flex items-center space-x-2">
+                        <span>Treat DICOM series as volumes</span>
                         <input type="checkbox" checked={dicomAsSeries} onChange={() => setDicomAsSeries(!dicomAsSeries)} />
                     </label>
                 </div>
@@ -100,7 +101,7 @@ function ChooseNameStep({datasetName, datasetRoot, numFiles}: ChooseNameStepProp
                 <div className="mt-12 px-3 py-2 text-xs text-gray-400 rounded border border-gray-500 flex items-center">
                     <InformationCircleIcon className="w-6 h-6 text-gray-400 opacity-80" />
                     <div className="ml-3">
-                        <div>{datasetName.value ? `"${datasetName.value}"` : 'Dataset'} will be created with {numFiles} files at</div>
+                        <div>{datasetName.value ? `"${datasetName.value}"` : 'Dataset'} will be created with {numFiles} image files from</div>
                         <div>{datasetRoot}</div>
                     </div>
                 </div>
