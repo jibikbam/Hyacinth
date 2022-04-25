@@ -36,7 +36,7 @@ function doSliceSample(images: {image: DatasetImage, sliceCount: number}[],
     const possibleSlices: SliceAttributes[] = [];
     for (const {image, sliceCount} of images) {
         const minSlice = Math.floor(sliceCount * (sliceMinPct / 100));
-        const maxSlice = Math.floor(sliceCount * (sliceMaxPct / 100));
+        const maxSlice = Math.ceil(sliceCount * (sliceMaxPct / 100));
         for (let i = minSlice; i < maxSlice; i++) {
             possibleSlices.push({
                 imageId: image.id,
