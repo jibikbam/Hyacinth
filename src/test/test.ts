@@ -13,10 +13,10 @@ function main() {
     // Run tests
     console.log('\nRunning tests');
 
-    TestLib.runAllTests(Registry.TEST_MODULES);
+    const allSucceeded = TestLib.runAllTests(Registry.TEST_MODULES);
 
     console.log('Finished running tests.');
-    process.exit(1); // TODO: exit with code 1 if any tests are failing
+    if (!allSucceeded) process.exit(1);
 }
 
 main();

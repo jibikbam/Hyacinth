@@ -49,7 +49,7 @@ function shuffle<T>(arrInitial: T[]): T[] {
     return arr;
 }
 
-export function runAllTests(testModules: {[key: string]: TestModule}) {
+export function runAllTests(testModules: {[key: string]: TestModule}): boolean {
     const testsFlat: [string, string, Function][] = [];
     for (const [moduleName, module] of Object.entries(testModules)) {
         for (const [testName, testFunc] of Object.entries(module)) {
@@ -67,4 +67,5 @@ export function runAllTests(testModules: {[key: string]: TestModule}) {
     const failures = testResults.filter(r => r === false).length;
 
     console.log(`\n\nRan ${testResults.length} tests, ${successes} succeeded, ${failures} failed`);
+    return failures === 0;
 }
