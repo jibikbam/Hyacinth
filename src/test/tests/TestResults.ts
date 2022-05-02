@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import * as Fixtures from '../fixtures';
+import * as TestUtils from '../testutils';
 import * as Session from '../../frontend/sessions/session';
 
 export function testClassificationResults() {
@@ -26,8 +27,7 @@ export function testClassificationResults() {
     assert.strictEqual(sessClass.computeResults(session).labelingComplete, true);
 
     const resultCsv = sessClass.exportResultsToCsv(results.sliceResults);
-    const numRows = resultCsv.split('\n').length;
-    const numCols = resultCsv.split('\n')[0].split(',').length;
+    const [numRows, numCols] = TestUtils.getCsvDims(resultCsv);
     assert.strictEqual(numRows, 4);
     assert.strictEqual(numCols, 6);
 }
@@ -52,8 +52,7 @@ export function testComparisonRandomResults() {
     assert.strictEqual(sessClass.computeResults(session).labelingComplete, true);
 
     const resultCsv = sessClass.exportResultsToCsv(results.sliceResults);
-    const numRows = resultCsv.split('\n').length;
-    const numCols = resultCsv.split('\n')[0].split(',').length;
+    const [numRows, numCols] = TestUtils.getCsvDims(resultCsv);
     assert.strictEqual(numRows, 11);
     assert.strictEqual(numCols, 9);
 }
@@ -77,8 +76,7 @@ export function testComparisonActiveSortResults() {
     assert.strictEqual(results.sliceResults[0].score, undefined);
 
     const resultCsv = sessClass.exportResultsToCsv(results.sliceResults);
-    const numRows = resultCsv.split('\n').length;
-    const numCols = resultCsv.split('\n')[0].split(',').length;
+    const [numRows, numCols] = TestUtils.getCsvDims(resultCsv);
     assert.strictEqual(numRows, 11);
     assert.strictEqual(numCols, 5);
 }
@@ -98,8 +96,7 @@ export function testComparisonActiveSortResultsTerminates() {
     assert.strictEqual(results.sliceResults.length, 2);
 
     const resultCsv = sessClass.exportResultsToCsv(results.sliceResults);
-    const numRows = resultCsv.split('\n').length;
-    const numCols = resultCsv.split('\n')[0].split(',').length;
+    const [numRows, numCols] = TestUtils.getCsvDims(resultCsv);
     assert.strictEqual(numRows, 3);
     assert.strictEqual(numCols, 5);
 }

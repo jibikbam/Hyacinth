@@ -3,6 +3,7 @@ import * as Session from '../../frontend/sessions/session';
 
 import * as assert from 'assert';
 import * as Fixtures from '../fixtures';
+import * as TestUtils from '../testutils';
 
 export function testClassificationLabel() {
     const sessClass = Session.getClass('Classification');
@@ -23,6 +24,11 @@ export function testClassificationLabel() {
         dbapi.selectElementLabels(elements[1].id).map(l => l.labelValue),
         ['Label 3', 'Label 1']
     );
+
+    const labelsCsv = sessClass.exportLabelsToCsv(session);
+    const [numRows, numCols] = TestUtils.getCsvDims(labelsCsv);
+    assert.strictEqual(numRows, 4);
+    assert.strictEqual(numCols, 7);
 }
 
 export function testComparisonRandomLabel() {
@@ -44,6 +50,11 @@ export function testComparisonRandomLabel() {
         dbapi.selectElementLabels(elements[1].id).map(l => l.labelValue),
         ['Label 3', 'Second']
     );
+
+    const labelsCsv = sessClass.exportLabelsToCsv(session);
+    const [numRows, numCols] = TestUtils.getCsvDims(labelsCsv);
+    assert.strictEqual(numRows, 4);
+    assert.strictEqual(numCols, 10);
 }
 
 export function testComparisonActiveSortLabel() {
@@ -72,4 +83,9 @@ export function testComparisonActiveSortLabel() {
         dbapi.selectElementLabels(elements[1].id).map(l => l.labelValue),
         ['Label 3', 'Second']
     );
+
+    const labelsCsv = sessClass.exportLabelsToCsv(session);
+    const [numRows, numCols] = TestUtils.getCsvDims(labelsCsv);
+    assert.strictEqual(numRows, 4);
+    assert.strictEqual(numCols, 10);
 }
