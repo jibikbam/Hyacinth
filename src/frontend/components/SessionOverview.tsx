@@ -263,7 +263,7 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: string
             {deleteModalOpen && <DeleteSessionModal sessionName={session.sessionName} deleteSession={deleteSession} cancelDelete={cancelDelete} />}
             <div className="flex justify-between items-start">
                 <div>
-                    <h1 className="text-5xl font-medium">{session.sessionName}</h1>
+                    <h1 className="text-5xl font-bold">{session.sessionName}</h1>
                     <div className="mt-3 flex space-x-2">
                         {/* TODO: use session class implementation for tags */}
                         <SessionTag>{session.sessionType} Session</SessionTag>

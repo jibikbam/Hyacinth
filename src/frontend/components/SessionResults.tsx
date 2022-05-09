@@ -179,7 +179,7 @@ function SessionResults() {
 
     return (
         <div>
-            <div className="sticky top-0 z-10 px-4 py-2 bg-gray-900 shadow-lg">
+            <div className="sticky top-0 z-10 mx-4 pt-2 pb-4 bg-gray-900 border-b-2 border-gray-700 shadow-lg">
                 <Link className="text-gray-400 hover:text-gray-300 space-x-1.5 transition flex items-center"
                       to={`/dataset/${session.datasetId}/session/${session.id}`}>
                     <ArrowLeftIcon className="w-5 h-5" />
@@ -187,7 +187,7 @@ function SessionResults() {
                 </Link>
                 <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-4">
-                        <h1 className="text-4xl font-medium">Results for {session.sessionName}</h1>
+                        <h1 className="text-3xl font-semibold">Results for {session.sessionName}</h1>
                         {reorderedResults &&
                             <Button color="gray" onClick={resetOrder}>
                                 <RefreshIcon className="w-5 h-5" />

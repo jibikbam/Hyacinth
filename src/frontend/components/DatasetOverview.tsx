@@ -150,7 +150,7 @@ function DatasetOverview() {
                         <span className="ml-1.5">Back to datasets</span>
                     </Link>
                     <div className="flex justify-between items-center">
-                        <div className="text-3xl">{dataset ? dataset.datasetName : '...'}</div>
+                        <div className="text-3xl font-semibold">{dataset ? dataset.datasetName : '...'}</div>
                         <div className="flex items-center space-x-3">
                             <Link className="text-gray-500 hover:text-white transition-all" to={`/debug-slice-viewer/${datasetId}`}>
                                 <BeakerIcon className="w-6 h-6" />
