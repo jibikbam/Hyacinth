@@ -20,9 +20,9 @@ import * as Session from '../sessions/session';
 type SamplingType = 'Random' | 'Sort';
 
 function TypeOption({text, highlight, onClick, children}: {text: string, highlight: boolean, onClick: Function, children?: any}) {
-    const borderColor = highlight ? 'border-gray-300' : 'border-gray-500 hover:border-gray-400';
-    const iconColor = highlight ? 'text-gray-800' : 'text-gray-700';
-    const circleColor = highlight ? 'bg-gray-300' : 'bg-gray-400';
+    const borderColor = highlight ? 'border-gray-300' : 'border-gray-700 hover:border-gray-400';
+    const iconColor = highlight ? 'text-gray-800' : 'text-gray-400';
+    const circleColor = highlight ? 'bg-gray-300' : 'bg-black bg-opacity-20 border-2 border-gray-700';
     const textColor = highlight ? 'text-gray-100' : 'text-gray-400';
 
     return (
@@ -84,17 +84,23 @@ function SessionInfoStep({sessionName, prompt, labelOptions, sessionCategory}: S
 }
 
 function SamplingButtonGroup({sampling, setSampling}: {sampling: SamplingType, setSampling: Function}) {
+    const randomClass = (sampling === 'Random')
+        ? 'bg-black bg-opacity-50'
+        : 'hover:bg-black hover:bg-opacity-50';
+    const sortClass = (sampling === 'Sort')
+        ? 'bg-black bg-opacity-50'
+        : 'hover:bg-black hover:bg-opacity-50';
     return (
         <div className="text-gray-400 font-medium border border-gray-600 rounded overflow-hidden inline-flex items-center">
             <button
-                className={'px-3 py-1.5 transition flex items-center ' + (sampling === 'Random' ? 'bg-gray-800' : 'hover:bg-gray-800')}
+                className={'px-3 py-1.5 transition flex items-center ' + randomClass}
                 onClick={() => setSampling('Random')}
             >
                 <ChartPieIcon className="w-5 h-5" />
                 <span className="ml-1">Random</span>
             </button>
             <button
-                className={'px-3 py-1.5 transition flex items-center ' + (sampling === 'Sort' ? 'bg-gray-800' : 'hover:bg-gray-800')}
+                className={'px-3 py-1.5 transition flex items-center ' + sortClass}
                 onClick={() => setSampling('Sort')}
             >
                 <ChartBarIcon className="w-5 h-5" />

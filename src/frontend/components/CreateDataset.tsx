@@ -23,10 +23,14 @@ function ChooseDirectoryButton({onClick}: {onClick: Function}) {
 function DirectoryStatus({datasetRoot, chooseDatasetRoot}: {datasetRoot: string, chooseDatasetRoot: Function}) {
     return (
         <div className="flex items-center">
-            <div className="flex-1 pl-4 pr-6 py-1.5 bg-gray-800 rounded-l text-gray-400" title={datasetRoot}>{datasetRoot}</div>
+            <div
+                className="flex-1 pl-4 pr-6 py-1.5 text-gray-400 bg-black bg-opacity-30 border border-gray-700 rounded-l"
+                title={datasetRoot}
+            >{datasetRoot}</div>
             <button
                 className="px-3 py-1.5 rounded-r text-black transition
                 bg-fuchsia-300 hover:bg-fuchsia-400
+                border-fuchsia-300 hover:border-fuchsia-400
                 focus:ring-4 ring-fuchsia-300 hover:ring-fuchsia-400 ring-opacity-50 hover:ring-opacity-50
                 focus:outline-none"
                 onClick={() => chooseDatasetRoot()}
@@ -66,7 +70,7 @@ function FilePreviewStep({datasetRoot, filePathsMatched, filterRegex, setFilterR
                 <div className="flex-1">
                     <InputText id="file-path-regex-text" label={null} placeholder="Filter regex" value={filterRegex} setValue={setFilterRegex} />
                 </div>
-                <div className="px-3 py-1 bg-gray-800 rounded border border-gray-600 flex items-center">
+                <div className="px-3 py-1 bg-black bg-opacity-30 rounded border border-gray-700 flex items-center">
                     <label className="text-xs text-gray-400 flex items-center space-x-2">
                         <span>Treat DICOM series as volumes</span>
                         <input type="checkbox" checked={dicomAsSeries} onChange={() => setDicomAsSeries(!dicomAsSeries)} />
@@ -78,7 +82,7 @@ function FilePreviewStep({datasetRoot, filePathsMatched, filterRegex, setFilterR
                     ? <div>Found {filePathsMatched.filter(t => t[1]).length} images under {datasetRoot}</div>
                     : <div>Filtered {filePathsMatched.filter(t => t[1]).length} / {filePathsMatched.length} images under {datasetRoot}</div>}
             </div>
-            <div className="flex-1 mt-1 px-4 py-3 bg-gray-800 rounded text-xs leading-relaxed font-mono break-words overflow-y-scroll">
+            <div className="flex-1 mt-1 px-4 py-3 bg-black bg-opacity-30 rounded text-xs leading-relaxed font-mono break-words overflow-y-scroll">
                 {filePathsMatched.map(([p, m]) => <div key={p} className={m ? 'text-gray-200' : 'text-gray-500'}>{p}</div>)}
             </div>
         </div>

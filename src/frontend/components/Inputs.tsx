@@ -18,8 +18,8 @@ function InputText({id, label, placeholder, dark, value, setValue, validator}: I
         <div>
             {label && <label className="mb-0.5 text-sm text-gray-400" htmlFor={id}>{label}</label>}
             <input
-                className={`px-3 py-1 w-full ${dark ? 'bg-gray-900' : 'bg-gray-800'} rounded text-gray-300 placeholder-gray-500 transition
-                border ${(validator && validator.showErrors) ? 'border-red-400' : 'border-gray-800 hover:border-gray-500 focus:border-gray-400'}
+                className={`px-3 py-1 w-full ${dark ? 'bg-gray-900' : 'bg-black bg-opacity-50'} rounded text-gray-300 placeholder-gray-500 transition
+                border ${(validator && validator.showErrors) ? 'border-red-400' : 'border-gray-700 hover:border-gray-500 focus:border-gray-400'}
                 focus:outline-none`}
                 id={id}
                 type="text"
@@ -51,8 +51,8 @@ function InputNumber({id, label, help, value, min, max, setValue, validator}: In
                 {help && <Tooltip text={help}><QuestionMarkCircleIcon className="w-4 h-4 text-gray-500" /></Tooltip>}
             </div>
             <input
-                className={`mt-1 px-3 py-1 w-full bg-gray-800 rounded shadow text-xl text-gray-300 transition
-                border ${(validator && validator.showErrors) ? 'border-red-400' : 'border-gray-800 hover:border-gray-400 focus:border-gray-400'}
+                className={`mt-1 px-3 py-1 w-full bg-black bg-opacity-40 rounded shadow text-xl text-gray-300 transition
+                border ${(validator && validator.showErrors) ? 'border-red-400' : 'border-gray-700 hover:border-gray-400 focus:border-gray-400'}
                 focus:outline-none`}
                 id={id}
                 type="number"
@@ -104,8 +104,8 @@ function Select({id, label, options, value, setValue}: SelectProps) {
             {label && <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>}
             <div className="relative w-full">
                 <select
-                    className="appearance-none mt-1 px-3 py-1 w-full bg-gray-800 rounded text-gray-300 transition
-                    border border-gray-800 hover:border-gray-400 focus:border-gray-400
+                    className="appearance-none mt-1 px-3 py-1 w-full bg-black bg-opacity-50 rounded text-gray-300 transition
+                    border border-gray-700 hover:border-gray-400 focus:border-gray-400
                     focus:outline-none"
                     id={id}
                     value={value}

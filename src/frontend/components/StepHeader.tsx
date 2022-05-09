@@ -9,7 +9,7 @@ interface StepStatusProps {
 
 function StepStatus({stepDescription, curStep, stepCount}: StepStatusProps) {
     return (
-        <div className="px-3 pt-2 pb-1.5 bg-gray-800 rounded flex flex-col items-center">
+        <div className="px-3 pt-2 pb-1.5 bg-black bg-opacity-30 border border-gray-700 rounded flex flex-col items-center">
             <div className="w-40 flex items-center">
                 {Array.from(Array(stepCount - 1).keys()).map((i) => {
                     const circleColor = (i < curStep)
@@ -31,7 +31,7 @@ function StepStatus({stepDescription, curStep, stepCount}: StepStatusProps) {
                 })}
                 <div className={'z-10 w-3 h-3 rounded-full ' + (curStep === stepCount - 1 ? 'bg-gray-800 border-2 border-fuchsia-300' : 'bg-gray-800 border-2 border-gray-500')} />
             </div>
-            <div className="mt-1.5 text-sm text-gray-400">{stepDescription}</div>
+            <div className="mt-2 text-xs text-gray-400 font-medium">{stepDescription}</div>
         </div>
     )
 }
@@ -53,8 +53,8 @@ function StepHeader({title, stepDescription, curStep, stepCount}: StepHeaderProp
     }, [curStep]);
 
     return (
-        <div ref={containerRef} tabIndex={-1} className="pb-2 border-b border-gray-600 flex justify-between items-center focus:outline-none">
-            <h1 className="text-3xl text-gray-200">{title}</h1>
+        <div ref={containerRef} tabIndex={-1} className="pb-4 border-b-2 border-gray-700 flex justify-between items-center focus:outline-none">
+            <h1 className="text-3xl text-white font-semibold">{title}</h1>
             <StepStatus stepDescription={stepDescription} curStep={curStep} stepCount={stepCount} />
         </div>
     )
