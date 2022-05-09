@@ -3,6 +3,7 @@ import {useEffect, useMemo, useState} from 'react';
 import {Routes, Route, useNavigate} from 'react-router-dom';
 import {dbapi, fileapi} from '../backend';
 import {Button} from './Buttons';
+import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
 import {FolderOpenIcon} from '@heroicons/react/solid';
@@ -145,40 +146,38 @@ function CreateDataset() {
     }
 
     return (
-        <main className="mx-auto max-w-screen-md">
-            <div className="mt-32 p-4 pt-3 h-144 bg-gray-700 rounded flex flex-col justify-between">
-                <Routes>
-                    <Route path="/choose-directory" element={
-                        <>
-                            <div>
-                                <StepHeader title="Create Dataset" stepDescription="Choose Directory" curStep={0} stepCount={3}/>
-                                <ChooseDirectoryStep datasetRoot={datasetRoot} chooseDatasetRoot={chooseDatasetRoot}/>
-                            </div>
-                            <StepNavigation cancelTo="/" backTo={null} nextTo={datasetRoot && '/create-dataset/file-preview'} />
-                        </>
-                    } />
-                    <Route path="/file-preview" element={
-                        <>
-                            <div className="min-h-0 flex flex-col">
-                                <StepHeader title="Create Dataset" stepDescription="Review Files" curStep={1} stepCount={3}/>
-                                <FilePreviewStep datasetRoot={datasetRoot} filePathsMatched={filePathsMatched} filterRegex={filterRegex} setFilterRegex={setFilterRegex}
-                                                 dicomAsSeries={dicomAsSeries} setDicomAsSeries={setDicomAsSeries} />
-                            </div>
-                            <StepNavigation cancelTo="/" backTo="/create-dataset/choose-directory" nextTo={filePaths.length > 0 && "/create-dataset/choose-name"} />
-                        </>
-                    } />
-                    <Route path="/choose-name" element={
-                        <>
-                            <div>
-                                <StepHeader title="Create Dataset" stepDescription="Choose Name" curStep={2} stepCount={3}/>
-                                <ChooseNameStep datasetName={datasetName} datasetRoot={datasetRoot} numFiles={filePathsMatched.filter(([p, m]) => m).length}/>
-                            </div>
-                            <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} finishText="Create" finishClicked={createDataset} finishDisabled={!datasetName.valid} />
-                        </>
-                    } />
-                </Routes>
-            </div>
-        </main>
+        <StepContainer>
+            <Routes>
+                <Route path="/choose-directory" element={
+                    <>
+                        <div>
+                            <StepHeader title="Create Dataset" stepDescription="Choose Directory" curStep={0} stepCount={3}/>
+                            <ChooseDirectoryStep datasetRoot={datasetRoot} chooseDatasetRoot={chooseDatasetRoot}/>
+                        </div>
+                        <StepNavigation cancelTo="/" backTo={null} nextTo={datasetRoot && '/create-dataset/file-preview'} />
+                    </>
+                } />
+                <Route path="/file-preview" element={
+                    <>
+                        <div className="min-h-0 flex flex-col">
+                            <StepHeader title="Create Dataset" stepDescription="Review Files" curStep={1} stepCount={3}/>
+                            <FilePreviewStep datasetRoot={datasetRoot} filePathsMatched={filePathsMatched} filterRegex={filterRegex} setFilterRegex={setFilterRegex}
+                                             dicomAsSeries={dicomAsSeries} setDicomAsSeries={setDicomAsSeries} />
+                        </div>
+                        <StepNavigation cancelTo="/" backTo="/create-dataset/choose-directory" nextTo={filePaths.length > 0 && "/create-dataset/choose-name"} />
+                    </>
+                } />
+                <Route path="/choose-name" element={
+                    <>
+                        <div>
+                            <StepHeader title="Create Dataset" stepDescription="Choose Name" curStep={2} stepCount={3}/>
+                            <ChooseNameStep datasetName={datasetName} datasetRoot={datasetRoot} numFiles={filePathsMatched.filter(([p, m]) => m).length}/>
+                        </div>
+                        <StepNavigation cancelTo="/" backTo="/create-dataset/file-preview" nextTo={null} finishText="Create" finishClicked={createDataset} finishDisabled={!datasetName.valid} />
+                    </>
+                } />
+            </Routes>
+        </StepContainer>
     )
 }
 
