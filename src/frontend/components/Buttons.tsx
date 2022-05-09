@@ -1,13 +1,16 @@
 import * as React from 'react';
 import {Link} from 'react-router-dom';
 
-const SIZE_CLASSES = {
+type ButtonSize = 'md' | 'lg' | 'icon';
+type ButtonColor = 'gray' | 'darkGray' | 'pink' | 'darkPink' | 'fuchsia' | 'darkRed';
+
+const SIZE_CLASSES: {[key in ButtonSize]: string} = {
     md: 'px-4 py-1.5',
     lg: 'px-4 py-2',
     icon: 'p-1.5',
 }
 
-const COLOR_CLASSES = {
+const COLOR_CLASSES: {[key in ButtonColor]: string} = {
     gray: 'bg-gray-400 hover:bg-gray-500 ring-gray-500 hover:ring-gray-600 text-black',
     darkGray: 'bg-gray-600 hover:bg-gray-700 ring-gray-600 hover:ring-gray-700 text-gray-300',
     pink: 'bg-pink-200 hover:bg-pink-300 ring-pink-200 hover:ring-pink-300 text-black',
@@ -21,8 +24,8 @@ const BUTTON_CLASSES = FLEX_CLASSES + ' font-medium rounded shadow focus:outline
 const DISABLED_CLASSES = FLEX_CLASSES + ' rounded bg-gray-600 text-gray-400 opacity-50 select-none';
 
 interface CommonButtonProps {
-    size?: 'md' | 'lg' | 'icon';
-    color?: 'gray' | 'darkGray' | 'pink' | 'darkPink' | 'fuchsia' | 'darkRed';
+    size?: ButtonSize;
+    color?: ButtonColor;
     disabled?: boolean;
     children?: any;
 }
