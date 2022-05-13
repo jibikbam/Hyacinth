@@ -21,7 +21,7 @@ function NoDatasetsMessage() {
                     </div>
                 </div>
                 <div className="mt-6">
-                    <LinkButton to="/create-dataset/choose-directory" size="md" color="fuchsia">
+                    <LinkButton to="/create-dataset/choose-directory" color="purple">
                         <PlusCircleIcon className="w-5 h-5 opacity-80" />
                         <span className="ml-2">Create Dataset</span>
                     </LinkButton>
@@ -35,21 +35,21 @@ function DatasetEntry({dataset}: {dataset: Dataset}) {
     return (
         <div>
             <Link className="block focus:outline-none group" to={`/dataset/${dataset.id}`}>
-                <div className="px-3 py-2 rounded transition-all flex justify-between items-center group
-                                bg-black bg-opacity-30 hover:bg-opacity-10 group-focus:bg-gray-800
-                                border border-gray-700 hover:border-gray-500 group-focus:border-gray-500">
+                <div className="px-3 py-2 rounded transition-all flex justify-between items-center
+                                bg-black bg-opacity-30 hover:bg-opacity-50
+                                border border-gray-700 hover:border-gray-500 group-focus:border-gray-300">
                     <div className="flex items-center space-x-4">
-                        <div className="p-4 bg-gray-800 rounded-full border border-gray-700 group-hover:border-gray-500 transition">
+                        <div className="p-4 bg-gray-800 rounded-full transition">
                             <FolderIcon className="w-8 h-8 text-gray-400" />
                         </div>
                         <div>
                             <div className="text-2xl text-gray-200 font-semibold">{dataset.datasetName}</div>
                             <div className="mt-1 text-xs text-gray-400 flex items-center space-x-2">
-                                <div className="pl-1 pr-2 py-0.5 bg-gray-800 rounded border border-gray-700 flex items-center space-x-1.5">
+                                <div className="pl-1 pr-2 py-0.5 bg-gray-800 rounded flex items-center space-x-1.5">
                                     <PhotographIcon className="w-4 h-4 opacity-80" />
                                     <span>{dataset.imageCount} image{dataset.imageCount !== 1 && 's'}</span>
                                 </div>
-                                <div className="pl-1 pr-2 py-0.5 bg-gray-800 rounded border border-gray-700 flex items-center space-x-1.5">
+                                <div className="pl-1 pr-2 py-0.5 bg-gray-800 rounded flex items-center space-x-1.5">
                                     <ColorSwatchIcon className="w-4 h-4 opacity-80" />
                                     <span>{dataset.sessionCount} labeling session{dataset.sessionCount !== 1 && 's'}</span>
                                 </div>
@@ -71,7 +71,7 @@ function Datasets() {
             <div className="mt-24 mx-auto flex-1 p-4 w-2/3 h-3/4 bg-gray-800 rounded border border-gray-700">
                 <div className="pb-4 mb-4 border-b-2 border-gray-700 flex justify-between items-end">
                     <div className="text-3xl font-semibold">Datasets</div>
-                    <LinkButton to="/create-dataset/choose-directory" color="fuchsia">
+                    <LinkButton to="/create-dataset/choose-directory" color="purple">
                         <PlusCircleIcon className="w-5 h-5 opacity-80" />
                         <span className="ml-1.5">Create</span>
                     </LinkButton>

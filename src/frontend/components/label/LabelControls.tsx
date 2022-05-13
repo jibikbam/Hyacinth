@@ -27,7 +27,7 @@ export function LabelControls({additional, labelOptions, labels, addLabel, bindS
                         <Button
                             key={i}
                             size="lg"
-                            color={labelOption === curLabelValue ? 'darkPink' : 'darkGray'}
+                            color={labelOption === curLabelValue ? 'darkPurple' : 'darkGray'}
                             onClick={() => addLabel(labelOption)}
                         >
                             <span>{labelOption} ({i + bindStart + 1})</span>

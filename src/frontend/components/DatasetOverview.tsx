@@ -45,7 +45,7 @@ function ImportSessionModal({filePath, datasetId, sessionJson, finishImport, can
                 </div>
                 <div className="pt-4 mt-6 border-t border-white border-opacity-10 flex justify-end items-center space-x-3">
                     <Button onClick={cancelImport} color="gray">Cancel</Button>
-                    <Button onClick={() => finishImport(sessionName.value)} color="fuchsia" disabled={!sessionName.valid}>Import</Button>
+                    <Button onClick={() => finishImport(sessionName.value)} color="purple" disabled={!sessionName.valid}>Import</Button>
                 </div>
             </div>
         </Modal>

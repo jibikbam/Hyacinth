@@ -13,7 +13,7 @@ import {InputValidator, useDatasetNameValidator} from '../hooks/validators';
 
 function ChooseDirectoryButton({onClick}: {onClick: Function}) {
     return (
-        <Button onClick={onClick} color="fuchsia">
+        <Button onClick={onClick} color="purple">
             <FolderOpenIcon className="w-6 h-6" />
             <span className="ml-2 text-lg font-medium">Choose Directory</span>
         </Button>
@@ -29,9 +29,9 @@ function DirectoryStatus({datasetRoot, chooseDatasetRoot}: {datasetRoot: string,
             >{datasetRoot}</div>
             <button
                 className="px-3 py-1.5 rounded-r text-black transition
-                bg-fuchsia-300 hover:bg-fuchsia-400
-                border-fuchsia-300 hover:border-fuchsia-400
-                focus:ring-4 ring-fuchsia-300 hover:ring-fuchsia-400 ring-opacity-50 hover:ring-opacity-50
+                bg-purple-400 hover:bg-purple-300
+                border-purple-400 hover:border-purple-300
+                focus:ring-4 ring-purple-400 hover:ring-purple-300 ring-opacity-50 hover:ring-opacity-50
                 focus:outline-none"
                 onClick={() => chooseDatasetRoot()}
             >Edit</button>

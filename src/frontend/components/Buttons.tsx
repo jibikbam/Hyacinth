@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Link} from 'react-router-dom';
 
 type ButtonSize = 'md' | 'lg' | 'icon';
-type ButtonColor = 'gray' | 'darkGray' | 'pink' | 'darkPink' | 'fuchsia' | 'darkRed';
+type ButtonColor = 'gray' | 'darkGray' | 'pink' | 'darkPink' | 'fuchsia' | 'purple' | 'darkPurple' | 'darkRed';
 
 const SIZE_CLASSES: {[key in ButtonSize]: string} = {
     md: 'px-4 py-1.5',
@@ -16,6 +16,8 @@ const COLOR_CLASSES: {[key in ButtonColor]: string} = {
     pink: 'bg-pink-200 hover:bg-pink-300 ring-pink-200 hover:ring-pink-300 text-black',
     darkPink: 'bg-pink-900 ring-pink-900 text-gray-300',
     fuchsia: 'bg-fuchsia-300 hover:bg-fuchsia-400 ring-fuchsia-300 hover:ring-fuchsia-400 text-black',
+    purple: 'bg-purple-400 hover:bg-purple-300 ring-purple-400 hover:ring-purple-300 text-black',
+    darkPurple: 'bg-purple-500 bg-opacity-40 hover:bg-opacity-30 ring-purple-900 ring-opacity-20 hover:ring-opacity-10 text-gray-300',
     darkRed: 'bg-red-700 hover:bg-red-800 ring-red-700 hover:ring-red-800 text-red-50',
 }
 

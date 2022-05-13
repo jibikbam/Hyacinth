@@ -58,7 +58,7 @@ export function ThumbnailGenerator() {
                 </Link>
                 <div className="flex items-center space-x-4">
                     <div className="text-lg">{curIndex + 1} / {slices.length}</div>
-                    <Button color="fuchsia" disabled={curIndex >= (slices.length - 1)} onClick={() => setPaused(!paused)}>{paused ? 'Resume' : 'Pause'}</Button>
+                    <Button color="purple" disabled={curIndex >= (slices.length - 1)} onClick={() => setPaused(!paused)}>{paused ? 'Resume' : 'Pause'}</Button>
                 </div>
             </div>
             <div className="mt-2 w-96 h-96 bg-black">

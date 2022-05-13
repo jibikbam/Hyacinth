@@ -13,13 +13,13 @@ function StepStatus({stepDescription, curStep, stepCount}: StepStatusProps) {
             <div className="w-40 flex items-center">
                 {Array.from(Array(stepCount - 1).keys()).map((i) => {
                     const circleColor = (i < curStep)
-                        ? 'bg-fuchsia-300'
+                        ? 'bg-purple-400'
                         : (i === curStep)
-                            ? 'bg-gray-800 border-2 border-fuchsia-300'
+                            ? 'bg-gray-800 border-2 border-purple-400'
                             : 'bg-gray-800 border-2 border-gray-500';
 
                     const lineColor = (i < curStep)
-                        ? 'bg-fuchsia-300'
+                        ? 'bg-purple-400'
                         : 'bg-gray-500';
 
                     return (
@@ -29,7 +29,7 @@ function StepStatus({stepDescription, curStep, stepCount}: StepStatusProps) {
                         </React.Fragment>
                     )
                 })}
-                <div className={'z-10 w-3 h-3 rounded-full ' + (curStep === stepCount - 1 ? 'bg-gray-800 border-2 border-fuchsia-300' : 'bg-gray-800 border-2 border-gray-500')} />
+                <div className={'z-10 w-3 h-3 rounded-full ' + (curStep === stepCount - 1 ? 'bg-gray-800 border-2 border-purple-400' : 'bg-gray-800 border-2 border-gray-500')} />
             </div>
             <div className="mt-2 text-xs text-gray-400 font-medium">{stepDescription}</div>
         </div>

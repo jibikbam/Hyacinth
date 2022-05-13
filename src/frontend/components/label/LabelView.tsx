@@ -118,7 +118,7 @@ function LabelView() {
             {modalEl}
             <header className="py-2 pl-4 pr-2 bg-gray-800 flex justify-between items-center">
                 <div className="w-1/4">
-                    <Link to={`/dataset/${session.datasetId}/session/${session.id}`} className="text-gray-400 hover:text-fuchsia-300 transition inline-flex items-center">
+                    <Link to={`/dataset/${session.datasetId}/session/${session.id}`} className="text-gray-400 hover:text-purple-300 transition inline-flex items-center">
                         <ArrowLeftIcon className="w-5 h-5" />
                         <span className="ml-1.5 text-lg font-medium">{session.sessionName}</span>
                     </Link>

@@ -124,8 +124,9 @@ interface GridColButtonProps {
 function GridColButton({option, gridCols, setGridCols, children}: GridColButtonProps) {
     const selected = gridCols === option;
     return (
-        <button className={`w-12 h-8 text-lg text-gray-400 font-semibold tracking-wider
-                           ${selected ? 'bg-gray-800' : 'bg-gray-700'} hover:bg-gray-800
+        <button className={`w-12 h-8 text-lg font-semibold tracking-wider
+                           ${selected ? 'text-gray-300 bg-gray-700' : 'text-gray-500 bg-gray-900'}
+                           hover:text-gray-300 hover:bg-gray-700
                            first:rounded-l last:rounded-r border border-gray-600
                            focus:outline-none focus:ring-4 ring-gray-600 ring-opacity-50 focus:z-20
                            transition`}

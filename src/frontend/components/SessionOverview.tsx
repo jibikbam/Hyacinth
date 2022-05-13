@@ -148,7 +148,12 @@ function SlicesTable({sessionId, slices}: {sessionId: string, slices: Slice[]}) 
                             </td>
                             <td className="text-center">{s.elementLabel || '-'}</td>
                             <td>
-                                <Link to={`/label/${sessionId}/${s.elementIndex}`} className="text-fuchsia-300 hover:text-fuchsia-400 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors">Edit</Link>
+                                <Link
+                                    to={`/label/${sessionId}/${s.elementIndex}`}
+                                    className="text-purple-300 hover:text-purple-200 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors"
+                                >
+                                    <span>Edit</span>
+                                </Link>
                             </td>
                         </tr>
                     ))}
@@ -200,7 +205,12 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: string, comparis
                             </td>
                             <td className="text-center">{c.elementLabel || '-'}</td>
                             <td>
-                                <Link to={`/label/${sessionId}/${c.elementIndex}`} className="text-fuchsia-300 hover:text-fuchsia-400 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors">Edit</Link>
+                                <Link
+                                    to={`/label/${sessionId}/${c.elementIndex}`}
+                                    className="text-purple-300 hover:text-purple-200 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-colors"
+                                >
+                                    <span>Edit</span>
+                                </Link>
                             </td>
                         </tr>
                     ))}
@@ -274,7 +284,7 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: string
                 </div>
             </div>
             <div className="mt-6 self-start flex items-center space-x-3">
-                <LinkButton to={`/label/${sessionId}/0`} color="fuchsia">
+                <LinkButton to={`/label/${sessionId}/0`} color="purple">
                     <PlayIcon className="w-5 h-5" />
                     <span className="ml-2 mr-2 font-medium">Start Labeling</span>
                 </LinkButton>
