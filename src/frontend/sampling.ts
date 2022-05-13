@@ -82,8 +82,8 @@ export function sampleComparisons(sliceCount: number, comparisonCount: number): 
 
     let curMs = Date.now();
     const combinations = [];
-    for (let i = 0; i < sliceCount - 1; i++) {
-        for (let j = i + 1; j < sliceCount - 1; j++) {
+    for (let i = 0; i < sliceCount; i++) {
+        for (let j = i + 1; j < sliceCount; j++) {
             combinations.push([i, j]);
         }
     }
