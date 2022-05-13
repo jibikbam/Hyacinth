@@ -174,9 +174,6 @@ function DatasetOverview() {
                             <Link className="text-gray-500 hover:text-white transition-all" to={`/debug-slice-viewer/${datasetId}`}>
                                 <BeakerIcon className="w-6 h-6" />
                             </Link>
-                            <Link to="" className="text-gray-500 hover:text-white transition-all">
-                                <CogIcon className="w-6 h-6" />
-                            </Link>
                         </div>
                     </div>
                     <div className="mt-3">

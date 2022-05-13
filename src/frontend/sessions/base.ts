@@ -10,6 +10,10 @@ export abstract class SessionBase {
 
     abstract isComparison(): boolean
 
+    abstract isActive(): boolean;
+
+    abstract sessionTags(): string[]
+
     abstract shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean
 
     abstract addLabel(session: LabelingSession, element: SessionElement, labelValue: string, startTimestamp: number)

@@ -115,8 +115,8 @@ interface SamplingOptionsStepProps {
     setSlicesFrom: Function;
     imageCount: InputValidator<number>;
     sliceCount: InputValidator<number>;
-    sliceDim: number;
-    setSliceDim: Function;
+    orientation: Orientation;
+    setOrientation: React.Dispatch<React.SetStateAction<Orientation>>;
     sliceMinPct: InputValidator<number>;
     sliceMaxPct: InputValidator<number>;
     sampling: SamplingType;
@@ -148,7 +148,7 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                             <InputNumber id="slice-count" label="Slices" help="Number of slices to be labeled in this session." min={2} validator={props.sliceCount}/>
                         </div>
                         <div className="mt-3">
-                            <Select id="slice-dim" label="Slice Dimension" options={['0', '1', '2']} value={props.sliceDim.toString()} setValue={(val: string) => props.setSliceDim(parseInt(val))} />
+                            <Select id="slice-dim" label="Orientation" options={ORIENTATIONS} value={props.orientation} setValue={(val: string) => props.setOrientation(val as Orientation)} />
                         </div>
                         <div className="mt-3 flex space-x-4">
                             <InputNumber id="slice-min-pct" label="Slice Min (%)" help="Lowest slice to sample in this orientation (0% to 100%)." min={0} validator={props.sliceMinPct} />
@@ -176,6 +176,9 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
     )
 }
 
+type Orientation = 'Sagittal' | 'Coronal' | 'Axial';
+const ORIENTATIONS = ['Sagittal', 'Coronal', 'Axial'];
+
 function CreateSession() {
     const {datasetId} = useParams();
     const navigate = useNavigate();
@@ -196,7 +199,7 @@ function CreateSession() {
     const [slicesFrom, setSlicesFrom] = useState<string>('Create New');
     const imageCount = useNumberBoundsValidator(1, 1, datasetImages.length);
     const sliceCount = useNumberBoundsValidator(2, 2);
-    const [sliceDim, setSliceDim] = useState<number>(0);
+    const [orientation, setOrientation] = useState<Orientation>('Sagittal');
     const sliceMinPct = useNumberBoundsValidator(20, 0, 100);
     const sliceMaxPct = useNumberBoundsValidator(80, 0, 100);
 
@@ -214,7 +217,7 @@ function CreateSession() {
             : datasetSessions.find(s => s.sessionName === slicesFrom);
 
         const sliceOpts: SliceSampleOpts = {
-            imageCount: imageCount.value, sliceCount: sliceCount.value, sliceDim: sliceDim,
+            imageCount: imageCount.value, sliceCount: sliceCount.value, sliceDim: ORIENTATIONS.indexOf(orientation),
             sliceMinPct: sliceMinPct.value, sliceMaxPct: sliceMaxPct.value
         };
 
@@ -261,8 +264,8 @@ function CreateSession() {
                                 setSlicesFrom={setSlicesFrom}
                                 imageCount={imageCount}
                                 sliceCount={sliceCount}
-                                sliceDim={sliceDim}
-                                setSliceDim={setSliceDim}
+                                orientation={orientation}
+                                setOrientation={setOrientation}
                                 sliceMinPct={sliceMinPct}
                                 sliceMaxPct={sliceMaxPct}
                                 sampling={sampling}

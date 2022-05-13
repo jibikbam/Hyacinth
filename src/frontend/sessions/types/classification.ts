@@ -27,6 +27,14 @@ export class ClassificationSession extends PrivateSessionBase {
         return false;
     }
 
+    isActive(): boolean {
+        return false;
+    }
+
+    sessionTags(): string[] {
+        return ['Classification Session'];
+    }
+
     shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
         return false;
     }

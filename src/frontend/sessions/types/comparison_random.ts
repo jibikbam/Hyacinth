@@ -30,6 +30,14 @@ export class ComparisonRandomSession extends PrivateSessionBase {
         return true;
     }
 
+    isActive(): boolean {
+        return false;
+    }
+
+    sessionTags(): string[] {
+        return ['Comparison Session', 'Random Sampling'];
+    }
+
     shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
         return false;
     }

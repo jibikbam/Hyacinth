@@ -29,6 +29,14 @@ export class ComparisonActiveSortSession extends PrivateSessionBase {
         return true;
     }
 
+    isActive(): boolean {
+        return true;
+    }
+
+    sessionTags(): string[] {
+        return ['Comparison Session', 'Active Sampling (Sort)'];
+    }
+
     shouldWarnAboutLabelOverwrite(session: LabelingSession, index: number): boolean {
         // Checks whether there are more labels after "index" which we should warn about in the UI
         const allComparisonLabels = dbapi.selectSessionLatestComparisonLabels(session.id);

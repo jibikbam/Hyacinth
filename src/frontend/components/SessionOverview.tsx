@@ -140,11 +140,7 @@ function SlicesTable({sessionId, slices}: {sessionId: string, slices: Slice[]}) 
                             <td className="pr-8 text-sm text-gray-500 group-hover:text-white text-right">#{i + 1}</td>
                             <td title={s.imageRelPath}>{truncateStart(s.imageRelPath, 50)}</td>
                             <td className="text-gray-500">
-                                (
-                                <span className="text-gray-400">{s.sliceDim} </span>
-                                /
-                                <span className="text-gray-400"> {s.sliceIndex}</span>
-                                )
+                                <span className="text-gray-400">{['S', 'C', 'A'][s.sliceDim]}-{s.sliceIndex}</span>
                             </td>
                             <td className="text-center">{s.elementLabel || '-'}</td>
                             <td>
@@ -189,19 +185,11 @@ function ComparisonsTable({sessionId, comparisons}: {sessionId: string, comparis
                             <td className="pr-8 text-sm text-gray-500 group-hover:text-white text-right">#{i + 1}</td>
                             <td title={c.imageRelPath1}>{truncateStart(c.imageRelPath1, 30)}</td>
                             <td className="text-gray-500">
-                                (
-                                <span className="text-gray-400">{c.sliceDim1} </span>
-                                /
-                                <span className="text-gray-400"> {c.sliceIndex1}</span>
-                                )
+                                <span className="text-gray-400">{['S', 'C', 'A'][c.sliceDim1]}-{c.sliceIndex1}</span>
                             </td>
                             <td title={c.imageRelPath2}>{truncateStart(c.imageRelPath2, 30)}</td>
                             <td className="text-gray-500">
-                                (
-                                <span className="text-gray-400">{c.sliceDim2} </span>
-                                /
-                                <span className="text-gray-400"> {c.sliceIndex2}</span>
-                                )
+                                <span className="text-gray-400">{['S', 'C', 'A'][c.sliceDim2]}-{c.sliceIndex2}</span>
                             </td>
                             <td className="text-center">{c.elementLabel || '-'}</td>
                             <td>
@@ -275,44 +263,49 @@ function SessionOverview({sessionId, refreshDatasetSessions}: {sessionId: string
                 <div>
                     <h1 className="text-5xl font-bold">{session.sessionName}</h1>
                     <div className="mt-3 flex space-x-2">
-                        {/* TODO: use session class implementation for tags */}
-                        <SessionTag>{session.sessionType} Session</SessionTag>
+                        {Session.getClass(session).sessionTags().map(tag => <SessionTag key={tag}>{tag}</SessionTag>)}
                     </div>
                 </div>
                 <div>
                     <ManageDropdown exportSession={exportSession} exportLabels={exportLabels} openDeleteModal={openDeleteModal} />
                 </div>
             </div>
-            <div className="mt-6 self-start flex items-center space-x-3">
-                <LinkButton to={`/label/${sessionId}/0`} color="purple">
-                    <PlayIcon className="w-5 h-5" />
-                    <span className="ml-2 mr-2 font-medium">Start Labeling</span>
-                </LinkButton>
-                <div className="relative group">
-                    <LinkButton to={`/session-results/${sessionId}`} color="gray" disabled={missingThumbCount > 0}>
-                        <PresentationChartBarIcon className="w-5 h-5" />
-                        <span className="ml-2 mr-2 font-medium">View Results</span>
+            <div className="flex justify-between items-end">
+                <div className="mt-6 self-start flex items-center space-x-3">
+                    <LinkButton to={`/label/${sessionId}/0`} color="purple">
+                        <PlayIcon className="w-5 h-5" />
+                        <span className="ml-2 mr-2 font-medium">Start Labeling</span>
                     </LinkButton>
-                    {missingThumbCount > 0 &&
-                        <div className="hidden group-hover:block absolute top-full pt-2">
-                            <div className="p-2 text-xs text-gray-400 text-center bg-gray-700 rounded shadow">
-                                <div>Thumbnails must be generated to view results.</div>
-                                <div className="mt-2 mb-1">
-                                    <Link
-                                        className="text-sm text-yellow-300 hover:text-yellow-500 font-medium transition"
-                                        to={`/generate-thumbnails/${sessionId}`}>Generate Thumbnails</Link>
+                    <div className="relative group">
+                        <LinkButton to={`/session-results/${sessionId}`} color="gray" disabled={missingThumbCount > 0}>
+                            <PresentationChartBarIcon className="w-5 h-5" />
+                            <span className="ml-2 mr-2 font-medium">View Results</span>
+                        </LinkButton>
+                        {missingThumbCount > 0 &&
+                            <div className="hidden group-hover:block absolute top-full pt-2">
+                                <div className="p-2 text-xs text-gray-400 text-center bg-gray-700 rounded shadow">
+                                    <div>Thumbnails must be generated to view results.</div>
+                                    <div className="mt-2 mb-1">
+                                        <Link
+                                            className="text-sm text-yellow-300 hover:text-yellow-500 font-medium transition"
+                                            to={`/generate-thumbnails/${sessionId}`}>Generate Thumbnails</Link>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
+                </div>
+                <div className="leading-none">
+                    <span className="text-gray-200">
+                        <span>{elements.map(e => e.elementLabel ? 1 : 0).reduce((a, b) => a + b, 0)}</span>
+                        <span> / </span>
+                        <span>{Session.getClass(session).isActive() ? 'N' : elements.length}</span>
+                    </span>
+                    <span className="text-gray-400"> {Session.getClass(session).isComparison() ? 'comparisons' : 'slices'} labeled</span>
                 </div>
             </div>
-            <div className="mt-2">
-                <span>{elements.map(e => e.elementLabel ? 1 : 0).reduce((a, b) => a + b, 0)} / {elements.length}</span>
-                <span className="text-gray-400"> {session.sessionType === 'Classification' ? 'slices' : 'comparisons'} labeled</span>
-            </div>
-            <div className="mt-1 py-2 bg-gray-800 rounded overflow-y-scroll">
-                {session.sessionType === 'Classification'
+            <div className="mt-4 py-2 bg-gray-800 rounded border border-gray-700 overflow-y-scroll">
+                {!Session.getClass(session).isComparison()
                     ? <SlicesTable sessionId={sessionId} slices={elements as Slice[]} />
                     : <ComparisonsTable sessionId={sessionId} comparisons={elements as Comparison[]} />
                 }

@@ -14,21 +14,21 @@ function SliceWithControls({imagePath, sliceDim, imageId}: {imagePath: string, s
     const [transpose, setTranspose] = useState(false);
 
     return (
-        <div className="flex-1 flex flex-col">
-            <RenderedImage imagePath={imagePath} sliceIndex={Math.round(sliceIndex)} sliceDim={sliceDim} brightness={99} hFlip={hFlip} vFlip={vFlip} transpose={transpose} allowSave={true} imageId={imageId} />
+        <div className="flex-1 flex flex-col" style={{height: "60vh"}}>
+            <RenderedImage imagePath={imagePath} sliceIndex={Math.round(sliceIndex)} sliceDim={sliceDim} brightness={99} hFlip={hFlip} vFlip={vFlip} transpose={transpose} />
             <div className="mt-4 p-2 bg-gray-800 rounded flex justify-between items-center">
                 <div className="ml-1 flex-1 flex items-center">
                     <InputRange min={0} max={255} step={1} value={sliceIndex} setValue={setSliceIndex} />
                     <div className="ml-3 py-0.5 w-16 bg-gray-700 rounded text-gray-400 text-center">{sliceIndex}</div>
                 </div>
                 <div className="ml-8 flex items-center space-x-2">
-                    <Button size="icon" color={hFlip ? 'darkPink' : 'gray'} onClick={() => setHFlip(!hFlip)}>
+                    <Button size="icon" color={hFlip ? 'darkPurple' : 'gray'} onClick={() => setHFlip(!hFlip)}>
                         <SwitchHorizontalIcon className="w-5 h-5" />
                     </Button>
-                    <Button size="icon" color={vFlip ? 'darkPink' : 'gray'} onClick={() => setVFlip(!vFlip)}>
+                    <Button size="icon" color={vFlip ? 'darkPurple' : 'gray'} onClick={() => setVFlip(!vFlip)}>
                         <SwitchVerticalIcon className="w-5 h-5" />
                     </Button>
-                    <Button size="icon" color={transpose ? 'darkPink' : 'gray'} onClick={() => setTranspose(!transpose)}>
+                    <Button size="icon" color={transpose ? 'darkPurple' : 'gray'} onClick={() => setTranspose(!transpose)}>
                         <SwitchVerticalIcon className="w-5 h-5 transform rotate-45" />
                     </Button>
                 </div>

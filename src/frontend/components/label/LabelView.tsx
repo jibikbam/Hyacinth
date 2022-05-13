@@ -129,8 +129,8 @@ function LabelView() {
                             <ChevronLeftIcon className="w-6 h-6" />
                         </Link>
                         <div className="mx-16">
-                            <h1 className="w-48 text-2xl font-semibold text-center">{curElement.element.elementType} {elementIndexInt + 1}</h1>
-                            <div className="mt-0.5 text-gray-400 font-medium text-center">{session.prompt}</div>
+                            <h1 className="w-full text-2xl font-semibold text-center">{curElement.element.elementType} {elementIndexInt + 1}</h1>
+                            <div className="mt-0.5 w-full text-gray-400 font-medium text-center">{session.prompt}</div>
                         </div>
                         <Link to={elementIndexInt < (elements.length - 1) && `/label/${sessionId}/${elementIndexInt + 1}`} className="p-4 text-gray-500 hover:text-white transition">
                             <ChevronRightIcon className="w-6 h-6" />
