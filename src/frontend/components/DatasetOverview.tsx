@@ -6,12 +6,12 @@ import {Button, LinkButton} from './Buttons';
 import {
     ArrowLeftIcon,
     ChevronDownIcon,
-    CogIcon,
+    CogIcon, ColorSwatchIcon,
     DocumentDownloadIcon,
     PencilAltIcon,
-    PlusCircleIcon,
+    PlusCircleIcon, PlusIcon,
 } from '@heroicons/react/solid';
-import {BeakerIcon} from '@heroicons/react/outline';
+import {BeakerIcon, FolderOpenIcon} from '@heroicons/react/outline';
 import {SessionOverview} from './SessionOverview';
 import {Modal} from './Modal';
 import {InputText} from './Inputs';
@@ -49,6 +49,25 @@ function ImportSessionModal({filePath, datasetId, sessionJson, finishImport, can
                 </div>
             </div>
         </Modal>
+    )
+}
+
+function NoSessionsMessage() {
+    return (
+        <div className="mt-48 w-full flex justify-center items-center">
+            <div className="px-10 pt-4 pb-6 max-w-lg rounded border border-gray-700 flex flex-col items-center">
+                <div className="p-6 bg-gray-800 rounded-full border-2 border-gray-700">
+                    <ColorSwatchIcon className="text-gray-300 w-8 h-8" />
+                </div>
+                <div className="mt-4 text-center">
+                    <div className="text-3xl text-gray-200 font-medium">No sessions</div>
+                    <div className="mt-2 text-sm text-gray-400">
+                        Labeling Sessions are used to label the images in your dataset.
+                        Once you have created a session, you can export it to share it with others who have the same data.
+                    </div>
+                </div>
+            </div>
+        </div>
     )
 }
 
@@ -143,7 +162,7 @@ function DatasetOverview() {
     return (
         <main className="h-screen flex">
             {importData && <ImportSessionModal filePath={importData.path} datasetId={dataset.id} sessionJson={importData.json} finishImport={finishSessionImport} cancelImport={cancelSessionImport} />}
-            <div className="px-4 py-2 w-80 bg-gray-800">
+            <div className="px-4 py-2 w-80 bg-gray-800 border-r border-gray-700">
                 <div>
                     <Link to="/" className="text-sm text-gray-400 hover:text-gray-200 transition inline-flex items-center">
                         <ArrowLeftIcon className="w-4 h-4" />
@@ -187,7 +206,9 @@ function DatasetOverview() {
                 </div>
             </div>
             <div className="flex-1">
-                {sessionId && <SessionOverview sessionId={sessionId} refreshDatasetSessions={refreshSessions} />}
+                {sessionId
+                    ? <SessionOverview sessionId={sessionId} refreshDatasetSessions={refreshSessions} />
+                    : <NoSessionsMessage />}
             </div>
         </main>
     )
