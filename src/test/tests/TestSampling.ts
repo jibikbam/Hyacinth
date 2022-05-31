@@ -27,7 +27,8 @@ export function testComparisonSampling() {
     const sample = Sampling.sampleComparisons;
 
     assert.strictEqual(sample(10, 20).length, 20);
+    assert.strictEqual(sample(10, -1).length, 45);
     assert.throws(() => sample(10, 0), {message: `Can't sample 0 elements`});
     assert.throws(() => sample(0, 10), {message: `Can't sample 10 elements from an array of length 0`});
-    assert.throws(() => sample(10, 100), {message: `Can't sample 100 elements from an array of length 36`});
+    assert.throws(() => sample(10, 100), {message: `Can't sample 100 elements from an array of length 45`});
 }
