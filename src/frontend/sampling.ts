@@ -90,6 +90,7 @@ export function sampleComparisons(sliceCount: number, comparisonCount: number): 
     console.log(`Generated ${combinations.length} combinations in ${Date.now() - curMs}ms`);
 
     curMs = Date.now();
+    if (comparisonCount === -1) comparisonCount = combinations.length;
     const comparisons = sampleWithoutReplacement(combinations, comparisonCount);
     console.log(`Sampled ${comparisons.length} comparisons in ${Date.now() - curMs}ms`);
     console.log(`Finished sampling comparisons in ${Date.now() - startMs}ms`);
