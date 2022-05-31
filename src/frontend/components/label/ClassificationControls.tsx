@@ -2,6 +2,7 @@ import * as React from 'react';
 import {ElementLabel, LabelingSession, Slice} from '../../backend';
 import {LabelSlice} from './LabelSlice';
 import {LabelControls} from './LabelControls';
+import * as Utils from '../../utils';
 
 interface ClassificationControlsProps {
     session: LabelingSession;
@@ -29,7 +30,7 @@ export function ClassificationControls({session, slice, labels, addLabel, nextOn
             <div className="ml-6 w-56">
                 <LabelControls
                     additional={false}
-                    labelOptions={session.labelOptions.split(',')}
+                    labelOptions={Utils.splitLabelOptions(session.labelOptions)}
                     labels={labels}
                     addLabel={addLabel}
                     nextOnLabel={nextOnLabel}
