@@ -8,9 +8,11 @@ interface ClassificationControlsProps {
     slice: Slice;
     labels: ElementLabel[];
     addLabel: (labelValue: string) => void;
+    nextOnLabel: boolean;
+    setNextOnLabel: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export function ClassificationControls({session, slice, labels, addLabel}: ClassificationControlsProps) {
+export function ClassificationControls({session, slice, labels, addLabel, nextOnLabel, setNextOnLabel}: ClassificationControlsProps) {
     return (
         <div className="flex justify-center items-start">
             <div>
@@ -25,7 +27,15 @@ export function ClassificationControls({session, slice, labels, addLabel}: Class
                 />
             </div>
             <div className="ml-6 w-56">
-                <LabelControls additional={false} labelOptions={session.labelOptions.split(',')} labels={labels} addLabel={addLabel} bindStart={0} />
+                <LabelControls
+                    additional={false}
+                    labelOptions={session.labelOptions.split(',')}
+                    labels={labels}
+                    addLabel={addLabel}
+                    nextOnLabel={nextOnLabel}
+                    setNextOnLabel={setNextOnLabel}
+                    bindStart={0}
+                />
             </div>
         </div>
     )

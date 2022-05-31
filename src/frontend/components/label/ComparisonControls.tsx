@@ -9,9 +9,11 @@ interface ComparisonControlsProps {
     comparison: Comparison;
     labels: ElementLabel[];
     addLabel: (labelValue: string) => void;
+    nextOnLabel: boolean;
+    setNextOnLabel: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export function ComparisonControls({session, comparison, labels, addLabel}: ComparisonControlsProps) {
+export function ComparisonControls({session, comparison, labels, addLabel, nextOnLabel, setNextOnLabel}: ComparisonControlsProps) {
     const curLabelValue = labels.length > 0 ? labels[0].labelValue : null;
     return (
         <div className="flex justify-center items-start">
@@ -36,7 +38,15 @@ export function ComparisonControls({session, comparison, labels, addLabel}: Comp
                 />
             </div>
             <div className="ml-6 w-48">
-                <LabelControls additional={true} labelOptions={Utils.splitLabelOptions(session.labelOptions)} labels={labels} addLabel={addLabel} bindStart={2} />
+                <LabelControls
+                    additional={true}
+                    labelOptions={Utils.splitLabelOptions(session.labelOptions)}
+                    labels={labels}
+                    addLabel={addLabel}
+                    nextOnLabel={nextOnLabel}
+                    setNextOnLabel={setNextOnLabel}
+                    bindStart={2}
+                />
             </div>
         </div>
     )

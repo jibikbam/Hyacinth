@@ -8,10 +8,12 @@ interface LabelControlsProps {
     labelOptions: string[];
     labels: ElementLabel[];
     addLabel: (string) => void;
+    nextOnLabel: boolean;
+    setNextOnLabel: React.Dispatch<React.SetStateAction<boolean>>;
     bindStart: number;
 }
 
-export function LabelControls({additional, labelOptions, labels, addLabel, bindStart}: LabelControlsProps) {
+export function LabelControls({additional, labelOptions, labels, addLabel, nextOnLabel, setNextOnLabel, bindStart}: LabelControlsProps) {
     const curLabelValue = labels.length > 0 ? labels[0].labelValue : null;
     const skeletonLabels = Array.from(Array(Math.max(3 - labelOptions.length, 0)).keys());
 
@@ -35,6 +37,12 @@ export function LabelControls({additional, labelOptions, labels, addLabel, bindS
                     )
                 })}
                 {skeletonLabels.map(i => <div key={i} className="bg-gray-800 rounded h-10" />)}
+            </div>
+            <div className="mt-2">
+                <label className="flex items-center space-x-2">
+                    <input type="checkbox" checked={nextOnLabel} onChange={() => setNextOnLabel(!nextOnLabel)} />
+                    <span className="text-gray-400">Auto-next</span>
+                </label>
             </div>
         </div>
     )

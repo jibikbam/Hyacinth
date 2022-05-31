@@ -28,6 +28,8 @@ function LabelView() {
 
     const [startTimestamp, timerSeconds, resetTimer] = useTimer();
 
+    const [nextOnLabel, setNextOnLabel] = useState<boolean>(true);
+
     useEffect(() => {
         const sessClass = Session.getClass(session);
         const _elements = sessClass.selectElementsToLabel(session);
@@ -47,18 +49,22 @@ function LabelView() {
             document.addEventListener('keydown', handleKeyDown);
             return () => document.removeEventListener('keydown', handleKeyDown);
         }
-    }, [elements, curElement]);
+    }, [elements, curElement, nextOnLabel]);
+
+    function jumpBy(amount: number) {
+        const targetIndex = curElement.element.elementIndex + amount;
+        const newIndex = Math.max(Math.min(targetIndex, elements.length - 1), 0);
+        navigate(`/label/${sessionId}/${newIndex}`);
+    }
 
     function handleKeyDown(event: KeyboardEvent) {
         if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
             // Go to previous element
-            const newIndex = Math.max(curElement.element.elementIndex - 1, 0);
-            navigate(`/label/${sessionId}/${newIndex}`);
+            jumpBy(-1);
         }
         else if (event.code === 'ArrowRight' || event.code === 'KeyD') {
             // Go to next element
-            const newIndex = Math.min(curElement.element.elementIndex + 1, elements.length - 1);
-            navigate(`/label/${sessionId}/${newIndex}`);
+            jumpBy(1);
         }
         else if (event.code.startsWith('Digit') || event.code.startsWith('Numpad')) {
             // Add label based on number key pressed
@@ -98,6 +104,8 @@ function LabelView() {
         setElements(sessClass.selectElementsToLabel(session));
         // Reset timer
         resetTimer();
+        // Jump to next element if nextOnLabel is true (delay is needed to feel natural)
+        if (nextOnLabel) window.setTimeout(() => jumpBy(1), 100);
     }
 
     function closeModal() {
@@ -165,8 +173,8 @@ function LabelView() {
             </header>
             <main className="mt-6">
                 {!Session.getClass(session).isComparison()
-                    ? <ClassificationControls session={session} slice={curElement.element as Slice} labels={curElement.labels} addLabel={addLabel} />
-                    : <ComparisonControls session={session} comparison={curElement.element as Comparison} labels={curElement.labels} addLabel={addLabel} />
+                    ? <ClassificationControls session={session} slice={curElement.element as Slice} labels={curElement.labels} addLabel={addLabel} nextOnLabel={nextOnLabel} setNextOnLabel={setNextOnLabel} />
+                    : <ComparisonControls session={session} comparison={curElement.element as Comparison} labels={curElement.labels} addLabel={addLabel} nextOnLabel={nextOnLabel} setNextOnLabel={setNextOnLabel} />
                 }
             </main>
         </div>

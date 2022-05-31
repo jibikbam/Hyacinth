@@ -58,7 +58,7 @@ export function LabelSlice({datasetRootPath, imageRelPath, sliceDim, sliceIndex,
     return (
         <div>
             <div
-                className={`bg-black rounded ${selected ? 'border-2' : ''} border-purple-500 border-opacity-60 overflow-hidden flex justify-center items-center ${bindKey ? 'cursor-pointer' : ''}`}
+                className={`bg-black rounded ${selected ? 'border-4' : ''} border-purple-500 border-opacity-60 overflow-hidden flex justify-center items-center ${bindKey ? 'cursor-pointer' : ''}`}
                 style={{width: '65vh', height: '65vh'}}
                 onClick={handleClick}
             >
