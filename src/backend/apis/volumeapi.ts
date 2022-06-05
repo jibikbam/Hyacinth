@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as niftiReader from 'nifti-reader-js';
+import * as pako from 'pako';
 import * as daikon from 'daikon';
 
 const DICOM_FILE_EXT = '.dcm';
@@ -13,8 +14,14 @@ function readNiftiData(imagePath) {
 }
 
 export function readNiftiHeader(imagePath) {
-    const niftiData = readNiftiData(imagePath);
-    return niftiReader.readHeader(niftiData);
+    const fileData = fs.readFileSync(imagePath);
+
+    // Decompress only the first 1kB (50x speedup over decompressing entire file)
+    // Nifti header is 540B long (decompressed), so 1kB (compressed) is plenty
+    const dataPartial = fileData.buffer.slice(fileData.byteOffset, fileData.byteOffset + 1000);
+    const dataInflated = pako.inflate(dataPartial).buffer;
+
+    return niftiReader.readHeader(dataInflated);
 }
 
 export function readNifti(imagePath) {
