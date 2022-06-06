@@ -1,13 +1,13 @@
 import * as React from 'react';
 import {useEffect, useMemo, useState} from 'react';
 import {Routes, Route, useNavigate} from 'react-router-dom';
-import {dbapi, fileapi} from '../backend';
+import {dbapi, fileapi, volumeapi} from '../backend';
 import {Button} from './Buttons';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
 import {FolderOpenIcon} from '@heroicons/react/solid';
-import {InputText} from './Inputs';
+import {InputNumber, InputText, Select} from './Inputs';
 import {InformationCircleIcon} from '@heroicons/react/outline';
 import {InputValidator, useDatasetNameValidator} from '../hooks/validators';
 
@@ -54,6 +54,9 @@ function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}: {datasetRoot: str
     )
 }
 
+type Orientation = 'Sagittal' | 'Coronal' | 'Axial';
+const ORIENTATIONS = ['Sagittal', 'Coronal', 'Axial'];
+
 interface FilePreviewStepProps {
     datasetRoot: string;
     filePathsMatched: [string, boolean][];
@@ -61,9 +64,18 @@ interface FilePreviewStepProps {
     setFilterRegex: React.Dispatch<React.SetStateAction<string>>;
     dicomAsSeries: boolean;
     setDicomAsSeries: React.Dispatch<React.SetStateAction<boolean>>;
+    imageDims: [number, number, number][] | null;
+    dimFilterEnabled: boolean;
+    setDimFilterEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+    dimFilterOrientation: Orientation;
+    setDimFilterOrientation: React.Dispatch<React.SetStateAction<Orientation>>;
+    dimFilterMax: number;
+    setDimFilterMax: React.Dispatch<React.SetStateAction<number>>;
 }
 
-function FilePreviewStep({datasetRoot, filePathsMatched, filterRegex, setFilterRegex, dicomAsSeries, setDicomAsSeries}: FilePreviewStepProps) {
+function FilePreviewStep({datasetRoot, filePathsMatched, filterRegex, setFilterRegex, dicomAsSeries, setDicomAsSeries,
+                             imageDims, dimFilterEnabled, setDimFilterEnabled, dimFilterOrientation, setDimFilterOrientation,
+                             dimFilterMax, setDimFilterMax}: FilePreviewStepProps) {
     return (
         <div className="mt-4 min-h-0 flex flex-col">
             <div className="flex space-x-3">
@@ -77,13 +89,40 @@ function FilePreviewStep({datasetRoot, filePathsMatched, filterRegex, setFilterR
                     </label>
                 </div>
             </div>
+            <div className="mt-2 flex space-x-3">
+                <div className="px-3 py-1 bg-black bg-opacity-30 rounded border border-gray-700 flex items-center">
+                    <label className="text-xs text-gray-400 flex items-center space-x-2">
+                        <span>Dim Filter</span>
+                        <input type="checkbox" checked={dimFilterEnabled} onChange={() => setDimFilterEnabled(!dimFilterEnabled)} />
+                    </label>
+                </div>
+                <div className="w-32">
+                    <Select
+                        id="dim-filter-orient"
+                        label={null}
+                        options={ORIENTATIONS}
+                        value={dimFilterOrientation}
+                        setValue={setDimFilterOrientation}
+                    />
+                </div>
+                <InputNumber id="dim-filter-max" label={null} value={dimFilterMax} setValue={setDimFilterMax} />
+            </div>
             <div className="ml-1 mt-3 text-sm text-gray-400">
                 {(filterRegex.length === 0)
                     ? <div>Found {filePathsMatched.filter(t => t[1]).length} images under {datasetRoot}</div>
                     : <div>Filtered {filePathsMatched.filter(t => t[1]).length} / {filePathsMatched.length} images under {datasetRoot}</div>}
             </div>
             <div className="flex-1 mt-1 px-4 py-3 bg-black bg-opacity-30 rounded text-xs leading-relaxed font-mono break-words overflow-y-scroll">
-                {filePathsMatched.map(([p, m]) => <div key={p} className={m ? 'text-gray-200' : 'text-gray-500'}>{p}</div>)}
+                {filePathsMatched.map(([p, m], i) =>
+                    <div className="flex justify-between">
+                        <span key={p} className={m ? 'text-gray-200' : 'text-gray-500'}>{p}</span>
+                        {(imageDims && imageDims[i]) &&
+                            <span className={(dimFilterEnabled) ? 'text-gray-400' : 'text-gray-500'}>
+                                [{imageDims[i][0]}, {imageDims[i][1]}, {imageDims[i][2]}]
+                            </span>
+                        }
+                    </div>
+                )}
             </div>
         </div>
     )
@@ -117,30 +156,71 @@ function ChooseNameStep({datasetName, datasetRoot, numFiles}: ChooseNameStepProp
 
 function CreateDataset() {
     const [datasetRoot, setDatasetRoot] = useState<string | null>(null);
+
     const [filterRegex, setFilterRegex] = useState<string>('');
     const [dicomAsSeries, setDicomAsSeries] = useState<boolean>(false);
+
+    const [imageDims, setImageDims] = useState<[number, number, number][] | null>(null);
+    const [dimFilterEnabled, setDimFilterEnabled] = useState<boolean>(false);
+    const [dimFilterOrientation, setDimFilterOrientation] = useState<Orientation>('Sagittal');
+    const [dimFilterMax, setDimFilterMax] = useState<number>(0);
+
     const datasetName = useDatasetNameValidator('');
     const [filePaths, setFilePaths] = useState<string[]>([]);
 
     const navigate = useNavigate();
 
     const filePathsMatched: [string, boolean][] = useMemo(() => {
+        let pathsFiltered;
         if (filterRegex.length > 0) {
             const filterRegexCompiled = new RegExp(filterRegex);
-            return filePaths.map(p => [p, filterRegexCompiled.test(p)])
+            pathsFiltered = filePaths.map(p => [p, filterRegexCompiled.test(p)])
         }
         else {
-            return filePaths.map(p => [p, true]);
+            pathsFiltered = filePaths.map(p => [p, true]);
         }
-    }, [filePaths, filterRegex]);
+
+        if (dimFilterEnabled && imageDims !== null) {
+            pathsFiltered = pathsFiltered.map(([p, filtered], i) => {
+                let pass = true;
+                const dims = imageDims[i];
+                if (dims) {
+                    pass = dims[ORIENTATIONS.indexOf(dimFilterOrientation)] <= dimFilterMax;
+                }
+                return [p, filtered && pass];
+            });
+        }
+
+        return pathsFiltered;
+    }, [filePaths, filterRegex, imageDims, dimFilterEnabled, dimFilterOrientation, dimFilterMax]);
 
     useEffect(() => {
         if (datasetRoot) setFilePaths(fileapi.getDatasetImages(datasetRoot, dicomAsSeries));
     }, [datasetRoot, dicomAsSeries]);
 
+    useEffect(() => {
+        if (dimFilterEnabled && imageDims === null) {
+            loadImageDims();
+        }
+    }, [dimFilterEnabled]);
+
     function chooseDatasetRoot() {
         const chosenPaths = fileapi.showFolderDialog();
         if (chosenPaths) setDatasetRoot(chosenPaths[0]);
+    }
+
+    function loadImageDims() {
+        const startDate = Date.now();
+        setImageDims(filePaths.map(p => {
+            const fullPath = datasetRoot + '/' + p;
+            if (fullPath.endsWith('.nii.gz')) {
+                return volumeapi.readNiftiHeader(fullPath).dims.slice(1, 4);
+            }
+            else {
+                return null;
+            }
+        }));
+        console.log(`Finished loading image counts in ${Date.now() - startDate}ms`);
     }
 
     function createDataset() {
@@ -166,7 +246,10 @@ function CreateDataset() {
                         <div className="min-h-0 flex flex-col">
                             <StepHeader title="Create Dataset" stepDescription="Review Files" curStep={1} stepCount={3}/>
                             <FilePreviewStep datasetRoot={datasetRoot} filePathsMatched={filePathsMatched} filterRegex={filterRegex} setFilterRegex={setFilterRegex}
-                                             dicomAsSeries={dicomAsSeries} setDicomAsSeries={setDicomAsSeries} />
+                                             dicomAsSeries={dicomAsSeries} setDicomAsSeries={setDicomAsSeries}
+                                             imageDims={imageDims} dimFilterEnabled={dimFilterEnabled} setDimFilterEnabled={setDimFilterEnabled}
+                                             dimFilterOrientation={dimFilterOrientation} setDimFilterOrientation={setDimFilterOrientation}
+                                             dimFilterMax={dimFilterMax} setDimFilterMax={setDimFilterMax} />
                         </div>
                         <StepNavigation cancelTo="/" backTo="/create-dataset/choose-directory" nextTo={filePaths.length > 0 && "/create-dataset/choose-name"} />
                     </>

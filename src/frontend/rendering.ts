@@ -69,10 +69,12 @@ function reshape2d(dims: [number, number], imageData: Float32Array): number[][] 
     return outerArray;
 }
 
-export function loadSliceCount(image: DatasetImage, sliceDim: number): number {
+export function loadSliceCount(image: DatasetImage | string, sliceDim: number): number {
     if (sliceDim < 0 || sliceDim > 2) throw new Error(`Invalid sliceDim ${sliceDim}`);
 
-    const imagePath = image.datasetRootPath + '/' + image.relPath;
+    const imagePath = (typeof image === 'string')
+        ? image
+        : image.datasetRootPath + '/' + image.relPath;
     const imageType = getImageType(imagePath);
 
     switch (imageType) {
