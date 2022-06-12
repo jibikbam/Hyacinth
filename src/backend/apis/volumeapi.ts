@@ -13,13 +13,14 @@ function readNiftiData(imagePath) {
     return niftiReader.decompress(dataArrayBuffer);
 }
 
-export function readNiftiHeader(imagePath) {
-    const fileData = fs.readFileSync(imagePath);
-
-    // Decompress only the first 1kB (50x speedup over decompressing entire file)
-    // Nifti header is 540B long (decompressed), so 1kB (compressed) is plenty
-    const dataPartial = fileData.buffer.slice(fileData.byteOffset, fileData.byteOffset + 1000);
-    const dataInflated = pako.inflate(dataPartial).buffer;
+export function readNiftiHeader(imagePath: string) {
+    // Read and decompress only the first 540 bytes (roughly 1000x speedup over decompressing entire file)
+    // Note that the nifti header is 540B long (decompressed), so 540B (compressed) is slightly larger
+    const file = fs.openSync(imagePath, 'r');
+    const fileBuffer = Buffer.alloc(540);
+    fs.readSync(file, fileBuffer, 0, 540, null);
+    fs.closeSync(file);
+    const dataInflated = pako.inflate(fileBuffer).buffer;
 
     return niftiReader.readHeader(dataInflated);
 }
