@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useEffect, useMemo, useState} from 'react';
+import {MouseEventHandler, useEffect, useMemo, useState} from 'react';
 import {Routes, Route, useNavigate} from 'react-router-dom';
 import {dbapi, fileapi, volumeapi} from '../backend';
 import {Button} from './Buttons';
@@ -10,6 +10,7 @@ import {FolderOpenIcon} from '@heroicons/react/solid';
 import {InputNumber, InputText, Select} from './Inputs';
 import {InformationCircleIcon} from '@heroicons/react/outline';
 import {InputValidator, useDatasetNameValidator} from '../hooks/validators';
+import * as Rendering from '../rendering';
 
 function ChooseDirectoryButton({onClick}: {onClick: Function}) {
     return (
@@ -57,6 +58,17 @@ function ChooseDirectoryStep({datasetRoot, chooseDatasetRoot}: {datasetRoot: str
 type Orientation = 'Sagittal' | 'Coronal' | 'Axial';
 const ORIENTATIONS = ['Sagittal', 'Coronal', 'Axial'];
 
+function GroupButton({selected, onClick, children}: {selected: boolean, onClick: MouseEventHandler<HTMLButtonElement>, children?: any}) {
+    const classes = (selected)
+        ? 'bg-black bg-opacity-50'
+        : 'hover:bg-black hover:bg-opacity-50';
+    return (
+        <button className={'px-3 py-1.5 flex items-center transition ' + classes} onClick={onClick}>
+            {children}
+        </button>
+    )
+}
+
 interface FilePreviewStepProps {
     datasetRoot: string;
     filePathsMatched: [string, boolean][];
@@ -69,13 +81,15 @@ interface FilePreviewStepProps {
     setDimFilterEnabled: React.Dispatch<React.SetStateAction<boolean>>;
     dimFilterOrientation: Orientation;
     setDimFilterOrientation: React.Dispatch<React.SetStateAction<Orientation>>;
-    dimFilterMax: number;
-    setDimFilterMax: React.Dispatch<React.SetStateAction<number>>;
+    dimFilterIsMax: boolean;
+    setDimFilterIsMax: React.Dispatch<React.SetStateAction<boolean>>;
+    dimFilterValue: number;
+    setDimFilterValue: React.Dispatch<React.SetStateAction<number>>;
 }
 
 function FilePreviewStep({datasetRoot, filePathsMatched, filterRegex, setFilterRegex, dicomAsSeries, setDicomAsSeries,
                              imageDims, dimFilterEnabled, setDimFilterEnabled, dimFilterOrientation, setDimFilterOrientation,
-                             dimFilterMax, setDimFilterMax}: FilePreviewStepProps) {
+                             dimFilterIsMax, setDimFilterIsMax, dimFilterValue, setDimFilterValue}: FilePreviewStepProps) {
     return (
         <div className="mt-4 min-h-0 flex flex-col">
             <div className="flex space-x-3">
@@ -105,7 +119,15 @@ function FilePreviewStep({datasetRoot, filePathsMatched, filterRegex, setFilterR
                         setValue={setDimFilterOrientation}
                     />
                 </div>
-                <InputNumber id="dim-filter-max" label={null} value={dimFilterMax} setValue={setDimFilterMax} />
+                <div className="text-gray-400 font-medium rounded border border-gray-600 divide-x divide-gray-600 overflow-hidden inline-flex items-center">
+                    <GroupButton selected={!dimFilterIsMax} onClick={() => setDimFilterIsMax(false)}>
+                        <span>Min</span>
+                    </GroupButton>
+                    <GroupButton selected={dimFilterIsMax} onClick={() => setDimFilterIsMax(true)}>
+                        <span>Max</span>
+                    </GroupButton>
+                </div>
+                <InputNumber id="dim-filter-max" label={null} value={dimFilterValue} setValue={setDimFilterValue} />
             </div>
             <div className="ml-1 mt-3 text-sm text-gray-400">
                 {(filterRegex.length === 0)
@@ -114,8 +136,8 @@ function FilePreviewStep({datasetRoot, filePathsMatched, filterRegex, setFilterR
             </div>
             <div className="flex-1 mt-1 px-4 py-3 bg-black bg-opacity-30 rounded text-xs leading-relaxed font-mono break-words overflow-y-scroll">
                 {filePathsMatched.map(([p, m], i) =>
-                    <div className="flex justify-between">
-                        <span key={p} className={m ? 'text-gray-200' : 'text-gray-500'}>{p}</span>
+                    <div key={p} className="flex justify-between">
+                        <span className={m ? 'text-gray-200' : 'text-gray-500'}>{p}</span>
                         {(imageDims && imageDims[i]) &&
                             <span className={(dimFilterEnabled) ? 'text-gray-400' : 'text-gray-500'}>
                                 [{imageDims[i][0]}, {imageDims[i][1]}, {imageDims[i][2]}]
@@ -163,7 +185,8 @@ function CreateDataset() {
     const [imageDims, setImageDims] = useState<[number, number, number][] | null>(null);
     const [dimFilterEnabled, setDimFilterEnabled] = useState<boolean>(false);
     const [dimFilterOrientation, setDimFilterOrientation] = useState<Orientation>('Sagittal');
-    const [dimFilterMax, setDimFilterMax] = useState<number>(0);
+    const [dimFilterIsMax, setDimFilterIsMax] = useState<boolean>(true);
+    const [dimFilterValue, setDimFilterValue] = useState<number>(0);
 
     const datasetName = useDatasetNameValidator('');
     const [filePaths, setFilePaths] = useState<string[]>([]);
@@ -171,13 +194,16 @@ function CreateDataset() {
     const navigate = useNavigate();
 
     const filePathsMatched: [string, boolean][] = useMemo(() => {
-        let pathsFiltered;
+        let pathsFiltered: [string, boolean][] = filePaths.map(p => [p, true]);
         if (filterRegex.length > 0) {
-            const filterRegexCompiled = new RegExp(filterRegex);
-            pathsFiltered = filePaths.map(p => [p, filterRegexCompiled.test(p)])
-        }
-        else {
-            pathsFiltered = filePaths.map(p => [p, true]);
+            try {
+                const filterRegexCompiled = new RegExp(filterRegex);
+                pathsFiltered = pathsFiltered.map(([p, pass]) => [p, pass && filterRegexCompiled.test(p)]);
+            }
+            catch (err) {
+                // If regex is not valid (user may still be typing), just continue on without filtering
+                if (err.name !== 'SyntaxError') throw err;
+            }
         }
 
         if (dimFilterEnabled && imageDims !== null) {
@@ -185,14 +211,17 @@ function CreateDataset() {
                 let pass = true;
                 const dims = imageDims[i];
                 if (dims) {
-                    pass = dims[ORIENTATIONS.indexOf(dimFilterOrientation)] <= dimFilterMax;
+                    const dimVal = dims[ORIENTATIONS.indexOf(dimFilterOrientation)];
+                    pass = (dimFilterIsMax)
+                        ? dimVal <= dimFilterValue
+                        : dimVal >= dimFilterValue;
                 }
                 return [p, filtered && pass];
             });
         }
 
         return pathsFiltered;
-    }, [filePaths, filterRegex, imageDims, dimFilterEnabled, dimFilterOrientation, dimFilterMax]);
+    }, [filePaths, filterRegex, imageDims, dimFilterEnabled, dimFilterOrientation, dimFilterIsMax, dimFilterValue]);
 
     useEffect(() => {
         if (datasetRoot) setFilePaths(fileapi.getDatasetImages(datasetRoot, dicomAsSeries));
@@ -211,16 +240,15 @@ function CreateDataset() {
 
     function loadImageDims() {
         const startDate = Date.now();
-        setImageDims(filePaths.map(p => {
-            const fullPath = datasetRoot + '/' + p;
-            if (fullPath.endsWith('.nii.gz')) {
-                return volumeapi.readNiftiHeader(fullPath).dims.slice(1, 4);
-            }
-            else {
-                return null;
-            }
-        }));
+        const imageDims = filePaths.map(p => Rendering.loadImageDims(datasetRoot + '/' + p));
+        setImageDims(imageDims);
         console.log(`Finished loading image counts in ${Date.now() - startDate}ms`);
+
+        let maxDimValue = 0;
+        for (const dims of imageDims) {
+            if (dims[0] > maxDimValue) maxDimValue = dims[0];
+        }
+        setDimFilterValue(maxDimValue);
     }
 
     function createDataset() {
@@ -249,7 +277,8 @@ function CreateDataset() {
                                              dicomAsSeries={dicomAsSeries} setDicomAsSeries={setDicomAsSeries}
                                              imageDims={imageDims} dimFilterEnabled={dimFilterEnabled} setDimFilterEnabled={setDimFilterEnabled}
                                              dimFilterOrientation={dimFilterOrientation} setDimFilterOrientation={setDimFilterOrientation}
-                                             dimFilterMax={dimFilterMax} setDimFilterMax={setDimFilterMax} />
+                                             dimFilterIsMax={dimFilterIsMax} setDimFilterIsMax={setDimFilterIsMax}
+                                             dimFilterValue={dimFilterValue} setDimFilterValue={setDimFilterValue} />
                         </div>
                         <StepNavigation cancelTo="/" backTo="/create-dataset/choose-directory" nextTo={filePaths.length > 0 && "/create-dataset/choose-name"} />
                     </>

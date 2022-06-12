@@ -69,9 +69,7 @@ function reshape2d(dims: [number, number], imageData: Float32Array): number[][] 
     return outerArray;
 }
 
-export function loadSliceCount(image: DatasetImage | string, sliceDim: number): number {
-    if (sliceDim < 0 || sliceDim > 2) throw new Error(`Invalid sliceDim ${sliceDim}`);
-
+export function loadImageDims(image: DatasetImage | string): [number, number, number] {
     const imagePath = (typeof image === 'string')
         ? image
         : image.datasetRootPath + '/' + image.relPath;
@@ -80,20 +78,25 @@ export function loadSliceCount(image: DatasetImage | string, sliceDim: number): 
     switch (imageType) {
         case 'Nifti3D':
             const imageHeader = volumeapi.readNiftiHeader(imagePath);
-            return imageHeader.dims[sliceDim + 1]; // dim[0] in Nifti header stores number of dimensions
+            return imageHeader.dims.slice(1, 4); // dim[0] in Nifti header stores number of dimensions
 
         case 'DicomSeries3D':
             let [dims, iop] = volumeapi.readDicomSeriesDims(imagePath);
             // Right-rotate dim order (see dicom series loading code below)
             dims = rotateDicomAxes(dims, iop) as [number, number, number];
-            return dims[sliceDim];
+            return dims;
 
         case 'Dicom2D':
-            return 1; // 2D image only has one "slice"
+            return [1, 1, 1]; // 2D image only has one "slice"
 
         default:
             throw new Error(`Could not load slice count for unknown image type: ${imageType}`);
     }
+}
+
+export function loadSliceCount(image: DatasetImage | string, sliceDim: number): number {
+    if (sliceDim < 0 || sliceDim > 2) throw new Error(`Invalid sliceDim ${sliceDim}`);
+    return loadImageDims(image)[sliceDim];
 }
 
 function loadNifti3d(imagePath: string): LoadedImage {

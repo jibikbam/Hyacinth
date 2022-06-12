@@ -46,12 +46,14 @@ interface InputNumberProps {
 function InputNumber({id, label, help, value, min, max, setValue, validator}: InputNumberProps) {
     return (
         <div className="flex-1 flex flex-col">
-            <div className="pr-0.5 flex justify-between items-center">
-                <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>
-                {help && <Tooltip text={help}><QuestionMarkCircleIcon className="w-4 h-4 text-gray-500" /></Tooltip>}
-            </div>
+            {(label || help) &&
+                <div className="mb-1 pr-0.5 flex justify-between items-center">
+                    <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>
+                    {help && <Tooltip text={help}><QuestionMarkCircleIcon className="w-4 h-4 text-gray-500" /></Tooltip>}
+                </div>
+            }
             <input
-                className={`mt-1 px-3 py-1 w-full bg-black bg-opacity-40 rounded shadow text-xl text-gray-300 transition
+                className={`px-3 py-1 w-full bg-black bg-opacity-40 rounded shadow text-xl text-gray-300 transition
                 border ${(validator && validator.showErrors) ? 'border-red-400' : 'border-gray-700 hover:border-gray-400 focus:border-gray-400'}
                 focus:outline-none`}
                 id={id}
@@ -101,10 +103,10 @@ interface SelectProps {
 function Select({id, label, options, value, setValue}: SelectProps) {
     return (
         <div className="flex flex-col items-start">
-            {label && <label className="text-sm text-gray-400" htmlFor={id}>{label}</label>}
+            {label && <label className="mb-1 text-sm text-gray-400" htmlFor={id}>{label}</label>}
             <div className="relative w-full">
                 <select
-                    className="appearance-none mt-1 px-3 py-1 w-full bg-black bg-opacity-50 rounded text-gray-300 transition
+                    className="appearance-none px-3 py-1.5 w-full bg-black bg-opacity-50 rounded text-gray-300 transition
                     border border-gray-700 hover:border-gray-400 focus:border-gray-400
                     focus:outline-none"
                     id={id}
