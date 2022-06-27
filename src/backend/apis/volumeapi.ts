@@ -6,6 +6,11 @@ import * as daikon from 'daikon';
 
 const DICOM_FILE_EXT = '.dcm';
 
+export function readImageFile(imagePath: string): ArrayBufferLike {
+    if (!imagePath.endsWith('.nii.gz')) throw new Error(`Not an image path: ${imagePath}`);
+    return fs.readFileSync(imagePath);
+}
+
 function readNiftiData(imagePath) {
     const fileData = fs.readFileSync(imagePath);
     const dataArrayBuffer = fileData.buffer.slice(fileData.byteOffset, fileData.byteOffset + fileData.byteLength);
