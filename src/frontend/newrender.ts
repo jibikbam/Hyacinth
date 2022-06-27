@@ -16,35 +16,69 @@ export function loadCached(imagePath: string) {
     return image;
 }
 
-function arrMax(arr) {
-    // TODO: sometimes this takes 10-20x longer, seemingly at random, and slows down draw
-    let maxValue = arr[0];
-    for (let i = 0; i < arr.length; i++) {
-        const v = arr[i];
-        if (v > maxValue) maxValue = v;
-    }
-    return maxValue;
+function computePercentiles(pixelData: number[], q: number[]): number[] {
+    const pixelDataSorted = pixelData.slice().sort((a, b) => a - b);
+    return q.map(qVal => pixelDataSorted[Math.floor((pixelDataSorted.length - 1) * (qVal / 100))]);
 }
 
-export function renderCanvas3D(canvas: HTMLCanvasElement, dims: [number, number, number], imageData, sliceDim: number, sliceIndex: number) {
+export function renderCanvas3D(canvas: HTMLCanvasElement, dims: [number, number, number], imageData,
+                               sliceDim: number, sliceIndex: number, brightness: number) {
     const [iMax, jMax, kMax] = dims;
-    const maxValue = arrMax(imageData);
-
-    const context = canvas.getContext('2d');
-    let canvasImageData;
 
     function getImageValue(i: number, j: number, k: number) {
-        const dataOffset = i + (j * iMax) + (k * iMax * jMax);
-        const rawValue = imageData[dataOffset];
-        return (rawValue / maxValue) * 255;
+        return imageData[i + (j * iMax) + (k * iMax * jMax)];
     }
 
-    function drawPixel(xMax: number, yMax: number, x: number, y: number, value: number) {
-        // Compute 1D draw offset
-        const drawOffset = x + (y * xMax);
+    let width: number, height: number;
+    let sliceData: number[];
 
+    if (sliceDim === 0) {
+        const [sliceMax, xMax, yMax] = [dims[0], dims[1], dims[2]];
+        [width, height, sliceData] = [xMax, yMax, new Array(xMax * yMax)];
+
+        for (let x = 0; x < xMax; x++) {
+            for (let y = 0; y < yMax; y++) {
+                sliceData[x + ((yMax - y - 1) * xMax)] = getImageValue(sliceIndex, x, y);
+            }
+        }
+    }
+    else if (sliceDim === 1) {
+        const [xMax, sliceMax, yMax] = [dims[0], dims[1], dims[2]];
+        [width, height, sliceData] = [xMax, yMax, new Array(xMax * yMax)];
+
+        for (let x = 0; x < xMax; x++) {
+            for (let y = 0; y < yMax; y++) {
+                sliceData[x + ((yMax - y - 1) * xMax)] = getImageValue(x, sliceMax - sliceIndex, y);
+            }
+        }
+    }
+    else if (sliceDim === 2) {
+        const [xMax, yMax, sliceMax] = [dims[0], dims[1], dims[2]];
+        [width, height, sliceData] = [xMax, yMax, new Array(xMax * yMax)];
+
+        for (let x = 0; x < xMax; x++) {
+            for (let y = 0; y < yMax; y++) {
+                sliceData[x + ((yMax - y - 1) * xMax)] = getImageValue(x, y, sliceIndex);
+            }
+        }
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    const canvasImageData = context.createImageData(width, height);
+
+    const [minValue, brightPctValue] = computePercentiles(sliceData, [0, brightness]);
+    const toneMapDivisor = brightPctValue - minValue;
+
+    for (let i = 0; i < sliceData.length; i++) {
+        // Retrieve value and tone map to 8 bits (0-255)
+        let value = sliceData[i];
+        value = value - minValue;
+        value = (value / toneMapDivisor) * 255;
+        value = Math.min(value, 255);
         // Map 1D index to RGBA 1D index
-        const canvasOffset = drawOffset * 4;
+        const canvasOffset = i * 4;
         // Write canvas image data (R G B A)
         canvasImageData.data[canvasOffset] = value & 0xFF;
         canvasImageData.data[canvasOffset + 1] = value & 0xFF;
@@ -52,43 +86,5 @@ export function renderCanvas3D(canvas: HTMLCanvasElement, dims: [number, number,
         canvasImageData.data[canvasOffset + 3] = 0xFF;
     }
 
-    if (sliceDim === 0) {
-        const [sliceMax, xMax, yMax] = [dims[0], dims[1], dims[2]];
-        canvasImageData = context.createImageData(xMax, yMax);
-
-        for (let x = 0; x < xMax; x++) {
-            for (let y = 0; y < yMax; y++) {
-                const value = getImageValue(sliceIndex, x, y);
-                drawPixel(xMax, yMax, x, yMax - y, value);
-            }
-        }
-    }
-    else if (sliceDim === 1) {
-        // const [sliceMax, xMax, yMax] = [dims[1], dims[0], dims[2]];
-        const [xMax, sliceMax, yMax] = [dims[0], dims[1], dims[2]];
-        canvasImageData = context.createImageData(xMax, yMax);
-
-        for (let x = 0; x < xMax; x++) {
-            for (let y = 0; y < yMax; y++) {
-                const value = getImageValue(x, sliceMax - sliceIndex, y);
-                drawPixel(xMax, yMax, x, yMax - y, value);
-            }
-        }
-    }
-    else if (sliceDim === 2) {
-        // const [sliceMax, xMax, yMax] = [dims[2], dims[0], dims[1]];
-        const [xMax, yMax, sliceMax] = [dims[0], dims[1], dims[2]];
-        canvasImageData = context.createImageData(xMax, yMax);
-
-        for (let x = 0; x < xMax; x++) {
-            for (let y = 0; y < yMax; y++) {
-                const value = getImageValue(x, y, sliceIndex);
-                drawPixel(xMax, yMax, x, yMax - y, value);
-            }
-        }
-    }
-
-    canvas.width = canvasImageData.width;
-    canvas.height = canvasImageData.height;
     context.putImageData(canvasImageData, 0, 0);
 }

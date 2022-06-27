@@ -28,7 +28,7 @@ export function RenderedImage({imagePath, sliceDim, sliceIndex, brightness,
     useEffect(() => {
         if (useNew) {
             const [header, imageData] = NewRender.loadCached(imagePath);
-            NewRender.renderCanvas3D(canvasRef.current, header.dim.slice(1, 4), imageData, sliceDim, sliceIndex);
+            NewRender.renderCanvas3D(canvasRef.current, header.dim.slice(1, 4), imageData, sliceDim, sliceIndex, brightness);
             return;
         }
         // If we are loading a different image, clear the canvas to act as a simple loading indicator
