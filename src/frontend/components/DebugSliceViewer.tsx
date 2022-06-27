@@ -7,7 +7,7 @@ import {RenderedImage} from './RenderedImage';
 import {Button} from './Buttons';
 import {ArrowLeftIcon, SwitchHorizontalIcon, SwitchVerticalIcon} from '@heroicons/react/solid';
 
-function SliceWithControls({imagePath, sliceDim, imageId}: {imagePath: string, sliceDim: number, imageId: number}) {
+function SliceWithControls({imagePath, sliceDim, useNewRender}: {imagePath: string, sliceDim: number, useNewRender: boolean}) {
     const [sliceIndex, setSliceIndex] = useState(100);
     const [hFlip, setHFlip] = useState(false);
     const [vFlip, setVFlip] = useState(false);
@@ -15,7 +15,16 @@ function SliceWithControls({imagePath, sliceDim, imageId}: {imagePath: string, s
 
     return (
         <div className="flex-1 flex flex-col" style={{height: "60vh"}}>
-            <RenderedImage imagePath={imagePath} sliceIndex={Math.round(sliceIndex)} sliceDim={sliceDim} brightness={99} hFlip={hFlip} vFlip={vFlip} transpose={transpose} />
+            <RenderedImage
+                imagePath={imagePath}
+                sliceIndex={Math.round(sliceIndex)}
+                sliceDim={sliceDim}
+                brightness={99}
+                hFlip={hFlip}
+                vFlip={vFlip}
+                transpose={transpose}
+                useNew={useNewRender}
+            />
             <div className="mt-4 p-2 bg-gray-800 rounded flex justify-between items-center">
                 <div className="ml-1 flex-1 flex items-center">
                     <InputRange min={0} max={255} step={1} value={sliceIndex} setValue={setSliceIndex} />
@@ -45,6 +54,7 @@ function DebugSliceViewer() {
     }, [datasetId]);
 
     const [curImage, setCurImage] = useState(images[0]);
+    const [useNewRender, setUseNewRender] = useState<boolean>(false);
 
     function setCurImageFromPath(newRelPath: string) {
         for (const im of images) {
@@ -70,10 +80,15 @@ function DebugSliceViewer() {
                 <div className="w-1/3 text-center">
                     <Select id="image-select" label={null} options={images.map(di => di.relPath)} value={curImage.relPath} setValue={setCurImageFromPath} />
                 </div>
-                <div className="w-1/3" />
+                <div className="pr-2 w-1/3 text-right">
+                    <label className="space-x-1">
+                        <input type="checkbox" checked={useNewRender} onChange={() => setUseNewRender(!useNewRender)} />
+                        <span>New Renderer</span>
+                    </label>
+                </div>
             </header>
             <div className="p-8 w-full space-x-8 flex items-end">
-                {[0, 1, 2].map(sliceDim => <SliceWithControls key={sliceDim} imagePath={imagePath} sliceDim={sliceDim} imageId={curImage.id} />)}
+                {[0, 1, 2].map(sliceDim => <SliceWithControls key={sliceDim} imagePath={imagePath} sliceDim={sliceDim} useNewRender={useNewRender} />)}
             </div>
         </div>
     )
