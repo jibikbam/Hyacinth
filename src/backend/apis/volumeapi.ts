@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as zlib from 'node:zlib';
 import * as niftiReader from 'nifti-reader-js';
 import * as pako from 'pako';
 import * as daikon from 'daikon';
@@ -8,7 +9,8 @@ const DICOM_FILE_EXT = '.dcm';
 
 export function readImageFile(imagePath: string): ArrayBufferLike {
     if (!imagePath.endsWith('.nii.gz')) throw new Error(`Not an image path: ${imagePath}`);
-    return fs.readFileSync(imagePath);
+    const rawData = fs.readFileSync(imagePath);
+    return zlib.gunzipSync(rawData).buffer;
 }
 
 function readNiftiData(imagePath) {

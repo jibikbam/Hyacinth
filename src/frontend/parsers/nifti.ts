@@ -1,5 +1,4 @@
 import {volumeapi} from '../backend';
-import * as pako from 'pako';
 
 function range(max) {
     return Array.from(Array(max).keys());
@@ -42,12 +41,6 @@ function parseHeader(view: DataView): Nifti1Header {
     }
 }
 
-function readFileData(imagePath: string): ArrayBufferLike {
-    const fileDataRaw = volumeapi.readImageFile(imagePath);
-    // TODO: handle uncompressed nifti files (.nii)
-    return pako.inflate(fileDataRaw).buffer;
-}
-
 type ImageDataTypedArray = Int16Array | Int32Array | Float32Array | Float64Array | Uint16Array | Uint32Array;
 
 function getTypedView(imageDataBuffer: ArrayBufferLike, dataTypeCode: number): ImageDataTypedArray {
@@ -63,7 +56,7 @@ function getTypedView(imageDataBuffer: ArrayBufferLike, dataTypeCode: number): I
 }
 
 export function parse(imagePath: string): [Nifti1Header, ImageDataTypedArray] {
-    const fileData = readFileData(imagePath);
+    const fileData = volumeapi.readImageFile(imagePath);
     const view = new DataView(fileData);
 
     const header = parseHeader(view);
