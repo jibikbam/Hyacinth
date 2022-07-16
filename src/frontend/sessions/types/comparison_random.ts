@@ -1,6 +1,5 @@
-import {createBasicMetadata, PrivateSessionBase} from '../base';
-import {dbapi, LabelingSession, SessionElement} from '../../backend';
-import {SliceSampleOpts} from '../../sampling';
+import {PrivateSessionBase} from '../base';
+import {dbapi, LabelingSession, SessionElement, SliceAttributes} from '../../backend';
 import {SessionResults, SliceResult} from '../../results';
 import * as Sampling from '../../sampling';
 import * as Results from '../../results';
@@ -8,14 +7,10 @@ import * as Collab from '../../collaboration';
 
 export class ComparisonRandomSession extends PrivateSessionBase {
     createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
-                         slicesFromSession: LabelingSession | null, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
+                         slices: SliceAttributes[], metadata: object, comparisonCount: number): number {
 
-        const slices = (slicesFromSession)
-            ? dbapi.selectSessionSlices(slicesFromSession.id)
-            : Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
         const comparisons = Sampling.sampleComparisons(slices.length, comparisonCount);
 
-        const metadata = createBasicMetadata(slicesFromSession, sliceOpts);
         metadata['Comparison Count'] = comparisonCount;
         if (comparisonCount === -1) metadata['Exhaustive'] = 'true';
 

@@ -1,11 +1,11 @@
 import * as React from 'react';
 import {useMemo, useState} from 'react';
 import {Routes, Route, useParams, useNavigate} from 'react-router-dom';
-import {SessionCategory, SessionType, dbapi} from '../backend';
+import {SessionCategory, SessionType, dbapi, LabelingSession, Slice, SliceAttributes} from '../backend';
 import {StepContainer} from './StepContainer';
 import {StepHeader} from './StepHeader';
 import {StepNavigation} from './StepNavigation';
-import {InputNumber, InputText, Select} from './Inputs';
+import {InputNumber, InputRange, InputText, Select} from './Inputs';
 import {CheckCircleIcon, CollectionIcon, ScaleIcon} from '@heroicons/react/outline';
 import {BookOpenIcon, ChartBarIcon, ChartPieIcon} from '@heroicons/react/solid';
 import {
@@ -16,6 +16,8 @@ import {
 } from '../hooks/validators';
 import {SliceSampleOpts} from '../sampling';
 import * as Session from '../sessions/session';
+import * as Sampling from '../sampling';
+import * as Utils from '../utils';
 
 type SamplingType = 'Exhaustive' | 'Random' | 'Sort';
 
@@ -111,6 +113,14 @@ function SamplingButtonGroup({sampling, setSampling}: {sampling: SamplingType, s
 interface SamplingOptionsStepProps {
     slicesFrom: string;
     setSlicesFrom: Function;
+    sliceLabelCounts: {[key: string]: number};
+    totalSliceCount: number;
+    slicesFromSession: LabelingSession;
+    sliceLabelFilter: 'No Filter' | string;
+    setSliceLabelFilter: React.Dispatch<React.SetStateAction<'No Filter' | string>>;
+    labelFilterPct: number;
+    setLabelFilterPct: React.Dispatch<React.SetStateAction<number>>;
+
     imageCount: InputValidator<number>;
     sliceCount: InputValidator<number>;
     orientation: Orientation;
@@ -139,6 +149,47 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                         setValue={props.setSlicesFrom}
                     />
                 </div>
+                {(props.slicesFromSession && !Session.getClass(props.slicesFromSession.sessionType).isComparison()) && (
+                    <div>
+                        <div className="mt-3">
+                            <Select
+                                id="slice-label-filter"
+                                label="Filter Slices"
+                                options={['No Filter'].concat(Utils.splitLabelOptions(props.slicesFromSession.labelOptions))}
+                                value={props.sliceLabelFilter}
+                                setValue={props.setSliceLabelFilter}
+                            />
+                        </div>
+                        {props.sliceLabelFilter !== 'No Filter' && (
+                            <div>
+                                <div className="mt-3">
+                                    <div className="flex justify-between items-center">
+                                        <div className="text-sm text-gray-400">Subsample Percent</div>
+                                        <div className="px-1 text-gray-200 text-xs font-mono bg-black bg-opacity-50 rounded">
+                                            <span>{props.labelFilterPct}%</span>
+                                        </div>
+                                    </div>
+                                    <InputRange
+                                        min={0}
+                                        max={100}
+                                        step={1}
+                                        value={props.labelFilterPct}
+                                        setValue={props.setLabelFilterPct}
+                                    />
+                                </div>
+                                <div className="mt-3">
+                                    <InputNumber
+                                        id="slice-count"
+                                        label="Slices"
+                                        help="Number of slices to be labeled in this session (after resampling)."
+                                        min={2}
+                                        validator={props.sliceCount}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
                 {(props.slicesFrom === 'Create New') && (
                     <div>
                         <div className="mt-3 flex space-x-4">
@@ -155,21 +206,56 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                     </div>
                 )}
             </div>
-            {(props.sessionCategory === 'Comparison') && (
-                <div>
+            <div className="space-y-6">
+                {(props.sessionCategory === 'Comparison') && (
                     <div>
-                        <div className="text-sm text-gray-400">Comparison Sampling</div>
-                        <div className="mt-1">
-                            <SamplingButtonGroup sampling={props.sampling} setSampling={props.setSampling} />
+                        <div>
+                            <div className="text-sm text-gray-400">Comparison Sampling</div>
+                            <div className="mt-1">
+                                <SamplingButtonGroup sampling={props.sampling} setSampling={props.setSampling} />
+                            </div>
                         </div>
+                        {props.sampling === 'Random' && (
+                            <div className="mt-3 w-1/2 pr-2">
+                                <InputNumber id="comparison-count" label="Comparisons" help="Number of comparisons to be labeled in this session." validator={props.comparisonCount} />
+                            </div>
+                        )}
                     </div>
-                    {props.sampling === 'Random' && (
-                        <div className="mt-3 w-1/2 pr-2">
-                            <InputNumber id="comparison-count" label="Comparisons" help="Number of comparisons to be labeled in this session." validator={props.comparisonCount} />
-                        </div>
-                    )}
-                </div>
-            )}
+                )}
+                {(props.slicesFromSession && !(Session.getClass(props.slicesFromSession).isComparison())) && (
+                    <div className="w-80">
+                        <table className="w-full text-gray-400">
+                            <thead className="text-xs font-medium">
+                            <tr>
+                                <td>Label</td>
+                                <td>Slices</td>
+                                <td>(Subsampled)</td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {Object.entries(props.sliceLabelCounts).map(([labelValue, count]) => {
+                                return (
+                                    <tr key={labelValue} className={labelValue === props.sliceLabelFilter ? 'text-white' : ''}>
+                                        <td>{labelValue}</td>
+                                        <td>{count}</td>
+                                        <td>
+                                            {(labelValue === props.sliceLabelFilter) &&
+                                                <span>({Math.floor(count * (props.labelFilterPct / 100))})</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                            <tr><td className="pt-2" /></tr>
+                            <tr>
+                                <td>Un-labeled</td>
+                                <td>{props.totalSliceCount - Object.values(props.sliceLabelCounts).reduce((s, a) => s + a, 0)}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }
@@ -195,6 +281,23 @@ function CreateSession() {
     const labelOptions = useSessionLabelOptionsValidator('', sessionCategory);
 
     const [slicesFrom, setSlicesFrom] = useState<string>('Create New');
+    const [slicesFromSession, sliceLabelCounts, totalSliceCount] = useMemo(() => {
+        const sess = datasetSessions.find(s => s.sessionName === slicesFrom);
+        if (!sess) return [sess, {}, 0];
+
+        const slices = dbapi.selectSessionSlices(sess.id)
+        const labelCounts: {[key: string]: number} = {};
+        for (const labelValue of Utils.splitLabelOptions(sess.labelOptions)) labelCounts[labelValue] = 0;
+
+        for (const slice of slices) {
+            const sliceLabel = dbapi.selectElementLabels(slice.id)[0];
+            if (sliceLabel) labelCounts[sliceLabel.labelValue] += 1
+        }
+        return [sess, labelCounts, slices.length];
+    }, [slicesFrom]);
+    const [sliceLabelFilter, setSliceLabelFilter] = useState<'No Filter' | string>('No Filter');
+    const [labelFilterPct, setLabelFilterPct] = useState<number>(100);
+
     const imageCount = useNumberBoundsValidator(1, 1, datasetImages.length);
     const sliceCount = useNumberBoundsValidator(2, 2);
     const [orientation, setOrientation] = useState<Orientation>('Sagittal');
@@ -210,18 +313,53 @@ function CreateSession() {
             : (sampling === 'Sort') ? 'ComparisonActiveSort' : 'ComparisonRandom';
 
         const sessClass = Session.getClass(sessionType);
-        const slicesFromSession = (slicesFrom === 'Create New')
-            ? null
-            : datasetSessions.find(s => s.sessionName === slicesFrom);
 
-        const sliceOpts: SliceSampleOpts = {
-            imageCount: imageCount.value, sliceCount: sliceCount.value, sliceDim: ORIENTATIONS.indexOf(orientation),
-            sliceMinPct: sliceMinPct.value, sliceMaxPct: sliceMaxPct.value
-        };
+        let slices: SliceAttributes[],
+            metadata: object;
+
+        if (slicesFromSession) {
+            slices = dbapi.selectSessionSlices(slicesFromSession.id);
+            if (sliceLabelFilter !== 'No Filter') {
+                let filterSlices = [], keepSlices = [];
+                for (const sl of (slices as Slice[])) {
+                    const sLabel = dbapi.selectElementLabels(sl.id)[0];
+                    if (sLabel && sLabel.labelValue === sliceLabelFilter) filterSlices.push(sl);
+                    else keepSlices.push(sl);
+                }
+
+                const filterSampleCount = Math.floor(filterSlices.length * (labelFilterPct / 100));
+                const subsampledSlices = Sampling.sampleWithoutReplacement(filterSlices, filterSampleCount);
+
+                slices = Sampling.sampleWithoutReplacement(
+                    keepSlices.concat(subsampledSlices),
+                    sliceCount.value
+                );
+            }
+            metadata = {
+                'Slices From': slicesFromSession.sessionName,
+                'Subsample Label': sliceLabelFilter,
+                'Subsample Pct': labelFilterPct,
+            }
+        }
+        else {
+            const sliceOpts: SliceSampleOpts = {
+                imageCount: imageCount.value, sliceCount: sliceCount.value, sliceDim: ORIENTATIONS.indexOf(orientation),
+                sliceMinPct: sliceMinPct.value, sliceMaxPct: sliceMaxPct.value
+            };
+            slices = Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
+            metadata = {
+                'Slices From': 'Create New',
+                'Image Count': sliceOpts.imageCount,
+                'Slice Count': sliceOpts.sliceCount,
+                'Slice Dim': sliceOpts.sliceDim,
+                'Slice Min Pct': sliceOpts.sliceMinPct,
+                'Slice Max Pct': sliceOpts.sliceMaxPct,
+            };
+        }
 
         const comparisonCountVal = (sampling === 'Exhaustive') ? -1 : comparisonCount.value;
         const newSessionId = sessClass.createSession(datasetId, sessionName.value, prompt.value, labelOptions.value,
-            slicesFromSession, sliceOpts, comparisonCountVal);
+            slices, metadata, comparisonCountVal);
 
         navigate(`/dataset/${datasetId}/session/${newSessionId}`);
     }
@@ -260,6 +398,13 @@ function CreateSession() {
                             <StepHeader title="Create Labeling Session" stepDescription="Sampling Options" curStep={2} stepCount={3}/>
                             <SamplingOptionsStep
                                 slicesFrom={slicesFrom}
+                                slicesFromSession={slicesFromSession}
+                                sliceLabelCounts={sliceLabelCounts}
+                                totalSliceCount={totalSliceCount}
+                                sliceLabelFilter={sliceLabelFilter}
+                                setSliceLabelFilter={setSliceLabelFilter}
+                                labelFilterPct={labelFilterPct}
+                                setLabelFilterPct={setLabelFilterPct}
                                 setSlicesFrom={setSlicesFrom}
                                 imageCount={imageCount}
                                 sliceCount={sliceCount}

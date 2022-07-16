@@ -1,22 +1,14 @@
-import {createBasicMetadata, PrivateSessionBase} from '../base';
-import {dbapi, LabelingSession, SessionElement, Slice} from '../../backend';
-import {SliceSampleOpts} from '../../sampling';
+import {PrivateSessionBase} from '../base';
+import {dbapi, LabelingSession, SessionElement, Slice, SliceAttributes} from '../../backend';
 import {SessionResults, SliceResult} from '../../results';
-import * as Sampling from '../../sampling';
 import * as Sort from '../../sort';
 import * as Collab from '../../collaboration';
 
 export class ComparisonActiveSortSession extends PrivateSessionBase {
     createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
-                         slicesFromSession: LabelingSession | null, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
+                         slices: SliceAttributes[], metadata: object, comparisonCount: number): number {
 
-        const slices = (slicesFromSession)
-            ? dbapi.selectSessionSlices(slicesFromSession.id)
-            : Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
         const comparisons = [Sort.getInitialComparison(slices)];
-
-        const metadata = createBasicMetadata(slicesFromSession, sliceOpts);
-
         return dbapi.insertLabelingSession(datasetId, 'ComparisonActiveSort', sessionName, prompt, labelOptions,
             JSON.stringify(metadata), slices, comparisons);
     }

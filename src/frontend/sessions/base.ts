@@ -1,10 +1,10 @@
 import {SliceSampleOpts} from '../sampling';
-import {LabelingSession, SessionElement} from '../backend';
+import {LabelingSession, SessionElement, SliceAttributes} from '../backend';
 import {SessionResults, SliceResult} from '../results';
 
 export abstract class SessionBase {
     abstract createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
-                           slicesFromSession: LabelingSession | null, sliceOpts: SliceSampleOpts, comparisonCount: number): number
+                           slices: SliceAttributes[], metadata: object, comparisonCount: number): number
 
     abstract selectElementsToLabel(session: LabelingSession): SessionElement[]
 
@@ -30,15 +30,3 @@ export abstract class SessionBase {
 }
 
 export abstract class PrivateSessionBase extends SessionBase {}
-
-export function createBasicMetadata(slicesFromSession: LabelingSession | null,
-                                    sliceOpts: SliceSampleOpts): {[key: string]: number | string} {
-    return {
-        'Slices From': slicesFromSession ? slicesFromSession.sessionName : 'Create New',
-        'Image Count': sliceOpts.imageCount,
-        'Slice Count': sliceOpts.sliceCount,
-        'Slice Dim': sliceOpts.sliceDim,
-        'Slice Min Pct': sliceOpts.sliceMinPct,
-        'Slice Max Pct': sliceOpts.sliceMaxPct,
-    }
-}

@@ -17,8 +17,9 @@ export function testSliceSampling() {
     assert.strictEqual(sample(4, 10, 0, 20, 80).length, 10);
     assert.strictEqual(sample(1, 10, 0, 0, 100).length, 10);
     assert.strictEqual(sample(1, 10000, 0, 0, 100).length, 176);
-    assert.throws(() => sample(0, 10, 0, 0, 100), {message: `Can't sample 0 elements`});
-    assert.throws(() => sample(4, 0, 0, 20, 80), {message: `Can't sample 0 elements`});
+
+    assert.strictEqual(sample(0, 10, 0, 0, 100).length, 0);
+    assert.strictEqual(sample(4, 0, 0, 20, 80).length, 0);
     assert.throws(() => sample(4, 10, -1, 20, 80), {message: `Invalid sliceDim -1`});
     assert.throws(() => sample(4, 10, 3, 20, 80), {message: `Invalid sliceDim 3`});
 }
@@ -28,7 +29,7 @@ export function testComparisonSampling() {
 
     assert.strictEqual(sample(10, 20).length, 20);
     assert.strictEqual(sample(10, -1).length, 45);
-    assert.throws(() => sample(10, 0), {message: `Can't sample 0 elements`});
+    assert.strictEqual(sample(10, 0).length, 0);
     assert.throws(() => sample(0, 10), {message: `Can't sample 10 elements from an array of length 0`});
     assert.throws(() => sample(10, 100), {message: `Can't sample 100 elements from an array of length 45`});
 }

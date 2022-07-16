@@ -1,20 +1,12 @@
-import {createBasicMetadata, PrivateSessionBase} from '../base';
-import {dbapi, LabelingSession, SessionElement} from '../../backend';
-import {SliceSampleOpts} from '../../sampling';
+import {PrivateSessionBase} from '../base';
+import {dbapi, LabelingSession, SessionElement, SliceAttributes} from '../../backend';
 import {SessionResults, SliceResult} from '../../results';
-import * as Sampling from '../../sampling';
 import * as Results from '../../results';
 import * as Collab from '../../collaboration';
 
 export class ClassificationSession extends PrivateSessionBase {
     createSession(datasetId: number | string, sessionName: string, prompt: string, labelOptions: string,
-                         slicesFromSession: LabelingSession | null, sliceOpts: SliceSampleOpts, comparisonCount: number): number {
-
-        const slices = (slicesFromSession)
-            ? dbapi.selectSessionSlices(slicesFromSession.id)
-            : Sampling.sampleSlices(dbapi.selectDatasetImages(datasetId), sliceOpts);
-        const metadata = createBasicMetadata(slicesFromSession, sliceOpts);
-
+                         slices: SliceAttributes[], metadata: object, comparisonCount: number): number {
         return dbapi.insertLabelingSession(datasetId, 'Classification', sessionName, prompt, labelOptions,
             JSON.stringify(metadata), slices, null);
     }

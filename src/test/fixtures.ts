@@ -1,5 +1,6 @@
 import {Dataset, dbapi, LabelingSession, SessionType} from '../frontend/backend';
 import {SliceSampleOpts} from '../frontend/sampling';
+import * as Sampling from '../frontend/sampling';
 import * as Session from '../frontend/sessions/session';
 
 let curUniqueNumber = 0;
@@ -34,7 +35,17 @@ function sliceOptsFixture(numSlices: number): SliceSampleOpts {
 export function sessionFixture(sessionType: SessionType, numSlices = 10, numComparisons = 12): LabelingSession {
     const sessClass = Session.getClass(sessionType);
     const dataset = datasetFixture();
+    const slices = Sampling.sampleSlices(dbapi.selectDatasetImages(dataset.id), sliceOptsFixture(numSlices));
+    const sliceOpts = sliceOptsFixture(numSlices);
+    const metadata = {
+        'Slices From': 'Create New',
+        'Image Count': sliceOpts.imageCount,
+        'Slice Count': sliceOpts.sliceCount,
+        'Slice Dim': sliceOpts.sliceDim,
+        'Slice Min Pct': sliceOpts.sliceMinPct,
+        'Slice Max Pct': sliceOpts.sliceMaxPct,
+    };
     const sessionId = sessClass.createSession(dataset.id, `Session ${getUniqueNumber()}`, 'Test prompt!',
-        'Label 1,Label 2,Label 3', null, sliceOptsFixture(numSlices), numComparisons);
+        'Label 1,Label 2,Label 3', slices, metadata, numComparisons);
     return dbapi.selectLabelingSession(sessionId);
 }

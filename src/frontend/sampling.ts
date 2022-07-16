@@ -10,8 +10,8 @@ function randomInt(max: number) {
 // at the end of the loop. This is avoided in the traditional Fisher-Yates by an "i > 0" clause in the for loop,
 // however, when (count < arr.length), the last swap is NO LONGER redundant, so we must include it
 // for partial shuffling via the "i > (arr.length - count - 1)" clause in the for loop.
-function sampleWithoutReplacement<Type>(arr: Type[], count: number): Type[] {
-    if (count === 0) throw new Error(`Can't sample 0 elements`)
+export function sampleWithoutReplacement<Type>(arr: Type[], count: number): Type[] {
+    if (count === 0) return [];
     if (count > arr.length) throw new Error(`Can't sample ${count} elements from an array of length ${arr.length}`)
 
     for (let i = arr.length - 1; i > (arr.length - count - 1); i--) {

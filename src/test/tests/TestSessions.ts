@@ -1,6 +1,7 @@
 import {dbapi} from '../../frontend/backend';
 import {SliceSampleOpts} from '../../frontend/sampling';
 import * as Session from '../../frontend/sessions/session';
+import * as Sampling from '../../frontend/sampling';
 
 import * as assert from 'assert';
 import * as Fixtures from '../fixtures';
@@ -13,11 +14,19 @@ const SLICE_OPTS: SliceSampleOpts = {
     sliceMaxPct: 80,
 };
 
+function metadataFixture() {
+    return {
+        'String Key': 'str value',
+        'Number Key': 100,
+        'Bool Key': false,
+    }
+}
+
 export function testClassificationSessionCreation() {
     const dataset = Fixtures.datasetFixture();
     const sessClass = Session.getClass('Classification');
     const sessionId = sessClass.createSession(dataset.id, 'Test session', 'Test prompt!', 'Label 1,Label2',
-        null, SLICE_OPTS, 0);
+        Sampling.sampleSlices(dbapi.selectDatasetImages(dataset.id), SLICE_OPTS), metadataFixture(), 0);
 
     const session = dbapi.selectLabelingSession(sessionId);
 
@@ -30,7 +39,7 @@ export function testClassificationSessionCreation() {
             sessionName: 'Test session',
             prompt: 'Test prompt!',
             labelOptions: 'Label 1,Label2',
-            metadataJson: '{"Slices From":"Create New","Image Count":4,"Slice Count":10,"Slice Dim":0,"Slice Min Pct":20,"Slice Max Pct":80}',
+            metadataJson: '{"String Key":"str value","Number Key":100,"Bool Key":false}',
         }
     );
 
@@ -52,7 +61,7 @@ export function testComparisonRandomSessionCreation() {
     const dataset = Fixtures.datasetFixture();
     const sessClass = Session.getClass('ComparisonRandom');
     const sessionId = sessClass.createSession(dataset.id, 'Test session', 'Test prompt!', 'Label 1,Label2',
-        null, SLICE_OPTS, 12);
+        Sampling.sampleSlices(dbapi.selectDatasetImages(dataset.id), SLICE_OPTS), metadataFixture(), 12);
 
     const session = dbapi.selectLabelingSession(sessionId);
 
@@ -65,7 +74,7 @@ export function testComparisonRandomSessionCreation() {
             sessionName: 'Test session',
             prompt: 'Test prompt!',
             labelOptions: 'Label 1,Label2',
-            metadataJson: '{"Slices From":"Create New","Image Count":4,"Slice Count":10,"Slice Dim":0,"Slice Min Pct":20,"Slice Max Pct":80,"Comparison Count":12}',
+            metadataJson: '{"String Key":"str value","Number Key":100,"Bool Key":false,"Comparison Count":12}',
         }
     );
 
@@ -95,7 +104,7 @@ export function testComparisonActiveSortSessionCreation() {
     const dataset = Fixtures.datasetFixture();
     const sessClass = Session.getClass('ComparisonActiveSort');
     const sessionId = sessClass.createSession(dataset.id, 'Test session', 'Test prompt!', 'Label 1,Label2',
-        null, SLICE_OPTS, 0);
+        Sampling.sampleSlices(dbapi.selectDatasetImages(dataset.id), SLICE_OPTS), metadataFixture(), 0);
 
     const session = dbapi.selectLabelingSession(sessionId);
 
@@ -108,7 +117,7 @@ export function testComparisonActiveSortSessionCreation() {
             sessionName: 'Test session',
             prompt: 'Test prompt!',
             labelOptions: 'Label 1,Label2',
-            metadataJson: '{"Slices From":"Create New","Image Count":4,"Slice Count":10,"Slice Dim":0,"Slice Min Pct":20,"Slice Max Pct":80}',
+            metadataJson: '{"String Key":"str value","Number Key":100,"Bool Key":false}',
         }
     );
 
