@@ -116,10 +116,10 @@ interface SamplingOptionsStepProps {
     sliceLabelCounts: {[key: string]: number};
     totalSliceCount: number;
     slicesFromSession: LabelingSession;
-    sliceLabelFilter: 'No Filter' | string;
-    setSliceLabelFilter: React.Dispatch<React.SetStateAction<'No Filter' | string>>;
-    labelFilterPct: number;
-    setLabelFilterPct: React.Dispatch<React.SetStateAction<number>>;
+    subsampleLabel: 'Disabled' | string;
+    setSubsampleLabel: React.Dispatch<React.SetStateAction<'Disabled' | string>>;
+    subsamplePct: number;
+    setSubsamplePct: React.Dispatch<React.SetStateAction<number>>;
 
     imageCount: InputValidator<number>;
     sliceCount: InputValidator<number>;
@@ -154,34 +154,34 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                         <div className="mt-3">
                             <Select
                                 id="slice-label-filter"
-                                label="Filter Slices"
-                                options={['No Filter'].concat(Utils.splitLabelOptions(props.slicesFromSession.labelOptions))}
-                                value={props.sliceLabelFilter}
-                                setValue={props.setSliceLabelFilter}
+                                label="Subsample Slices with Label"
+                                options={['Disabled'].concat(Utils.splitLabelOptions(props.slicesFromSession.labelOptions))}
+                                value={props.subsampleLabel}
+                                setValue={props.setSubsampleLabel}
                             />
                         </div>
-                        {props.sliceLabelFilter !== 'No Filter' && (
+                        {props.subsampleLabel !== 'Disabled' && (
                             <div>
                                 <div className="mt-3">
                                     <div className="flex justify-between items-center">
                                         <div className="text-sm text-gray-400">Subsample Percent</div>
                                         <div className="px-1 text-gray-200 text-xs font-mono bg-black bg-opacity-50 rounded">
-                                            <span>{props.labelFilterPct}%</span>
+                                            <span>{props.subsamplePct}%</span>
                                         </div>
                                     </div>
                                     <InputRange
                                         min={0}
                                         max={100}
                                         step={1}
-                                        value={props.labelFilterPct}
-                                        setValue={props.setLabelFilterPct}
+                                        value={props.subsamplePct}
+                                        setValue={props.setSubsamplePct}
                                     />
                                 </div>
                                 <div className="mt-3">
                                     <InputNumber
                                         id="slice-count"
-                                        label="Slices"
-                                        help="Number of slices to be labeled in this session (after resampling)."
+                                        label="Total Slices"
+                                        help="Number of slices to be labeled in this session (after label subsampling)."
                                         min={2}
                                         validator={props.sliceCount}
                                     />
@@ -235,12 +235,12 @@ function SamplingOptionsStep(props: SamplingOptionsStepProps) {
                             <tbody>
                             {Object.entries(props.sliceLabelCounts).map(([labelValue, count]) => {
                                 return (
-                                    <tr key={labelValue} className={labelValue === props.sliceLabelFilter ? 'text-white' : ''}>
+                                    <tr key={labelValue} className={labelValue === props.subsampleLabel ? 'text-white' : ''}>
                                         <td>{labelValue}</td>
                                         <td>{count}</td>
                                         <td>
-                                            {(labelValue === props.sliceLabelFilter) &&
-                                                <span>({Math.floor(count * (props.labelFilterPct / 100))})</span>
+                                            {(labelValue === props.subsampleLabel) &&
+                                                <span>({Math.floor(count * (props.subsamplePct / 100))})</span>
                                             }
                                         </td>
                                     </tr>
@@ -295,8 +295,8 @@ function CreateSession() {
         }
         return [sess, labelCounts, slices.length];
     }, [slicesFrom]);
-    const [sliceLabelFilter, setSliceLabelFilter] = useState<'No Filter' | string>('No Filter');
-    const [labelFilterPct, setLabelFilterPct] = useState<number>(100);
+    const [subsampleLabel, setSubsampleLabel] = useState<'Disabled' | string>('Disabled');
+    const [subsamplePct, setSubsamplePct] = useState<number>(100);
 
     const imageCount = useNumberBoundsValidator(1, 1, datasetImages.length);
     const sliceCount = useNumberBoundsValidator(2, 2);
@@ -319,26 +319,26 @@ function CreateSession() {
 
         if (slicesFromSession) {
             slices = dbapi.selectSessionSlices(slicesFromSession.id);
-            if (sliceLabelFilter !== 'No Filter') {
-                let filterSlices = [], keepSlices = [];
+            if (subsampleLabel !== 'Disabled') {
+                let slicesToSubsample = [], otherSlices = [];
                 for (const sl of (slices as Slice[])) {
                     const sLabel = dbapi.selectElementLabels(sl.id)[0];
-                    if (sLabel && sLabel.labelValue === sliceLabelFilter) filterSlices.push(sl);
-                    else keepSlices.push(sl);
+                    if (sLabel && sLabel.labelValue === subsampleLabel) slicesToSubsample.push(sl);
+                    else otherSlices.push(sl);
                 }
 
-                const filterSampleCount = Math.floor(filterSlices.length * (labelFilterPct / 100));
-                const subsampledSlices = Sampling.sampleWithoutReplacement(filterSlices, filterSampleCount);
+                const subsampleCount = Math.floor(slicesToSubsample.length * (subsamplePct / 100));
+                const subsampledSlices = Sampling.sampleWithoutReplacement(slicesToSubsample, subsampleCount);
 
                 slices = Sampling.sampleWithoutReplacement(
-                    keepSlices.concat(subsampledSlices),
+                    otherSlices.concat(subsampledSlices),
                     sliceCount.value
                 );
             }
             metadata = {
                 'Slices From': slicesFromSession.sessionName,
-                'Subsample Label': sliceLabelFilter,
-                'Subsample Pct': labelFilterPct,
+                'Subsample Label': subsampleLabel,
+                'Subsample Percent': subsamplePct,
             }
         }
         else {
@@ -398,14 +398,14 @@ function CreateSession() {
                             <StepHeader title="Create Labeling Session" stepDescription="Sampling Options" curStep={2} stepCount={3}/>
                             <SamplingOptionsStep
                                 slicesFrom={slicesFrom}
+                                setSlicesFrom={setSlicesFrom}
                                 slicesFromSession={slicesFromSession}
                                 sliceLabelCounts={sliceLabelCounts}
                                 totalSliceCount={totalSliceCount}
-                                sliceLabelFilter={sliceLabelFilter}
-                                setSliceLabelFilter={setSliceLabelFilter}
-                                labelFilterPct={labelFilterPct}
-                                setLabelFilterPct={setLabelFilterPct}
-                                setSlicesFrom={setSlicesFrom}
+                                subsampleLabel={subsampleLabel}
+                                setSubsampleLabel={setSubsampleLabel}
+                                subsamplePct={subsamplePct}
+                                setSubsamplePct={setSubsamplePct}
                                 imageCount={imageCount}
                                 sliceCount={sliceCount}
                                 orientation={orientation}
