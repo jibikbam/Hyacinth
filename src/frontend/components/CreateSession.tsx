@@ -319,6 +319,9 @@ function CreateSession() {
 
         if (slicesFromSession) {
             slices = dbapi.selectSessionSlices(slicesFromSession.id);
+            metadata = {
+                'Slices From': slicesFromSession.sessionName,
+            }
             if (subsampleLabel !== 'Disabled') {
                 let slicesToSubsample = [], otherSlices = [];
                 for (const sl of (slices as Slice[])) {
@@ -334,11 +337,10 @@ function CreateSession() {
                     otherSlices.concat(subsampledSlices),
                     sliceCount.value
                 );
-            }
-            metadata = {
-                'Slices From': slicesFromSession.sessionName,
-                'Subsample Label': subsampleLabel,
-                'Subsample Percent': subsamplePct,
+
+                metadata['Subsample Label'] = subsampleLabel;
+                metadata['Subsample Percent'] = subsamplePct;
+                metadata['Slice Count'] = sliceCount.value;
             }
         }
         else {

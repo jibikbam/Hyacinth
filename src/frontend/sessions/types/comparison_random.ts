@@ -11,8 +11,8 @@ export class ComparisonRandomSession extends PrivateSessionBase {
 
         const comparisons = Sampling.sampleComparisons(slices.length, comparisonCount);
 
-        metadata['Comparison Count'] = comparisonCount;
-        if (comparisonCount === -1) metadata['Exhaustive'] = 'true';
+        metadata['Comparison Count'] = comparisons.length;
+        metadata['Exhaustive'] = comparisonCount === -1;
 
         return dbapi.insertLabelingSession(datasetId, 'ComparisonRandom', sessionName, prompt, labelOptions,
             JSON.stringify(metadata), slices, comparisons);

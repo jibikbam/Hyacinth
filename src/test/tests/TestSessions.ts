@@ -74,7 +74,7 @@ export function testComparisonRandomSessionCreation() {
             sessionName: 'Test session',
             prompt: 'Test prompt!',
             labelOptions: 'Label 1,Label2',
-            metadataJson: '{"String Key":"str value","Number Key":100,"Bool Key":false,"Comparison Count":12}',
+            metadataJson: '{"String Key":"str value","Number Key":100,"Bool Key":false,"Comparison Count":12,"Exhaustive":false}',
         }
     );
 
