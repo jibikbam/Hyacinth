@@ -52,8 +52,11 @@ function LabelView() {
     }, [elements, curElement, nextOnLabel]);
 
     function jumpBy(amount: number) {
+        // We must query the current number of elements because it
+        // could have changed due to active labeling
+        const numElements = Session.getClass(session).selectElementsToLabel(session).length;
         const targetIndex = curElement.element.elementIndex + amount;
-        const newIndex = Math.max(Math.min(targetIndex, elements.length - 1), 0);
+        const newIndex = Math.max(Math.min(targetIndex, numElements - 1), 0);
         navigate(`/label/${sessionId}/${newIndex}`);
     }
 
