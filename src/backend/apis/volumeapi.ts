@@ -86,22 +86,6 @@ export function readDicomSeriesDims(seriesDirPath: string): [[number, number, nu
 
 export function readDicomSeries(seriesDirPath: string): [[number, number, number], [number, number, number, number, number, number], Float32Array] {
     const [dims, iop, series] = buildDicomSeries(seriesDirPath);
-
-    const numImagePixels = dims[0] * dims[1];
-    const numVoxels = numImagePixels * dims[2];
-
-    const finalArray = new Float32Array(numVoxels);
-    let offset = 0;
-    for (const image of series.images) {
-        finalArray.set(image.getInterpretedData(false, false), offset);
-        offset += numImagePixels;
-    }
-
-    return [dims, iop, finalArray];
-}
-
-export function readDicomSeriesNew(seriesDirPath: string): [[number, number, number], [number, number, number, number, number, number], Float32Array] {
-    const [dims, iop, series] = buildDicomSeries(seriesDirPath);
     // TODO: order dims by ijk in buildDicomSeries so we do not have to change order here (after old renderer is removed)
     const [jMax, kMax, iMax] = dims; // width, height, slice count
     const pixelDataBySlice = series.images.map((image) => image.getInterpretedData(false, false));

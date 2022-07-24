@@ -76,7 +76,7 @@ function loadImage(imagePath: string): LoadedImage {
             }
         }
         case 'DicomSeries3D': {
-            const [dims, iop, imageData] = volumeapi.readDicomSeriesNew(imagePath);
+            const [dims, iop, imageData] = volumeapi.readDicomSeries(imagePath);
             const dimMap = getDicomDimMap(iop);
             return {
                 imageData: imageData,
