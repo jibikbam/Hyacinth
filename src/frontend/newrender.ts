@@ -1,22 +1,6 @@
 import * as ImageLoad from './imageload';
 import {LoadedImage} from './imageload';
 
-const IMAGE_CACHE_SIZE = 3;
-const IMAGE_CACHE: [string, LoadedImage][] = [];
-export function loadCached(imagePath: string) {
-    for (const [p, img] of IMAGE_CACHE) {
-        if (p === imagePath) return img;
-    }
-
-    const image = ImageLoad.loadImage(imagePath);
-    // Insert at index 0
-    IMAGE_CACHE.splice(0, 0, [imagePath, image]);
-    // Pop from end until queue is of correct length
-    while (IMAGE_CACHE.length > IMAGE_CACHE_SIZE) IMAGE_CACHE.pop();
-
-    return image;
-}
-
 function computePercentiles(pixelData: number[], q: number[]): number[] {
     const pixelDataSorted = pixelData.slice().sort((a, b) => a - b);
     return q.map(qVal => pixelDataSorted[Math.floor((pixelDataSorted.length - 1) * (qVal / 100))]);
@@ -116,6 +100,6 @@ export function renderCanvas3D(canvas: HTMLCanvasElement, image: LoadedImage,
 
 export function loadAndRender(canvas: HTMLCanvasElement, imagePath: string,
                        sliceDim: number, sliceIndex: number, brightness: number) {
-    const image = loadCached(imagePath);
+    const image = ImageLoad.loadCached(imagePath);
     renderCanvas3D(canvas, image, sliceDim, sliceIndex, brightness);
 }

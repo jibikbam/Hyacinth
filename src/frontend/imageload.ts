@@ -27,7 +27,7 @@ function computeDicomImagePlane(iop: [number, number, number, number, number, nu
     else throw Error(`Unknown dicom image plane: ${iopCrossAbs}`);
 }
 
-export function loadImage(imagePath: string): LoadedImage {
+function loadImage(imagePath: string): LoadedImage {
     if (imagePath.endsWith('.nii.gz')) {
         const [header, imageData] = Nifti.parse(imagePath);
         return {
@@ -62,4 +62,21 @@ export function loadImage(imagePath: string): LoadedImage {
             flipY: false,
         }
     }
+}
+
+const IMAGE_CACHE_SIZE = 3;
+const IMAGE_CACHE: [string, LoadedImage][] = [];
+
+export function loadCached(imagePath: string): LoadedImage {
+    for (const [p, img] of IMAGE_CACHE) {
+        if (p === imagePath) return img;
+    }
+
+    const image = loadImage(imagePath);
+    // Insert at index 0
+    IMAGE_CACHE.splice(0, 0, [imagePath, image]);
+    // Pop from end until queue is of correct length
+    while (IMAGE_CACHE.length > IMAGE_CACHE_SIZE) IMAGE_CACHE.pop();
+
+    return image;
 }
