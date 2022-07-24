@@ -7,7 +7,7 @@ import {RenderedImage} from './RenderedImage';
 import {Button} from './Buttons';
 import {ArrowLeftIcon, SwitchHorizontalIcon, SwitchVerticalIcon} from '@heroicons/react/solid';
 
-function SliceWithControls({imagePath, sliceDim, useNewRender}: {imagePath: string, sliceDim: number, useNewRender: boolean}) {
+function SliceWithControls({imagePath, sliceDim}: {imagePath: string, sliceDim: number}) {
     const [sliceIndex, setSliceIndex] = useState(100);
     const [hFlip, setHFlip] = useState(false);
     const [vFlip, setVFlip] = useState(false);
@@ -23,7 +23,6 @@ function SliceWithControls({imagePath, sliceDim, useNewRender}: {imagePath: stri
                 hFlip={hFlip}
                 vFlip={vFlip}
                 transpose={transpose}
-                useNew={useNewRender}
             />
             <div className="mt-4 p-2 bg-gray-800 rounded flex justify-between items-center">
                 <div className="ml-1 flex-1 flex items-center">
@@ -54,7 +53,6 @@ function DebugSliceViewer() {
     }, [datasetId]);
 
     const [curImage, setCurImage] = useState(images[0]);
-    const [useNewRender, setUseNewRender] = useState<boolean>(false);
 
     function setCurImageFromPath(newRelPath: string) {
         for (const im of images) {
@@ -80,15 +78,10 @@ function DebugSliceViewer() {
                 <div className="w-1/3 text-center">
                     <Select id="image-select" label={null} options={images.map(di => di.relPath)} value={curImage.relPath} setValue={setCurImageFromPath} />
                 </div>
-                <div className="pr-2 w-1/3 text-right">
-                    <label className="space-x-1">
-                        <input type="checkbox" checked={useNewRender} onChange={() => setUseNewRender(!useNewRender)} />
-                        <span>New Renderer</span>
-                    </label>
-                </div>
+                <div className="pr-2 w-1/3 text-right" />
             </header>
             <div className="p-8 w-full space-x-8 flex items-end">
-                {[0, 1, 2].map(sliceDim => <SliceWithControls key={sliceDim} imagePath={imagePath} sliceDim={sliceDim} useNewRender={useNewRender} />)}
+                {[0, 1, 2].map(sliceDim => <SliceWithControls key={sliceDim} imagePath={imagePath} sliceDim={sliceDim} />)}
             </div>
         </div>
     )
