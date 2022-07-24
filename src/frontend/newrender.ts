@@ -1,4 +1,3 @@
-import * as Nifti from './parsers/nifti';
 import * as ImageLoad from './imageload';
 import {LoadedImage} from './imageload';
 
@@ -27,16 +26,32 @@ function mapDims(ijk: [number, number, number], map: [number, number, number]): 
     return [ijk[map[0]], ijk[map[1]], ijk[map[2]]];
 }
 
-export function renderCanvas3D(canvas: HTMLCanvasElement, dims: [number, number, number], imageData,
-                               sliceDim: number, sliceIndex: number, brightness: number) {
-    // TODO: dimMap as parameter
-    const dimMap: [number, number, number] = [2, 0, 1];
-    const [iMax, jMax, kMax] = dims;
-    dims = mapDims(dims, dimMap);
+function computeInverseDimMap(map: [number, number, number]): [number, number, number] {
+    return [
+        map.indexOf(0),
+        map.indexOf(1),
+        map.indexOf(2),
+    ]
+}
 
-    function getImageValue(i: number, j: number, k: number) {
-        [i, j, k] = mapDims([i, j, k], [1, 2, 0]);
+export function renderCanvas3D(canvas: HTMLCanvasElement, image: LoadedImage,
+                               sliceDim: number, sliceIndex: number, brightness: number) {
+    const imageData = image.imageData;
+    const rawDims = image.dims;
+    const dimMap = image.dimMap;
+    const dimMapInverse = computeInverseDimMap(dimMap);
+
+    const [iMax, jMax, kMax] = rawDims;
+    const dims = mapDims(rawDims, dimMap);
+
+    function getVoxelValue(i: number, j: number, k: number) {
+        [i, j, k] = mapDims([i, j, k], dimMapInverse);
         return imageData[i + (j * iMax) + (k * iMax * jMax)];
+    }
+
+    function get2DIndex(x: number, y: number, xMax: number, yMax: number): number {
+        if (image.flipY) y = (yMax - y - 1);
+        return x + (y * xMax);
     }
 
     let width: number, height: number;
@@ -48,7 +63,7 @@ export function renderCanvas3D(canvas: HTMLCanvasElement, dims: [number, number,
 
         for (let x = 0; x < xMax; x++) {
             for (let y = 0; y < yMax; y++) {
-                sliceData[x + ((yMax - y - 1) * xMax)] = getImageValue(sliceIndex, x, y);
+                sliceData[get2DIndex(x, y, xMax, yMax)] = getVoxelValue(sliceIndex, x, y);
             }
         }
     }
@@ -58,7 +73,7 @@ export function renderCanvas3D(canvas: HTMLCanvasElement, dims: [number, number,
 
         for (let x = 0; x < xMax; x++) {
             for (let y = 0; y < yMax; y++) {
-                sliceData[x + ((yMax - y - 1) * xMax)] = getImageValue(x, sliceMax - sliceIndex, y);
+                sliceData[get2DIndex(x, y, xMax, yMax)] = getVoxelValue(x, sliceMax - sliceIndex, y);
             }
         }
     }
@@ -68,7 +83,7 @@ export function renderCanvas3D(canvas: HTMLCanvasElement, dims: [number, number,
 
         for (let x = 0; x < xMax; x++) {
             for (let y = 0; y < yMax; y++) {
-                sliceData[x + ((yMax - y - 1) * xMax)] = getImageValue(x, y, sliceIndex);
+                sliceData[get2DIndex(x, y, xMax, yMax)] = getVoxelValue(x, y, sliceIndex);
             }
         }
     }
@@ -102,5 +117,5 @@ export function renderCanvas3D(canvas: HTMLCanvasElement, dims: [number, number,
 export function loadAndRender(canvas: HTMLCanvasElement, imagePath: string,
                        sliceDim: number, sliceIndex: number, brightness: number) {
     const image = loadCached(imagePath);
-    renderCanvas3D(canvas, image.dims as [number, number, number], image.imageData, sliceDim, sliceIndex, brightness);
+    renderCanvas3D(canvas, image, sliceDim, sliceIndex, brightness);
 }
