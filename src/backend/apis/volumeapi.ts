@@ -1,8 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as zlib from 'node:zlib';
-import * as niftiReader from 'nifti-reader-js';
-import * as pako from 'pako';
 import * as daikon from 'daikon';
 
 const DICOM_FILE_EXT = '.dcm';
@@ -27,35 +25,6 @@ export function readNiftiFileHeaderBytes(imagePath: string): ArrayBufferLike {
     fs.closeSync(file);
     // finishFlush required to prevent "unexpected end of file"
     return zlib.gunzipSync(fileBuffer, {finishFlush: zlib.constants.Z_SYNC_FLUSH}).buffer;
-}
-
-function readNiftiData(imagePath) {
-    const fileData = fs.readFileSync(imagePath);
-    const dataArrayBuffer = fileData.buffer.slice(fileData.byteOffset, fileData.byteOffset + fileData.byteLength);
-
-    return niftiReader.decompress(dataArrayBuffer);
-}
-
-export function readNiftiHeader(imagePath: string) {
-    // TODO: replace with function that ONLY reads dims, without parser?
-    // Read and decompress only the first 540 bytes (roughly 1000x speedup over decompressing entire file)
-    // Note that the nifti header is 540B long (decompressed), so 540B (compressed) is slightly larger
-    const file = fs.openSync(imagePath, 'r');
-    const fileBuffer = Buffer.alloc(540);
-    fs.readSync(file, fileBuffer, 0, 540, null);
-    fs.closeSync(file);
-    const dataInflated = pako.inflate(fileBuffer).buffer;
-
-    return niftiReader.readHeader(dataInflated);
-}
-
-export function readNifti(imagePath) {
-    const niftiData = readNiftiData(imagePath);
-    const imgHeader = niftiReader.readHeader(niftiData);
-    const imgDataUntyped = niftiReader.readImage(imgHeader, niftiData);
-    const imgData = new Int16Array(imgDataUntyped);
-
-    return [imgHeader, imgData];
 }
 
 function buildDicomSeries(seriesDirPath: string) {
