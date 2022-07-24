@@ -73,7 +73,7 @@ export function renderCanvas3D(canvas: HTMLCanvasElement, image: LoadedImage,
 
         for (let x = 0; x < xMax; x++) {
             for (let y = 0; y < yMax; y++) {
-                sliceData[get2DIndex(x, y, xMax, yMax)] = getVoxelValue(x, sliceMax - sliceIndex, y);
+                sliceData[get2DIndex(x, y, xMax, yMax)] = getVoxelValue(x, sliceIndex, y);
             }
         }
     }
