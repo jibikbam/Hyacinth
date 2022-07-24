@@ -5,7 +5,7 @@ import {dbapi, fileapi} from '../backend';
 import {Button} from './Buttons';
 import {ArrowLeftIcon} from '@heroicons/react/solid';
 import {getThumbnailName, zip} from '../utils';
-import * as NewRender from '../newrender';
+import * as Render from '../render';
 
 export function ThumbnailGenerator() {
     const {sessionId}  = useParams();
@@ -44,8 +44,7 @@ export function ThumbnailGenerator() {
         const imagePath = slice.datasetRootPath + '/' + slice.imageRelPath;
         const thumbnailName = getThumbnailName(slice);
 
-        const [header, imageData] = NewRender.loadCached(imagePath);
-        NewRender.renderCanvas3D(canvasRef.current, header.dim.slice(1, 4), imageData, slice.sliceDim, slice.sliceIndex, 99);
+        Render.loadAndRender(canvasRef.current, imagePath, slice.sliceDim, slice.sliceIndex, 99);
         fileapi.writeThumbnail(canvasRef.current, thumbnailName);
     }
 

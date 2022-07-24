@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {useEffect, useRef} from 'react';
-import * as NewRender from '../newrender';
+import * as Render from '../render';
 
 interface RenderedImageProps {
     imagePath: string;
@@ -17,7 +17,7 @@ export function RenderedImage({imagePath, sliceDim, sliceIndex, brightness,
     const canvasRef = useRef(null);
 
     useEffect(() => {
-        NewRender.loadAndRender(canvasRef.current, imagePath, sliceDim, sliceIndex, brightness);
+        Render.loadAndRender(canvasRef.current, imagePath, sliceDim, sliceIndex, brightness);
     }, [imagePath, sliceDim, sliceIndex, brightness, hFlip, vFlip, transpose]);
 
     return (

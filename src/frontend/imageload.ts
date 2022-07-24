@@ -1,6 +1,6 @@
 import {volumeapi} from './backend';
 import * as Nifti from './parsers/nifti';
-import * as NewRender from './newrender';
+import * as Render from './render';
 
 type ImageType = 'Nifti3D' | 'DicomSeries3D' | 'Dicom2D';
 export type ImageDataTypedArray = Int16Array | Int32Array | Float32Array | Float64Array | Uint16Array | Uint32Array;
@@ -53,7 +53,7 @@ export function loadDims(imagePath: string): [number, number, number] {
         case 'DicomSeries3D': {
             const [dims, iop] = volumeapi.readDicomSeriesDims(imagePath);
             const dimMap = getDicomDimMap(iop);
-            return NewRender.mapDims(dims, dimMap);
+            return Render.mapDims(dims, dimMap);
         }
         case 'Dicom2D': {
             const [dims, imageData] = volumeapi.readDicom2d(imagePath);
