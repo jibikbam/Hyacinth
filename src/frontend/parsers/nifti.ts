@@ -1,4 +1,5 @@
 import {volumeapi} from '../backend';
+import {ImageDataTypedArray} from '../imageload';
 
 function range(max) {
     return Array.from(Array(max).keys());
@@ -41,7 +42,6 @@ function parseHeader(view: DataView): Nifti1Header {
     }
 }
 
-type ImageDataTypedArray = Int16Array | Int32Array | Float32Array | Float64Array | Uint16Array | Uint32Array;
 
 function getTypedView(imageDataBuffer: ArrayBufferLike, dataTypeCode: number): ImageDataTypedArray {
     switch (dataTypeCode) {
