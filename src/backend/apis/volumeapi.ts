@@ -5,7 +5,7 @@ import * as daikon from 'daikon';
 
 const DICOM_FILE_EXT = '.dcm';
 
-export function readImageFile(imagePath: string): ArrayBufferLike {
+export function readNiftiFile(imagePath: string): ArrayBufferLike {
     if (!imagePath.endsWith('.nii.gz')) throw new Error(`Not an image path: ${imagePath}`);
     const rawData = fs.readFileSync(imagePath);
     return zlib.gunzipSync(rawData).buffer;

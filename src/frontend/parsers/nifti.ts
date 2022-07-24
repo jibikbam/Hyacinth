@@ -62,7 +62,7 @@ export function parseHeader(imagePath: string): Nifti1Header {
 }
 
 export function parse(imagePath: string): [Nifti1Header, ImageDataTypedArray] {
-    const fileData = volumeapi.readImageFile(imagePath);
+    const fileData = volumeapi.readNiftiFile(imagePath);
     const view = new DataView(fileData);
 
     const header = parseHeaderFromView(view);

@@ -40,7 +40,7 @@ contextBridge.exposeInMainWorld('fileapi', {
 });
 
 contextBridge.exposeInMainWorld('volumeapi', {
-    readImageFile: volumeapi.readImageFile,
+    readNiftiFile: volumeapi.readNiftiFile,
     readNiftiFileHeaderBytes: volumeapi.readNiftiFileHeaderBytes,
     readDicomSeriesDims: volumeapi.readDicomSeriesDims,
     readDicomSeries: volumeapi.readDicomSeries,
