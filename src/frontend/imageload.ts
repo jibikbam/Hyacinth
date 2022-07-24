@@ -44,7 +44,8 @@ function getImageType(imagePath: string): ImageType {
 }
 
 export function loadDims(imagePath: string): [number, number, number] {
-    switch (getImageType(imagePath)) {
+    const imageType = getImageType(imagePath);
+    switch (imageType) {
         case 'Nifti3D': {
             const imageHeader = volumeapi.readNiftiHeader(imagePath);
             return imageHeader.dims.slice(1, 4);
@@ -58,37 +59,42 @@ export function loadDims(imagePath: string): [number, number, number] {
             const [dims, imageData] = volumeapi.readDicom2d(imagePath);
             return [1, dims[0], dims[1]];
         }
+        default: throw new Error(`Unknown image type "${imageType}" for path: ${imagePath}`);
     }
 }
 
 function loadImage(imagePath: string): LoadedImage {
-    if (imagePath.endsWith('.nii.gz')) {
-        const [header, imageData] = Nifti.parse(imagePath);
-        return {
-            imageData: imageData,
-            dims: header.dim.slice(1, 4) as [number, number, number],
-            dimMap: [0, 1, 2],
-            flipY: true,  // Nifti images are drawn bottom to top
+    const imageType = getImageType(imagePath);
+    switch (imageType) {
+        case 'Nifti3D': {
+            const [header, imageData] = Nifti.parse(imagePath);
+            return {
+                imageData: imageData,
+                dims: header.dim.slice(1, 4) as [number, number, number],
+                dimMap: [0, 1, 2],
+                flipY: true,  // Nifti images are drawn bottom to top
+            }
         }
-    }
-    else if (imagePath.endsWith('.dcm')) {
-        const [dims, imageData] = volumeapi.readDicom2d(imagePath);
-        return {
-            imageData: imageData,
-            dims: [1, dims[0], dims[1]],
-            dimMap: [0, 1, 2],
-            flipY: false,
+        case 'DicomSeries3D': {
+            const [dims, iop, imageData] = volumeapi.readDicomSeriesNew(imagePath);
+            const dimMap = getDicomDimMap(iop);
+            return {
+                imageData: imageData,
+                dims: dims,
+                dimMap: dimMap,
+                flipY: false,
+            }
         }
-    }
-    else {
-        const [dims, iop, imageData] = volumeapi.readDicomSeriesNew(imagePath);
-        const dimMap = getDicomDimMap(iop);
-        return {
-            imageData: imageData,
-            dims: dims,
-            dimMap: dimMap,
-            flipY: false,
+        case 'Dicom2D': {
+            const [dims, imageData] = volumeapi.readDicom2d(imagePath);
+            return {
+                imageData: imageData,
+                dims: [1, dims[0], dims[1]],
+                dimMap: [0, 1, 2],
+                flipY: false,
+            }
         }
+        default: throw new Error(`Unknown image type "${imageType}" for path: ${imagePath}`);
     }
 }
 
