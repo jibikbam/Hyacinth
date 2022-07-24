@@ -47,8 +47,8 @@ export function loadDims(imagePath: string): [number, number, number] {
     const imageType = getImageType(imagePath);
     switch (imageType) {
         case 'Nifti3D': {
-            const imageHeader = volumeapi.readNiftiHeader(imagePath);
-            return imageHeader.dims.slice(1, 4);
+            const imageHeader = Nifti.parseHeader(imagePath);
+            return imageHeader.dim.slice(1, 4) as [number, number, number];
         }
         case 'DicomSeries3D': {
             const [dims, iop] = volumeapi.readDicomSeriesDims(imagePath);

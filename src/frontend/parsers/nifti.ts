@@ -18,7 +18,7 @@ interface Nifti1Header {
     voxOffset: number;
 }
 
-function parseHeader(view: DataView): Nifti1Header {
+export function parseHeaderFromView(view: DataView): Nifti1Header {
     // TODO: support nifti2
     let littleEndian = false;
     let sizeOfHeader = view.getInt32(0, false);
@@ -55,11 +55,17 @@ function getTypedView(imageDataBuffer: ArrayBufferLike, dataTypeCode: number): I
     }
 }
 
+export function parseHeader(imagePath: string): Nifti1Header {
+    const fileData = volumeapi.readNiftiFileHeaderBytes(imagePath);
+    const view = new DataView(fileData);
+    return parseHeaderFromView(view);
+}
+
 export function parse(imagePath: string): [Nifti1Header, ImageDataTypedArray] {
     const fileData = volumeapi.readImageFile(imagePath);
     const view = new DataView(fileData);
 
-    const header = parseHeader(view);
+    const header = parseHeaderFromView(view);
 
     // Only allow 3D images
     // dim[0] stores the number of dimensions

@@ -112,6 +112,7 @@ export interface FileApiType {
 
 export interface VolumeApiType {
     readImageFile: (imagePath: string) => ArrayBufferLike;
+    readNiftiFileHeaderBytes: (imagePath: string) => ArrayBufferLike;
     readNiftiHeader: (imagePath: string) => any;
     readNifti: (imagePath: string) => any;
     readDicomSeriesDims: (seriesDirPath: string) => [[number, number, number], [number, number, number, number, number, number]];

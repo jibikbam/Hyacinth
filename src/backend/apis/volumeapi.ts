@@ -13,6 +13,22 @@ export function readImageFile(imagePath: string): ArrayBufferLike {
     return zlib.gunzipSync(rawData).buffer;
 }
 
+export function readNiftiFileHeaderBytes(imagePath: string): ArrayBufferLike {
+    // This function reads and returns the first 540 bytes (compressed)
+    // of a gzipped nifti file (the largest possible header)
+    // For reference, Nifti header sizes are: Nifti 1 (348B) - Nifti 2 (540B)
+    // TODO: support uncompressed (.nii)?
+    if (!imagePath.endsWith('.nii.gz')) throw new Error(`Not a nifti path: ${imagePath}`);
+
+    // Read and decompress only the first 540 bytes (will be larger after decompression)
+    const file = fs.openSync(imagePath, 'r');
+    const fileBuffer = Buffer.alloc(540);
+    fs.readSync(file, fileBuffer, 0, 540, null);
+    fs.closeSync(file);
+    // finishFlush required to prevent "unexpected end of file"
+    return zlib.gunzipSync(fileBuffer, {finishFlush: zlib.constants.Z_SYNC_FLUSH}).buffer;
+}
+
 function readNiftiData(imagePath) {
     const fileData = fs.readFileSync(imagePath);
     const dataArrayBuffer = fileData.buffer.slice(fileData.byteOffset, fileData.byteOffset + fileData.byteLength);
