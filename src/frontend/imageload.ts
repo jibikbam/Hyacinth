@@ -1,6 +1,8 @@
 import {volumeapi} from './backend';
 import * as Nifti from './parsers/nifti';
+import * as NewRender from './newrender';
 
+type ImageType = 'Nifti3D' | 'DicomSeries3D' | 'Dicom2D';
 export type ImageDataTypedArray = Int16Array | Int32Array | Float32Array | Float64Array | Uint16Array | Uint32Array;
 
 export interface LoadedImage {
@@ -27,6 +29,38 @@ function computeDicomImagePlane(iop: [number, number, number, number, number, nu
     else throw Error(`Unknown dicom image plane: ${iopCrossAbs}`);
 }
 
+function getDicomDimMap(iop): [number, number, number] {
+    switch (computeDicomImagePlane(iop)) {
+        case 0: return [0, 1, 2]; // Sagittal
+        case 1: return [1, 2, 0]; // Coronal
+        case 2: return [2, 0, 1]; // Axial
+    }
+}
+
+function getImageType(imagePath: string): ImageType {
+    if (imagePath.endsWith('.nii.gz')) return 'Nifti3D';
+    else if (imagePath.endsWith('.dcm')) return 'Dicom2D';
+    else return 'DicomSeries3D';
+}
+
+export function loadDims(imagePath: string): [number, number, number] {
+    switch (getImageType(imagePath)) {
+        case 'Nifti3D': {
+            const imageHeader = volumeapi.readNiftiHeader(imagePath);
+            return imageHeader.dims.slice(1, 4);
+        }
+        case 'DicomSeries3D': {
+            const [dims, iop] = volumeapi.readDicomSeriesDims(imagePath);
+            const dimMap = getDicomDimMap(iop);
+            return NewRender.mapDims(dims, dimMap);
+        }
+        case 'Dicom2D': {
+            const [dims, imageData] = volumeapi.readDicom2d(imagePath);
+            return [1, dims[0], dims[1]];
+        }
+    }
+}
+
 function loadImage(imagePath: string): LoadedImage {
     if (imagePath.endsWith('.nii.gz')) {
         const [header, imageData] = Nifti.parse(imagePath);
@@ -48,13 +82,7 @@ function loadImage(imagePath: string): LoadedImage {
     }
     else {
         const [dims, iop, imageData] = volumeapi.readDicomSeriesNew(imagePath);
-        const imagePlane = computeDicomImagePlane(iop);
-
-        let dimMap;
-        if (imagePlane === 0) dimMap = [0, 1, 2];       // Sagittal
-        else if (imagePlane === 1) dimMap = [1, 2, 0];  // Coronal
-        else dimMap = [2, 0, 1];                        // Axial
-
+        const dimMap = getDicomDimMap(iop);
         return {
             imageData: imageData,
             dims: dims,

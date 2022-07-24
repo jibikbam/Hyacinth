@@ -1,5 +1,5 @@
 import {DatasetImage, SliceAttributes} from './backend';
-import {loadSliceCount} from './rendering';
+import * as ImageLoad from './imageload';
 
 function randomInt(max: number) {
     return Math.floor(Math.random() * max);
@@ -60,6 +60,7 @@ export interface SliceSampleOpts {
 
 export function sampleSlices(images: DatasetImage[], options: SliceSampleOpts): SliceAttributes[] {
     const {imageCount, sliceCount, sliceDim, sliceMinPct, sliceMaxPct} = options;
+    if (sliceDim < 0 || sliceDim > 2) throw new Error(`Invalid sliceDim ${sliceDim}`);
     const startMs = Date.now();
 
     let curMs = Date.now();
@@ -67,7 +68,10 @@ export function sampleSlices(images: DatasetImage[], options: SliceSampleOpts): 
     console.log(`Sampled ${sampledImages.length} images in ${Date.now() - curMs}ms`);
 
     curMs = Date.now();
-    const imagesWithCounts = sampledImages.map(img => ({image: img, sliceCount: loadSliceCount(img, sliceDim)}))
+    const imagesWithCounts = sampledImages.map(img => ({
+        image: img,
+        sliceCount: ImageLoad.loadDims(img.datasetRootPath + '/' + img.relPath)[sliceDim],
+    }));
     console.log(`Loaded ${imagesWithCounts.length} slice counts in ${Date.now() - curMs}ms`);
 
     curMs = Date.now();

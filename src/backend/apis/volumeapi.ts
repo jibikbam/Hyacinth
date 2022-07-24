@@ -21,6 +21,7 @@ function readNiftiData(imagePath) {
 }
 
 export function readNiftiHeader(imagePath: string) {
+    // TODO: replace with function that ONLY reads dims, without parser?
     // Read and decompress only the first 540 bytes (roughly 1000x speedup over decompressing entire file)
     // Note that the nifti header is 540B long (decompressed), so 540B (compressed) is slightly larger
     const file = fs.openSync(imagePath, 'r');
@@ -122,6 +123,7 @@ export function readDicomSeriesNew(seriesDirPath: string): [[number, number, num
     return [newDims, iop, voxelArray];
 }
 
+// TODO: function to read 2d dims only?
 export function readDicom2d(imagePath: string): [[number, number], Float32Array] {
     const fileData = fs.readFileSync(imagePath);
     const image = daikon.Series.parseImage(new DataView(daikon.Utils.toArrayBuffer(fileData)));

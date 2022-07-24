@@ -6,7 +6,7 @@ function computePercentiles(pixelData: number[], q: number[]): number[] {
     return q.map(qVal => pixelDataSorted[Math.floor((pixelDataSorted.length - 1) * (qVal / 100))]);
 }
 
-function mapDims(ijk: [number, number, number], map: [number, number, number]): [number, number, number] {
+export function mapDims(ijk: [number, number, number], map: [number, number, number]): [number, number, number] {
     return [ijk[map[0]], ijk[map[1]], ijk[map[2]]];
 }
 

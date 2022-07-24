@@ -10,7 +10,7 @@ import {FolderOpenIcon} from '@heroicons/react/solid';
 import {InputNumber, InputText, Select} from './Inputs';
 import {InformationCircleIcon} from '@heroicons/react/outline';
 import {InputValidator, useDatasetNameValidator} from '../hooks/validators';
-import * as Rendering from '../rendering';
+import * as ImageLoad from '../imageload';
 
 function ChooseDirectoryButton({onClick}: {onClick: Function}) {
     return (
@@ -240,7 +240,7 @@ function CreateDataset() {
 
     function loadImageDims() {
         const startDate = Date.now();
-        const imageDims = filePaths.map(p => Rendering.loadImageDims(datasetRoot + '/' + p));
+        const imageDims = filePaths.map(p => ImageLoad.loadDims(datasetRoot + '/' + p));
         setImageDims(imageDims);
         console.log(`Finished loading image counts in ${Date.now() - startDate}ms`);
 
