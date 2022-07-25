@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {useEffect, useMemo, useState} from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
-import {Comparison, dbapi, ElementLabel, SessionElement, Slice} from '../../backend';
+import {Comparison, dbapi, ElementLabel, LabelingSession, SessionElement, Slice} from '../../backend';
 import {LabelTimer} from './LabelTimer';
 import {PastLabelsModal} from './PastLabelsModal';
 import {LabelKeymapModal} from './LabelKeymapModal';
@@ -15,47 +15,49 @@ import * as Session from '../../sessions/session';
 
 type LabelModal = 'pastLabels' | 'keymap';
 
+interface LabelState {
+    elementCount: number;
+    element: SessionElement;
+    labels: ElementLabel[];
+}
+
+function loadLabelState(session: LabelingSession, elementIndex: number | string): LabelState {
+    const elements = Session.getClass(session).selectElementsToLabel(session);
+    const element = elements[elementIndex];
+    return {
+        elementCount: elements.length,
+        element: element,
+        labels: dbapi.selectElementLabels(element.id),
+    }
+}
+
 function LabelView() {
     const navigate = useNavigate();
     let {sessionId, elementIndex} = useParams();
     const elementIndexInt = parseInt(elementIndex);
 
-    const session = useMemo(() => dbapi.selectLabelingSession(sessionId), []);
-    const [elements, setElements] = useState<SessionElement[] | null>(null);
-    const [curElement, setCurElement] = useState<{element: SessionElement, labels: ElementLabel[]} | null>(null);
+    const session = useMemo(() => dbapi.selectLabelingSession(sessionId), [sessionId]);
+    const [labelState, setLabelState] = useState<LabelState>(() => loadLabelState(session, elementIndex));
 
     const [modal, setModal] = useState<LabelModal | null>(null);
-
     const [startTimestamp, timerSeconds, resetTimer] = useTimer();
-
     const [nextOnLabel, setNextOnLabel] = useState<boolean>(true);
 
     useEffect(() => {
-        const sessClass = Session.getClass(session);
-        const _elements = sessClass.selectElementsToLabel(session);
-        setElements(_elements);
-
-        const _curElement = _elements[parseInt(elementIndex)];
-        setCurElement({
-            element: _curElement,
-            labels: dbapi.selectElementLabels(_curElement.id),
-        });
-
+        setLabelState(loadLabelState(session, elementIndex));
         resetTimer();
     }, [session, elementIndex]);
 
     useEffect(() => {
-        if (elements && curElement) {
-            document.addEventListener('keydown', handleKeyDown);
-            return () => document.removeEventListener('keydown', handleKeyDown);
-        }
-    }, [elements, curElement, nextOnLabel]);
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [labelState, nextOnLabel]);
 
     function jumpBy(amount: number) {
         // We must query the current number of elements because it
         // could have changed due to active labeling
         const numElements = Session.getClass(session).selectElementsToLabel(session).length;
-        const targetIndex = curElement.element.elementIndex + amount;
+        const targetIndex = labelState.element.elementIndex + amount;
         const newIndex = Math.max(Math.min(targetIndex, numElements - 1), 0);
         navigate(`/label/${sessionId}/${newIndex}`);
     }
@@ -87,25 +89,19 @@ function LabelView() {
 
     function addLabel(labelValue: string) {
         // If labelValue is already the current label, do nothing
-        if (curElement.labels.length > 0 && curElement.labels[0].labelValue === labelValue) return;
+        if (labelState.labels.length > 0 && labelState.labels[0].labelValue === labelValue) return;
 
         const sessClass = Session.getClass(session);
         // Warn about overwrite if applicable
-        if (sessClass.shouldWarnAboutLabelOverwrite(session, curElement.element.elementIndex)) {
+        if (sessClass.shouldWarnAboutLabelOverwrite(session, labelState.element.elementIndex)) {
             const message = `Adding a label here will overwrite all comparisons and labels that come after it.\n\nAre you sure you want to proceed?`;
             if (!window.confirm(message)) return;
         }
         // Add label
-        sessClass.addLabel(session, curElement.element, labelValue, startTimestamp);
+        sessClass.addLabel(session, labelState.element, labelValue, startTimestamp);
 
-        // Update labels for current element
-        setCurElement({
-            element: curElement.element,
-            labels: dbapi.selectElementLabels(curElement.element.id)
-        });
-        // Refresh elements
-        setElements(sessClass.selectElementsToLabel(session));
-        // Reset timer
+        // Update state and refresh timer
+        setLabelState(loadLabelState(session, elementIndex));
         resetTimer();
         // Jump to next element if nextOnLabel is true (delay is needed to feel natural)
         if (nextOnLabel) window.setTimeout(() => jumpBy(1), 100);
@@ -115,12 +111,8 @@ function LabelView() {
         setModal(null);
     }
 
-    if (!curElement) {
-        return <div className="w-screen h-screen text-2xl text-gray-400 font-medium flex justify-center items-center">Loading...</div>
-    }
-
     let modalEl;
-    if (modal === 'pastLabels') modalEl = <PastLabelsModal labels={curElement.labels} closeModal={closeModal} />
+    if (modal === 'pastLabels') modalEl = <PastLabelsModal labels={labelState.labels} closeModal={closeModal} />
     else if (modal === 'keymap') modalEl = <LabelKeymapModal closeModal={closeModal} />
     else modalEl = null;
 
@@ -140,10 +132,10 @@ function LabelView() {
                             <ChevronLeftIcon className="w-6 h-6" />
                         </Link>
                         <div className="mx-16">
-                            <h1 className="w-full text-2xl font-semibold text-center">{curElement.element.elementType} {elementIndexInt + 1}</h1>
+                            <h1 className="w-full text-2xl font-semibold text-center">{labelState.element.elementType} {elementIndexInt + 1}</h1>
                             <div className="mt-0.5 w-full text-gray-400 font-medium text-center">{session.prompt}</div>
                         </div>
-                        <Link to={elementIndexInt < (elements.length - 1) && `/label/${sessionId}/${elementIndexInt + 1}`} className="p-4 text-gray-500 hover:text-white transition">
+                        <Link to={elementIndexInt < (labelState.elementCount - 1) && `/label/${sessionId}/${elementIndexInt + 1}`} className="p-4 text-gray-500 hover:text-white transition">
                             <ChevronRightIcon className="w-6 h-6" />
                         </Link>
                     </div>
@@ -176,8 +168,8 @@ function LabelView() {
             </header>
             <main className="mt-6">
                 {!Session.getClass(session).isComparison()
-                    ? <ClassificationControls session={session} slice={curElement.element as Slice} labels={curElement.labels} addLabel={addLabel} nextOnLabel={nextOnLabel} setNextOnLabel={setNextOnLabel} />
-                    : <ComparisonControls session={session} comparison={curElement.element as Comparison} labels={curElement.labels} addLabel={addLabel} nextOnLabel={nextOnLabel} setNextOnLabel={setNextOnLabel} />
+                    ? <ClassificationControls session={session} slice={labelState.element as Slice} labels={labelState.labels} addLabel={addLabel} nextOnLabel={nextOnLabel} setNextOnLabel={setNextOnLabel} />
+                    : <ComparisonControls session={session} comparison={labelState.element as Comparison} labels={labelState.labels} addLabel={addLabel} nextOnLabel={nextOnLabel} setNextOnLabel={setNextOnLabel} />
                 }
             </main>
         </div>
