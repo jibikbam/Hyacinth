@@ -55,9 +55,9 @@ function buildDicomSeries(seriesDirPath: string) {
     series.buildSeries();
 
     const dims = [
+        series.images.length,
         series.images[0].getCols(),
         series.images[0].getRows(),
-        series.images.length,
     ];
     const iop = series.images[0].getImageDirections(); // Image Orientation (Patient) - (0020, 0037)
 
@@ -71,8 +71,7 @@ export function readDicomSeriesDims(seriesDirPath: string): [[number, number, nu
 
 export function readDicomSeries(seriesDirPath: string): [[number, number, number], [number, number, number, number, number, number], Float32Array] {
     const [dims, iop, series] = buildDicomSeries(seriesDirPath);
-    // TODO: order dims by ijk in buildDicomSeries so we do not have to change order here (after old renderer is removed)
-    const [jMax, kMax, iMax] = dims; // width, height, slice count
+    const [iMax, jMax, kMax] = dims; // slice count, width, height
     const pixelDataBySlice = series.images.map((image) => image.getInterpretedData(false, false));
 
     // Order voxels to be nifti-like (i fastest, then j, then k slowest)
@@ -87,9 +86,7 @@ export function readDicomSeries(seriesDirPath: string): [[number, number, number
         }
     }
 
-    // TODO: remove newDims after above TODO
-    const newDims: [number, number, number] = [iMax, jMax, kMax];
-    return [newDims, iop, voxelArray];
+    return [dims, iop, voxelArray];
 }
 
 export function readDicom2d(imagePath: string): [[number, number], Float32Array] {
