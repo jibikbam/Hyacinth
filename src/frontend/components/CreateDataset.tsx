@@ -228,6 +228,11 @@ function CreateDataset() {
     }, [datasetRoot, dicomAsSeries]);
 
     useEffect(() => {
+        setDimFilterEnabled(false);
+        setImageDims(null);
+    }, [filePaths]);
+
+    useEffect(() => {
         if (dimFilterEnabled && imageDims === null) {
             loadImageDims();
         }
