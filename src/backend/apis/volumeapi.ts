@@ -37,7 +37,7 @@ function buildDicomSeries(seriesDirPath: string) {
 
     for (const imageName of imageNames) {
         const fileData = fs.readFileSync(path.join(seriesDirPath, imageName));
-        const image = daikon.Series.parseImage(new DataView(daikon.Utils.toArrayBuffer(fileData)));
+        const image = daikon.Series.parseImage(new DataView(fileData.buffer));
         if (image === null) {
             console.log(`DICOM parsing error for file ${imageName} in ${seriesDirPath}`);
         }
@@ -91,7 +91,7 @@ export function readDicomSeries(seriesDirPath: string): [[number, number, number
 
 export function readDicom2d(imagePath: string): [[number, number], Float32Array] {
     const fileData = fs.readFileSync(imagePath);
-    const image = daikon.Series.parseImage(new DataView(daikon.Utils.toArrayBuffer(fileData)));
+    const image = daikon.Series.parseImage(new DataView(fileData.buffer));
 
     const dims: [number, number] = [image.getCols(), image.getRows()];
     const imageData: Float32Array = image.getInterpretedData(false, false);
@@ -101,6 +101,6 @@ export function readDicom2d(imagePath: string): [[number, number], Float32Array]
 
 export function readDicom2dDims(imagePath: string): [number, number] {
     const fileData = fs.readFileSync(imagePath);
-    const image = daikon.Series.parseImage(new DataView(daikon.Utils.toArrayBuffer(fileData)));
+    const image = daikon.Series.parseImage(new DataView(fileData.buffer));
     return [image.getCols(), image.getRows()];
 }
