@@ -116,6 +116,7 @@ export interface VolumeApiType {
     readDicomSeriesDims: (seriesDirPath: string) => [[number, number, number], [number, number, number, number, number, number]];
     readDicomSeries: (seriesDirPath: string) => [[number, number, number], [number, number, number, number, number, number], Float32Array];
     readDicom2d: (imagePath: string) => [[number, number], Float32Array];
+    readDicom2dDims: (imagePath: string) => [number, number];
 }
 
 export let dbapi: DBApiType;

@@ -92,7 +92,6 @@ export function readDicomSeries(seriesDirPath: string): [[number, number, number
     return [newDims, iop, voxelArray];
 }
 
-// TODO: function to read 2d dims only?
 export function readDicom2d(imagePath: string): [[number, number], Float32Array] {
     const fileData = fs.readFileSync(imagePath);
     const image = daikon.Series.parseImage(new DataView(daikon.Utils.toArrayBuffer(fileData)));
@@ -101,4 +100,10 @@ export function readDicom2d(imagePath: string): [[number, number], Float32Array]
     const imageData: Float32Array = image.getInterpretedData(false, false);
 
     return [dims, imageData];
+}
+
+export function readDicom2dDims(imagePath: string): [number, number] {
+    const fileData = fs.readFileSync(imagePath);
+    const image = daikon.Series.parseImage(new DataView(daikon.Utils.toArrayBuffer(fileData)));
+    return [image.getCols(), image.getRows()];
 }

@@ -56,7 +56,7 @@ export function loadDims(imagePath: string): [number, number, number] {
             return Render.mapDims(dims, dimMap);
         }
         case 'Dicom2D': {
-            const [dims, imageData] = volumeapi.readDicom2d(imagePath);
+            const dims = volumeapi.readDicom2dDims(imagePath);
             return [1, dims[0], dims[1]];
         }
         default: throw new Error(`Unknown image type "${imageType}" for path: ${imagePath}`);

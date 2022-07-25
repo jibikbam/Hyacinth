@@ -45,4 +45,5 @@ contextBridge.exposeInMainWorld('volumeapi', {
     readDicomSeriesDims: volumeapi.readDicomSeriesDims,
     readDicomSeries: volumeapi.readDicomSeries,
     readDicom2d: volumeapi.readDicom2d,
+    readDicom2dDims: volumeapi.readDicom2dDims,
 });
