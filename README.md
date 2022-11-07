@@ -1,4 +1,14 @@
-# Hyacinth
+# Medical Image Annotater & Viewer
+
+### Goal
+1) Annotate or label for image quality, artifact, disease severity
+2) Visualize images
+3) Standard medical image formats are allowed - DICOM, NIfTI
+
+### Functions
+1) Classification annotation (none, mild, moderate, severe)
+2) Comparison annotation (left is worse, right is worse, tie)
+3) Sort-based comparison annotation (left is worse, right is worse, tie) - this is a novel method we developed to reduce annotation burden!
 
 ### Developer Installation
 
